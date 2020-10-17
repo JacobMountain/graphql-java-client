@@ -176,7 +176,6 @@ public class PojoBuilder {
                         .addMember("value", StringUtils.enquote(name))
                         .build()
         );
-        log.info("}");
         return JavaFile.builder(packageName, builder.build())
                 .indent("\t")
                 .build();
