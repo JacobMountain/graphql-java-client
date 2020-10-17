@@ -4,18 +4,6 @@ plugins {
     id "maven-publish"
 }
 
-group "co.uk.jacobmountain"
-version '1.0-SNAPSHOT'
-
-repositories {
-    mavenCentral()
-}
-
-task testJar(type: Jar) {
-    classifier = "tests"
-    from sourceSets.test.allSource
-}
-
 dependencies {
     implementation project(":graphql-client-annotations")
     implementation "com.squareup:javapoet:1.11.1"
