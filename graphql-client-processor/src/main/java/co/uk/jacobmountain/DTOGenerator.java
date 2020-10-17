@@ -29,7 +29,7 @@ public class DTOGenerator {
         types.forEach(this::generateDTO);
         this.types.values().forEach(it -> {
                     try {
-                        it.build(filer);
+                        it.build().writeTo(filer);
                     } catch (Exception e) {
                         log.error("Failed to create class", e);
                     }
@@ -48,7 +48,7 @@ public class DTOGenerator {
                                 builder.withField(variable.type, variable.name);
                             });
                     try {
-                        builder.build(filer);
+                        builder.build().writeTo(filer);
                     } catch (IOException e) {
                         log.error("Failed to create class", e);
                     }
@@ -81,6 +81,7 @@ public class DTOGenerator {
                             it.getName()
                     ));
         }
+        log.info("}");
         types.put(td.getName(), pojo);
     }
 

@@ -1,5 +1,7 @@
 package co.uk.jacobmountain
 
+import co.uk.jacobmountain.dto.Character
+import co.uk.jacobmountain.dto.Human
 import spock.lang.Specification
 
 class ProcessorSpec extends Specification {

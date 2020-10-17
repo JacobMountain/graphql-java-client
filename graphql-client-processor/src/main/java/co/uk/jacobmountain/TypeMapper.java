@@ -6,7 +6,6 @@ import com.squareup.javapoet.TypeName;
 import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.Type;
-import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +26,8 @@ public class TypeMapper {
     static {
         // TODO use ints for non-nullable fields
         SCALARS.put("Int", INT.box());
+        SCALARS.put("int", INT);
+        SCALARS.put("ID", INT.box());
         SCALARS.put("String", ClassName.get(String.class));
     }
 

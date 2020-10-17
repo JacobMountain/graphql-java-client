@@ -45,7 +45,7 @@ type Object {
         def result = generator.generateQuery("obj", false)
 
         then:
-        queriesAreEqual("query Obj { obj { nested } }", result)
+        queriesAreEqual("query Obj { obj { nested __typename } }", result)
     }
 
 }

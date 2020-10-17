@@ -18,7 +18,7 @@ type Human implements Character {
     id: ID!
     name: String!
     friends: [Character]
-    totalCredits: Int
+    totalCredits: int
 }
 
 type Droid implements Character {

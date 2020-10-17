@@ -3,9 +3,7 @@ package co.uk.jacobmountain;
 import com.squareup.javapoet.*;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -124,10 +122,10 @@ public class PojoBuilder {
             builder.append(field);
             builder.append(" + ");
             if (!field.equals(fields.get(fields.size() - 1))) {
-                builder.append("\", ");
+                builder.append("\",");
             }
         }
-        builder.append("\"}\"");
+        builder.append("\" }\"");
         MethodSpec toString = MethodSpec.methodBuilder("toString")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(String.class)
@@ -164,12 +162,8 @@ public class PojoBuilder {
         );
     }
 
-    public void build(Filer filer) throws IOException {
-        build().writeTo(filer);
-    }
 
     public JavaFile build() {
-        log.info("}");
         if (!isInterface) {
             generateToString();
             generateEquals();
@@ -182,7 +176,7 @@ public class PojoBuilder {
                         .addMember("value", StringUtils.enquote(name))
                         .build()
         );
-
+        log.info("}");
         return JavaFile.builder(packageName, builder.build())
                 .indent("\t")
                 .build();

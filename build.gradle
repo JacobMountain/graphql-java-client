@@ -1,6 +1,3 @@
-
-
-
 allprojects {
     group 'co.uk.jacobmountain'
     version '1.0-SNAPSHOT'

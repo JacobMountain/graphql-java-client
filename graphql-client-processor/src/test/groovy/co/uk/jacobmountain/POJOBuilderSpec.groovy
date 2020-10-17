@@ -27,18 +27,17 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate a class"(){
         when:
-        def build = PojoBuilder.newClass("MyPojo").build()
+        def build = PojoBuilder.newClass("MyPojo", "co.uk").build()
 
         then:
         build.typeSpec.name == "MyPojo"
         build.typeSpec.kind == TypeSpec.Kind.CLASS
         hasMethod(build.typeSpec, "toString")
-
     }
 
     def "We can generate an interface"(){
         when:
-        def build = PojoBuilder.newInterface("MyInterface").build()
+        def build = PojoBuilder.newInterface("MyInterface", "co.uk").build()
 
         then:
         build.typeSpec.name == "MyInterface"
@@ -48,7 +47,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate getters and setters for private fields"(){
         when:
-        def build = PojoBuilder.newClass("MyPojo")
+        def build = PojoBuilder.newClass("MyPojo", "co.uk")
                 .withField(ClassName.get(String.class), "field")
                 .build()
 
@@ -61,7 +60,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate getters and setters for multiple private fields"(){
         when:
-        def build = PojoBuilder.newClass("MyPojo")
+        def build = PojoBuilder.newClass("MyPojo", "co.uk")
                 .withField(ClassName.get(String.class), "string")
                 .withField(INT, "integer")
                 .build()
@@ -77,10 +76,10 @@ class POJOBuilderSpec extends Specification {
 
     def "My Class can implement an interface"() {
         given:
-        PojoBuilder.newInterface("Interface").build()
+        PojoBuilder.newInterface("Interface", "co.uk").build()
 
         when:
-        def clazz = PojoBuilder.newClass("Implements")
+        def clazz = PojoBuilder.newClass("Implements", "co.uk.jacobmountain")
             .implement("Interface")
             .build()
 

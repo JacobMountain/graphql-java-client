@@ -1,10 +1,6 @@
 package co.uk.jacobmountain;
 
 import com.squareup.javapoet.*;
-import graphql.language.NamedNode;
-import graphql.language.ObjectTypeDefinition;
-import graphql.language.OperationTypeDefinition;
-import graphql.language.SchemaDefinition;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +11,9 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementKindVisitor8;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static co.uk.jacobmountain.StringUtils.camelCase;
@@ -76,9 +73,9 @@ public class ClientGenerator {
 
         writeToFile(builder.build());
 
-        ObjectTypeDefinition queryType = getQuery(schema).orElseThrow(QueryTypeNotFound::new);
-
-        queryType.getFieldDefinitions().forEach(query -> log.info("{}", query));
+//        ObjectTypeDefinition queryType = getQuery(schema).orElseThrow(QueryTypeNotFound::new);
+//
+//        queryType.getFieldDefinitions().forEach(query -> log.info("{}", query));
     }
 
     static class QueryTypeNotFound extends RuntimeException {
@@ -167,25 +164,25 @@ public class ClientGenerator {
                 .writeTo(filer);
     }
 
-    private Optional<ObjectTypeDefinition> getQuery(TypeDefinitionRegistry tdr) {
-        Map<String, OperationTypeDefinition> schemaMap = tdr.schemaDefinition()
-                .map(SchemaDefinition::getOperationTypeDefinitions)
-                .orElseGet(ArrayList::new)
-                .stream()
-                .collect(Collectors.toMap(OperationTypeDefinition::getName, Function.identity()));
-        return Optional.ofNullable(schemaMap.get("query"))
-                .flatMap(
-                        operationTypeDefinition -> operationTypeDefinition
-                                .getChildren()
-                                .stream()
-                                .filter(it -> it instanceof NamedNode)
-                                .map(it -> tdr.getType(((NamedNode) it).getName()))
-                                .filter(Optional::isPresent)
-                                .map(Optional::get)
-                                .map(it -> (ObjectTypeDefinition) it)
-                                .findAny()
-                );
-    }
+//    private Optional<ObjectTypeDefinition> getQuery(TypeDefinitionRegistry tdr) {
+//        Map<String, OperationTypeDefinition> schemaMap = tdr.schemaDefinition()
+//                .map(SchemaDefinition::getOperationTypeDefinitions)
+//                .orElseGet(ArrayList::new)
+//                .stream()
+//                .collect(Collectors.toMap(OperationTypeDefinition::getName, Function.identity()));
+//        return Optional.ofNullable(schemaMap.get("query"))
+//                .flatMap(
+//                        operationTypeDefinition -> operationTypeDefinition
+//                                .getChildren()
+//                                .stream()
+//                                .filter(it -> it instanceof NamedNode)
+//                                .map(it -> tdr.getType(((NamedNode<?>) it).getName()))
+//                                .filter(Optional::isPresent)
+//                                .map(Optional::get)
+//                                .map(it -> (ObjectTypeDefinition) it)
+//                                .findAny()
+//                );
+//    }
 
     @Data
     @Builder
@@ -215,13 +212,11 @@ public class ClientGenerator {
                     .parameters(
                             e.getParameters()
                                     .stream()
-                                    .map(parameter -> {
-                                        String[] split = parameter.asType().toString().split("\\.");
-                                        return ParameterSpec.builder(
-                                                typeMapper.getType(split[split.length - 1]),
-                                                parameter.getSimpleName().toString())
-                                                .build();
-                                    })
+                                    .map(parameter -> ParameterSpec.builder(
+                                            typeMapper.defaultPackage(ClassName.get(parameter.asType())),
+                                            parameter.getSimpleName().toString())
+                                            .build()
+                                    )
                                     .collect(Collectors.toList())
                     )
                     .build();

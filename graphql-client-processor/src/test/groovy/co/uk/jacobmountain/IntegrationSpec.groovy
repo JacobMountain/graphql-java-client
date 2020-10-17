@@ -1,11 +1,6 @@
 package co.uk.jacobmountain
 
-import co.uk.jacobmountain.Character
-import co.uk.jacobmountain.Droid
-import co.uk.jacobmountain.DroidArguments
-import co.uk.jacobmountain.Human
-import co.uk.jacobmountain.Query
-import co.uk.jacobmountain.dto.Response
+import co.uk.jacobmountain.dto.*
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -30,7 +25,7 @@ class IntegrationSpec extends Specification {
 
     def "Can query for data with no args"() {
         given:
-        fetcher.query("query Hero { hero { id name friends { id name } } }") >> Response.builder()
+        fetcher.query("query Hero { hero { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } ... on Human { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } totalCredits __typename } ... on Droid { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } primaryFunction __typename } __typename } }") >> Response.builder()
                 .data(new Query() {
                     @Override
                     Character getHero() {
@@ -53,7 +48,7 @@ class IntegrationSpec extends Specification {
         def args = new DroidArguments()
         args.id = id
         def droid = newDroid(id, name)
-        fetcher.query("query Droid(\$id: ID!) { droid(id: \$id) { id name friends { id name } primaryFunction } }", args) >> Response.builder()
+        fetcher.query("query Droid(\$id: ID!) { droid(id: \$id) { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } primaryFunction __typename } }", args) >> Response.builder()
                 .data(new Query() {
                     @Override
                     Droid getDroid() {

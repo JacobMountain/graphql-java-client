@@ -1,6 +1,8 @@
 package co.uk.jacobmountain;
 
 
+import co.uk.jacobmountain.dto.*;
+
 @GraphQLClient(
         schema = "src/test/resources/Schema.gql",
         mapping = {
@@ -10,9 +12,9 @@ package co.uk.jacobmountain;
 public interface Client {
 
         @GraphQLQuery("hero")
-        Character getHero();
+        co.uk.jacobmountain.dto.Character getHero();
 
         @GraphQLQuery("droid")
-        Droid getDroid(int id);
+        Droid getDroid(Integer id);
 
 }
