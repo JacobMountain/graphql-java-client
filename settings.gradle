@@ -2,7 +2,6 @@ rootProject.name = 'graphql-client'
 
 include "graphql-client-annotations"
 include "graphql-client-processor"
-include 'spring-graphql-client'
 include ':example:example-client'
 include ':example:example-server'
 
