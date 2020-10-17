@@ -1,0 +1,29 @@
+schema {
+    query: Query
+}
+
+#Query root
+type Query {
+    hero: Character
+    droid(id: ID!): Droid
+}
+
+interface Character {
+    id: ID!
+    name: String!
+    friends: [Character]
+}
+
+type Human implements Character {
+    id: ID!
+    name: String!
+    friends: [Character]
+    totalCredits: Int
+}
+
+type Droid implements Character {
+    id: ID!
+    name: String!
+    friends: [Character]
+    primaryFunction: String
+}

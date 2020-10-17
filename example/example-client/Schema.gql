@@ -1,0 +1,23 @@
+schema {
+    query: Query
+}
+
+type Query {
+    results: [MatchResult]
+    result(id: ID): MatchResult
+}
+
+type MatchResult {
+    home: Score
+    away: Score
+}
+
+type Score {
+    team: Team
+    points: Int
+}
+
+type Team {
+    id: ID
+    name: String
+}
