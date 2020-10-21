@@ -1,18 +1,22 @@
-package co.uk.jacobmountain;
+package co.uk.jacobmountain.utils;
+
+import lombok.experimental.UtilityClass;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@UtilityClass
 public class StringUtils {
 
-    static String capitalize(String word) {
+    public String capitalize(String word) {
         return word.substring(0, 1).toUpperCase() + word.substring(1);
     }
-    static String decapitalize(String word) {
+
+    public String decapitalize(String word) {
         return word.substring(0, 1).toLowerCase() + word.substring(1);
     }
 
-    static String camelCase(String... parts) {
+    public String camelCase(String... parts) {
         return Stream.concat(
                 Stream.of(parts[0])
                         .map(StringUtils::decapitalize),
@@ -22,11 +26,11 @@ public class StringUtils {
         ).collect(Collectors.joining());
     }
 
-    static String enquote(String value) {
+    public String enquote(String value) {
         return "\"" + value + "\"";
     }
 
-    static boolean isEmpty(String str) {
+    public boolean isEmpty(String str) {
         return str == null || str.trim().equals("");
     }
 

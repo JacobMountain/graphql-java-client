@@ -1,5 +1,6 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.utils.StringUtils;
 import graphql.language.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;

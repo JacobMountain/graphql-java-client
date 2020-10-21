@@ -1,4 +1,4 @@
-package co.uk.jacobmountain;
+package co.uk.jacobmountain.utils;
 
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
