@@ -1,5 +1,6 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.utils.StringUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;

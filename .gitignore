@@ -1,9 +1,11 @@
 HELP.md
 .gradle
+.DS_Store
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 **/src/main/generated/
+**/src/test/generated_tests/
 !**/src/test/**/build/
 
 ### STS ###

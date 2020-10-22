@@ -1,7 +1,7 @@
 package co.uk.jacobmountain;
 
 
-import co.uk.jacobmountain.dto.*;
+import co.uk.jacobmountain.dto.Droid;
 
 @GraphQLClient(
         schema = "src/test/resources/Schema.gql",

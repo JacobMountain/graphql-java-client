@@ -1,5 +1,6 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.utils.StringUtils;
 import com.squareup.javapoet.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.*;
@@ -16,8 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static co.uk.jacobmountain.StringUtils.camelCase;
-import static co.uk.jacobmountain.StringUtils.capitalize;
 import static graphql.language.TypeName.newTypeName;
 
 @Slf4j
@@ -72,16 +71,6 @@ public class ClientGenerator {
                 .forEach(builder::addMethod);
 
         writeToFile(builder.build());
-
-//        ObjectTypeDefinition queryType = getQuery(schema).orElseThrow(QueryTypeNotFound::new);
-//
-//        queryType.getFieldDefinitions().forEach(query -> log.info("{}", query));
-    }
-
-    static class QueryTypeNotFound extends RuntimeException {
-        QueryTypeNotFound() {
-            super("Unable to find Query type!");
-        }
     }
 
     private void generateConstructor(TypeSpec.Builder builder, ParameterizedTypeName fetcherType) {
@@ -107,7 +96,7 @@ public class ClientGenerator {
                         .add("return fetcher")
                         .add(details.mutation ? generateMutationCode(schema, details.getField(), args) : generateQueryCode(schema, details.getField(), args))
                         .add(".getData()")
-                        .add(".$L()", camelCase("get", details.getField()))
+                        .add(".$L()", StringUtils.camelCase("get", details.getField()))
                         .build()
         )
                 .build();
@@ -152,7 +141,7 @@ public class ClientGenerator {
         TypeName type = ClassName.get(dtoPackageName, generateArgumentClassname(details.getField()));
         ret.add(CodeBlock.of("$T args = new $T()", type, type));
         details.getParameters()
-                .forEach(param -> ret.add(CodeBlock.of("args.set$L($L)", capitalize(param.name), param.name)));
+                .forEach(param -> ret.add(CodeBlock.of("args.set$L($L)", StringUtils.capitalize(param.name), param.name)));
         return ret;
     }
 
@@ -163,26 +152,6 @@ public class ClientGenerator {
                 .build()
                 .writeTo(filer);
     }
-
-//    private Optional<ObjectTypeDefinition> getQuery(TypeDefinitionRegistry tdr) {
-//        Map<String, OperationTypeDefinition> schemaMap = tdr.schemaDefinition()
-//                .map(SchemaDefinition::getOperationTypeDefinitions)
-//                .orElseGet(ArrayList::new)
-//                .stream()
-//                .collect(Collectors.toMap(OperationTypeDefinition::getName, Function.identity()));
-//        return Optional.ofNullable(schemaMap.get("query"))
-//                .flatMap(
-//                        operationTypeDefinition -> operationTypeDefinition
-//                                .getChildren()
-//                                .stream()
-//                                .filter(it -> it instanceof NamedNode)
-//                                .map(it -> tdr.getType(((NamedNode<?>) it).getName()))
-//                                .filter(Optional::isPresent)
-//                                .map(Optional::get)
-//                                .map(it -> (ObjectTypeDefinition) it)
-//                                .findAny()
-//                );
-//    }
 
     @Data
     @Builder
