@@ -8,6 +8,7 @@ import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.Type;
 
+import javax.lang.model.type.MirroredTypeException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +35,18 @@ public class TypeMapper {
 
     public TypeMapper(String packageName, GraphQLClient.Scalar... scalars) {
         Map<String, TypeName> scalarMap = Stream.of(scalars)
-                .collect(Collectors.toMap(GraphQLClient.Scalar::from, GraphQLClientProcessor::getTypeName));
-        scalarMap.putAll(SCALARS);
-        this.scalars = scalarMap;
+                .collect(Collectors.toMap(GraphQLClient.Scalar::from, TypeMapper::getTypeName));
+        this.scalars = new HashMap<>(SCALARS);
+        this.scalars.putAll(scalarMap);
         this.packageName = packageName;
+    }
+
+    private static TypeName getTypeName(GraphQLClient.Scalar annotation) {
+        try {
+            return ClassName.get(annotation.to()); // this should throw
+        } catch (MirroredTypeException mte) {
+            return ClassName.get(mte.getTypeMirror());
+        }
     }
 
     // from graphql type to java poet type

@@ -72,15 +72,6 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         return processingEnv.getElementUtils().getPackageOf(e).toString();
     }
 
-    static TypeName getTypeName(GraphQLClient.Scalar annotation) {
-        try {
-            annotation.to(); // this should throw
-        } catch (MirroredTypeException mte) {
-            return ClassName.get(mte.getTypeMirror());
-        }
-        throw new RuntimeException("Failed to map scalar to class");
-    }
-
     private TypeDefinitionRegistry readSchema(GraphQLClient annotation) {
         String value = annotation.schema();
         if (!value.trim().equals("")) {

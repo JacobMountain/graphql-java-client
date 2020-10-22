@@ -1,21 +1,22 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'groovy'
     id 'org.springframework.boot' version '2.3.2.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
 }
 
-group 'co.uk.jacobmountain'
-version '1.0-SNAPSHOT'
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-
     implementation project(":graphql-client-annotations")
     annotationProcessor project(":graphql-client-processor")
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    testCompile project(":example:example-server")
+    testImplementation group: "org.codehaus.groovy", name: "groovy-all", version: "2.5.7"
+    testImplementation group: "org.spockframework", name: "spock-core", version: "1.2-groovy-2.5"
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.3.4.RELEASE'
+    testImplementation group: 'org.spockframework', name: 'spock-spring', version: '2.0-M3-groovy-2.5'
 }

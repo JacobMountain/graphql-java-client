@@ -1,0 +1,4 @@
+graphql:
+  servlet:
+    mapping: /graph
+    enabled: true
