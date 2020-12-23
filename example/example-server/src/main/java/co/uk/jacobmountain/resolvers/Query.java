@@ -1,6 +1,7 @@
 package co.uk.jacobmountain.resolvers;
 
 import co.uk.jacobmountain.resolvers.dto.MatchResult;
+import co.uk.jacobmountain.resolvers.dto.Team;
 import co.uk.jacobmountain.service.ResultService;
 import graphql.kickstart.tools.GraphQLQueryResolver;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,11 @@ public class Query implements GraphQLQueryResolver {
     public MatchResult getResult(String id) {
         log.info("Getting match result {}", id);
         return resultService.getResult(Integer.parseInt(id));
+    }
+
+    public Team getTeam(String id) {
+        log.info("Getting team {}", id);
+        return resultService.getTeam(id);
     }
 
 }

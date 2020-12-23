@@ -1,5 +1,6 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
 import graphql.language.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
@@ -15,23 +16,17 @@ import java.util.stream.Stream;
 @Slf4j
 public class QueryGenerator {
 
-    private final TypeDefinitionRegistry registry;
-
-    private final ObjectTypeDefinition query;
-
-    private final ObjectTypeDefinition mutation;
+    private final Schema schema;
 
     private final int maxDepth;
 
     public QueryGenerator(TypeDefinitionRegistry registry, int maxDepth) {
-        this.registry = registry;
-        this.query = (ObjectTypeDefinition) getTypeDefinition("Query").orElseThrow(RuntimeException::new);
-        this.mutation = (ObjectTypeDefinition) getTypeDefinition("Mutation").orElse(null);
+        this.schema = new Schema(registry);
         this.maxDepth = maxDepth;
     }
 
     public String generateQuery(String field, boolean mutates) {
-        FieldDefinition definition = findField(query, field).orElseGet(() -> findField(mutation, field).orElse(null));
+        FieldDefinition definition = schema.findField(field).orElse(null);
 
         List<String> args = new ArrayList<>();
 
@@ -46,29 +41,11 @@ public class QueryGenerator {
         return generateQueryName(field, mutates) + collect + " { " + inner + " }";
     }
 
-    private Optional<TypeDefinition> getTypeDefinition(String name) {
-        return registry.getType(name);
-    }
-
     private String generateQueryName(String field, boolean mutates) {
         return (mutates ? "mutation" : "query") + " " + StringUtils.capitalize(field);
     }
 
-    public Optional<FieldDefinition> findField(ObjectTypeDefinition parent, String field) {
-        return Optional.ofNullable(parent)
-                .map(ObjectTypeDefinition::getFieldDefinitions)
-                .orElseGet(ArrayList::new)
-                .stream()
-                .filter(it -> it.getName().equals(field))
-                .findAny();
-    }
 
-    public Optional<FieldDefinition> findField(InterfaceTypeDefinition parent, String field) {
-        return parent.getFieldDefinitions()
-                .stream()
-                .filter(it -> it.getName().equals(field))
-                .findAny();
-    }
 
     private String unwrap(Type<?> type) {
         if (type instanceof ListType) {
@@ -82,7 +59,7 @@ public class QueryGenerator {
 
     private Optional<String> generateQueryRec(String alias, FieldDefinition field, int depth, List<String> argumentCollector) {
         String type = unwrap(field.getType());
-        TypeDefinition<?> typeDefinition = getTypeDefinition(type).orElse(null);
+        TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
         String args = generateFieldArgs(field, argumentCollector);
 
@@ -123,7 +100,7 @@ public class QueryGenerator {
         if (!(typeDefinition instanceof InterfaceTypeDefinition)) {
             return Stream.of();
         }
-        return registry.types()
+        return schema.types()
                 .values()
                 .stream()
                 .filter(it -> it instanceof ObjectTypeDefinition)
@@ -142,9 +119,9 @@ public class QueryGenerator {
                     String name = ((NamedNode<?>) it).getName();
                     Optional<FieldDefinition> childDefinition;
                     if (typeDefinition instanceof ObjectTypeDefinition) {
-                        childDefinition = findField((ObjectTypeDefinition) typeDefinition, name);
+                        childDefinition = schema.findField((ObjectTypeDefinition) typeDefinition, name);
                     } else {
-                        childDefinition = findField((InterfaceTypeDefinition) typeDefinition, name);
+                        childDefinition = schema.findField((InterfaceTypeDefinition) typeDefinition, name);
                     }
                     return childDefinition;
                 })

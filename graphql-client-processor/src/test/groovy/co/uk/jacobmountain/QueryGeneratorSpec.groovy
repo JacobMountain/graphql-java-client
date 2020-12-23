@@ -3,9 +3,11 @@ package co.uk.jacobmountain
 
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
+import groovy.util.logging.Slf4j
 import spock.lang.Specification
 import spock.lang.Subject
 
+@Slf4j
 class QueryGeneratorSpec extends Specification {
 
     static final String SCHEMA = """
@@ -17,6 +19,7 @@ type Query {
     string: String
     obj: Object
     findObject(id: String): Object
+    findObjectNonNullArg(id: String!): Object
     character: [ID]
     hero: Hero
 }
@@ -47,6 +50,9 @@ type Droid implements ID {
     QueryGenerator generator = new QueryGenerator(TDR, 2)
 
     static boolean queriesAreEqual(String expected, String result) {
+        log.info("Asserting equal: ")
+        log.info("\t{}", expected)
+        log.info("\t{}", result)
         expected == result
     }
 
@@ -92,6 +98,14 @@ type Droid implements ID {
 
         then:
         queriesAreEqual("query Hero { hero { name friends { name friends { name friends { name __typename } __typename } __typename } __typename } }", result)
+    }
+
+    def "I can generate a query with a non null arg"() {
+        when:
+        def result = generator.generateQuery("findObjectNonNullArg", false)
+
+        then:
+        queriesAreEqual("query FindObjectNonNullArg(\$id: String!) { findObjectNonNullArg(id: \$id) { nested __typename } }", result)
     }
 
 }

@@ -1,6 +1,5 @@
 package co.uk.jacobmountain
 
-
 import co.uk.jacobmountain.service.ResultService
 import co.uk.jacobmountain.util.Assert
 import co.uk.jacobmountain.util.RandomResultUtil
@@ -25,10 +24,11 @@ class ClientSpec extends Specification {
     @SpringBean
     ResultService mock = Mock(ResultService)
 
+    SpyFetcher fetcher
+
     def setup() {
-        if (!client) {
-            client = new MatchResultsClientGraph(new ExampleFetcher("http://localhost:$port/graph"))
-        }
+        fetcher = new SpyFetcher(new ExampleFetcher("http://localhost:$port/graph"))
+        client = new MatchResultsClientGraph(fetcher)
     }
 
     def "I can get a query with an argument"() {
@@ -80,6 +80,31 @@ class ClientSpec extends Specification {
 
         then:
         Assert.assertEquals(expected, result)
+    }
+
+
+    def "I can query with non-null arguments"() {
+        given:
+        def expected = RandomResultUtil.randomTeam()
+        mock.getTeam("arsenal") >> expected
+
+        when:
+        def team = client.getTeam("arsenal")
+
+        then:
+        Assert.assertEquals(expected, team)
+    }
+
+
+    def "A NPE is thrown for null arguments before the request is made"() {
+        when:
+        client.getTeam(null)
+
+        then: "No HTTP requests should occur"
+        !fetcher.hasInteractions()
+
+        and: "A NPE should be thrown"
+        thrown(NullPointerException)
     }
 
 

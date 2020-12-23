@@ -5,6 +5,7 @@ schema {
 type Query {
     results: [MatchResult]
     result(id: ID): MatchResult
+    team(id: String!): Team
 }
 
 type MatchResult {

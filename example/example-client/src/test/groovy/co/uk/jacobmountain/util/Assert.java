@@ -2,6 +2,7 @@ package co.uk.jacobmountain.util;
 
 
 import co.uk.jacobmountain.resolvers.dto.MatchResult;
+import co.uk.jacobmountain.resolvers.dto.Team;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -25,6 +26,11 @@ public class Assert {
                 return super.getType();
             }
         });
+        Assertions.assertEquals(expected, result);
+    }
+
+    public static void assertEquals(Team expected, co.uk.jacobmountain.dto.Team actual) {
+        Team result = OBJECT_MAPPER.convertValue(actual, Team.class);
         Assertions.assertEquals(expected, result);
     }
 

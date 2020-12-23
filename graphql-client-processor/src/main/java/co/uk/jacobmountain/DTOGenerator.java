@@ -43,7 +43,7 @@ public class DTOGenerator {
     public void generateArgumentDTOs(TypeElement client) {
         client.getEnclosedElements()
                 .stream()
-                .map(method -> method.accept(new MethodDetailsVisitor(), typeMapper))
+                .map(method -> method.accept(new MethodDetailsVisitor(null), typeMapper))
                 .filter(MethodDetails::hasParameters) // don't generate argument classes for methods without args
                 .forEach(details -> {
                     PojoBuilder builder = PojoBuilder.newClass(ClientGenerator.generateArgumentClassname(details.getField()), packageName);
