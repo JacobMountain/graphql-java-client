@@ -15,6 +15,8 @@ public @interface GraphQLClient {
 
     int maxDepth() default 3;
 
+    boolean nullChecking() default false;
+
     @interface Scalar {
 
         String from();

@@ -2,6 +2,7 @@ package co.uk.jacobmountain;
 
 
 import co.uk.jacobmountain.dto.MatchResult;
+import co.uk.jacobmountain.dto.Team;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +12,8 @@ import java.util.Optional;
         mapping = {
                 @GraphQLClient.Scalar(from = "ID", to = String.class)
         },
-        maxDepth = 5
+        maxDepth = 5,
+        nullChecking = true
 )
 public interface MatchResultsClient {
 
@@ -26,5 +28,8 @@ public interface MatchResultsClient {
 
     @GraphQLQuery("result")
     MatchResult getResultWithRenamedArg(@GraphQLArgument("id") int integer);
+
+    @GraphQLQuery("team")
+    Team getTeam(String id);
 
 }

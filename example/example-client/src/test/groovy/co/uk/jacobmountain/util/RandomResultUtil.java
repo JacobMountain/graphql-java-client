@@ -29,7 +29,7 @@ public class RandomResultUtil {
                 .build();
     }
 
-    private static Team randomTeam() {
+    public static Team randomTeam() {
         String team = random(TEAMS);
         return Team.builder()
                 .id(UUID.randomUUID().toString())

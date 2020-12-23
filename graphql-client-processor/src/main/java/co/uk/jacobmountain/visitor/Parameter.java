@@ -16,6 +16,8 @@ public class Parameter {
 
     private GraphQLArgument annotation;
 
+    private boolean nullable;
+
     public ParameterSpec toSpec() {
         return ParameterSpec.builder(type, name).build();
     }

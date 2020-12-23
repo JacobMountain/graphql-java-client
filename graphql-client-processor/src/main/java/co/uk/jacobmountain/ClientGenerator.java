@@ -14,10 +14,7 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static graphql.language.TypeName.newTypeName;
 
@@ -88,7 +85,7 @@ public class ClientGenerator {
     }
 
     private MethodSpec generateImpl(Element method, TypeDefinitionRegistry schema) {
-        MethodDetails details = method.accept(new MethodDetailsVisitor(), typeMapper);
+        MethodDetails details = method.accept(new MethodDetailsVisitor(schema), typeMapper);
         log.info("{}", details.getReturnType());
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .returns(details.getReturnType())
@@ -155,7 +152,11 @@ public class ClientGenerator {
         String field = Optional.ofNullable(param.getAnnotation())
                 .map(GraphQLArgument::value)
                 .orElse(parameter);
-        return CodeBlock.of("args.set$L($L)", StringUtils.capitalize(field), parameter);
+        CodeBlock value = CodeBlock.of("$L", parameter);
+        if (!param.isNullable()) {
+            value = CodeBlock.of("$T.requireNonNull($L)", Objects.class, parameter);
+        }
+        return CodeBlock.of("args.set$L($L)", StringUtils.capitalize(field), value);
     }
 
     private void writeToFile(TypeSpec spec) throws Exception {
