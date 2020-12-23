@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static graphql.language.TypeName.newTypeName;
 
@@ -94,7 +93,7 @@ public class ClientGenerator {
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .returns(details.getReturnType())
                 .addModifiers(Modifier.PUBLIC)
-                .addParameters(details.getParameters().stream().map(Parameter::toSpec).collect(Collectors.toList()));
+                .addParameters(details.getParameterSpec());
         assembleArguments(details).forEach(builder::addStatement);
         assembleFetchAndReturn(details, schema).forEach(builder::addStatement);
         return builder.build();
@@ -145,14 +144,18 @@ public class ClientGenerator {
         TypeName type = ClassName.get(dtoPackageName, generateArgumentClassname(details.getField()));
         ret.add(CodeBlock.of("$T args = new $T()", type, type));
         details.getParameters()
-                .forEach(param -> {
-                    String parameter = param.getName();
-                    String field = Optional.ofNullable(param.getAnnotation())
-                            .map(GraphQLArgument::value)
-                            .orElse(parameter);
-                    ret.add(CodeBlock.of("args.set$L($L)", StringUtils.capitalize(field), parameter));
-                });
+                .stream()
+                .map(this::setArgumentField)
+                .forEach(ret::add);
         return ret;
+    }
+
+    private CodeBlock setArgumentField(Parameter param) {
+        String parameter = param.getName();
+        String field = Optional.ofNullable(param.getAnnotation())
+                .map(GraphQLArgument::value)
+                .orElse(parameter);
+        return CodeBlock.of("args.set$L($L)", StringUtils.capitalize(field), parameter);
     }
 
     private void writeToFile(TypeSpec spec) throws Exception {

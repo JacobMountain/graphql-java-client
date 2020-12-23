@@ -1,10 +1,12 @@
 package co.uk.jacobmountain.visitor;
 
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import lombok.Builder;
 import lombok.Singular;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder
 public class MethodDetails {
@@ -32,6 +34,12 @@ public class MethodDetails {
 
     public List<Parameter> getParameters() {
         return parameters;
+    }
+
+    public List<ParameterSpec> getParameterSpec() {
+        return parameters.stream()
+                .map(Parameter::toSpec)
+                .collect(Collectors.toList());
     }
 
     public boolean isQuery() {
