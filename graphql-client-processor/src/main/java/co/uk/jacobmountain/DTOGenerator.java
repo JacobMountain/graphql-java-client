@@ -1,12 +1,15 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.visitor.MethodDetailsVisitor;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class DTOGenerator {
@@ -39,7 +42,7 @@ public class DTOGenerator {
     public void generateArgumentDTOs(TypeElement client) {
         client.getEnclosedElements()
                 .stream()
-                .map(method -> method.accept(new ClientGenerator.MethodDetailsVisitor(), typeMapper))
+                .map(method -> method.accept(new MethodDetailsVisitor(), typeMapper))
                 .filter(details -> !details.getParameters().isEmpty()) // don't generate argument classes for methods without args
                 .forEach(details -> {
                     PojoBuilder builder = PojoBuilder.newClass(ClientGenerator.generateArgumentClassname(details.getField()), packageName);

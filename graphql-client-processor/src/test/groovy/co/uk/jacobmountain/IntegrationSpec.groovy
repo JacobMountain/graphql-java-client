@@ -25,7 +25,7 @@ class IntegrationSpec extends Specification {
 
     def "Can query for data with no args"() {
         given:
-        fetcher.query("query Hero { hero { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } ... on Human { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } totalCredits __typename } ... on Droid { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } primaryFunction __typename } __typename } }") >> Response.builder()
+        fetcher.query("query Hero { hero { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } ... on Human { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } totalCredits __typename } ... on Droid { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } primaryFunction __typename } __typename } }", null) >> Response.builder()
                 .data(new Query() {
                     @Override
                     Character getHero() {

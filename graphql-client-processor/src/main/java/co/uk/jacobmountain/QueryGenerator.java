@@ -55,7 +55,9 @@ public class QueryGenerator {
     }
 
     public Optional<FieldDefinition> findField(ObjectTypeDefinition parent, String field) {
-        return parent.getFieldDefinitions()
+        return Optional.ofNullable(parent)
+                .map(ObjectTypeDefinition::getFieldDefinitions)
+                .orElseGet(ArrayList::new)
                 .stream()
                 .filter(it -> it.getName().equals(field))
                 .findAny();

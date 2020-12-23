@@ -7,7 +7,10 @@ import com.squareup.javapoet.TypeName;
 import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.Type;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.lang.model.type.MirroredTypeException;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +19,7 @@ import java.util.stream.Stream;
 
 import static com.squareup.javapoet.TypeName.INT;
 
+@Slf4j
 public class TypeMapper {
 
     private static final Map<String, TypeName> SCALARS = new HashMap<>();
@@ -30,14 +34,23 @@ public class TypeMapper {
         SCALARS.put("int", INT);
         SCALARS.put("ID", INT.box());
         SCALARS.put("String", ClassName.get(String.class));
+        SCALARS.put("BigDecimal", ClassName.get(BigDecimal.class));
     }
 
     public TypeMapper(String packageName, GraphQLClient.Scalar... scalars) {
         Map<String, TypeName> scalarMap = Stream.of(scalars)
-                .collect(Collectors.toMap(GraphQLClient.Scalar::from, GraphQLClientProcessor::getTypeName));
-        scalarMap.putAll(SCALARS);
-        this.scalars = scalarMap;
+                .collect(Collectors.toMap(GraphQLClient.Scalar::from, TypeMapper::getTypeName));
+        this.scalars = new HashMap<>(SCALARS);
+        this.scalars.putAll(scalarMap);
         this.packageName = packageName;
+    }
+
+    private static TypeName getTypeName(GraphQLClient.Scalar annotation) {
+        try {
+            return ClassName.get(annotation.to()); // this should throw
+        } catch (MirroredTypeException mte) {
+            return ClassName.get(mte.getTypeMirror());
+        }
     }
 
     // from graphql type to java poet type
@@ -63,6 +76,12 @@ public class TypeMapper {
             if (StringUtils.isEmpty(className.packageName())) {
                 return ClassName.get(packageName, className.simpleName());
             }
+        } else if (typeName instanceof ParameterizedTypeName) {
+            ParameterizedTypeName parameterizedType = (ParameterizedTypeName) typeName;
+            return ParameterizedTypeName.get(
+                    (ClassName) defaultPackage(parameterizedType.rawType),
+                    parameterizedType.typeArguments.stream().map(this::defaultPackage).toArray(TypeName[]::new)
+            );
         }
         return typeName;
     }

@@ -3,6 +3,8 @@ package co.uk.jacobmountain;
 
 import co.uk.jacobmountain.dto.Droid;
 
+import java.util.List;
+
 @GraphQLClient(
         schema = "src/test/resources/Schema.gql",
         mapping = {
@@ -16,5 +18,8 @@ public interface Client {
 
         @GraphQLQuery("droid")
         Droid getDroid(Integer id);
+
+        @GraphQLQuery("humans")
+        List<co.uk.jacobmountain.dto.Human> getHumans();
 
 }

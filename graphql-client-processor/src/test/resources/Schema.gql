@@ -6,6 +6,7 @@ schema {
 type Query {
     hero: Character
     droid(id: ID!): Droid
+    humans: [Human]
 }
 
 interface Character {

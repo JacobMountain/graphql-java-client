@@ -1,21 +1,22 @@
 package co.uk.jacobmountain;
 
 import co.uk.jacobmountain.utils.StringUtils;
+import co.uk.jacobmountain.visitor.MethodDetails;
+import co.uk.jacobmountain.visitor.MethodDetailsVisitor;
 import com.squareup.javapoet.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import lombok.*;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.ElementKindVisitor8;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import static graphql.language.TypeName.newTypeName;
 
@@ -42,15 +43,17 @@ public class ClientGenerator {
     }
 
     private ParameterizedTypeName generateTypeName(TypeDefinitionRegistry schema) {
+        ClassName fetcher = ClassName.get(Fetcher.class);
+        ClassName query = ClassName.get(this.dtoPackageName, "Query");
         if (schema.hasType(newTypeName("Mutation").build()))
             return ParameterizedTypeName.get(
-                    ClassName.get(Fetcher.class),
-                    ClassName.get(this.dtoPackageName, "Query"),
+                    fetcher,
+                    query,
                     ClassName.get(this.dtoPackageName, "Mutation")
             );
         return ParameterizedTypeName.get(
-                ClassName.get(Fetcher.class),
-                ClassName.get(this.dtoPackageName, "Query"),
+                fetcher,
+                query,
                 ClassName.get(Void.class)
         );
     }
@@ -85,47 +88,46 @@ public class ClientGenerator {
 
     private MethodSpec generateImpl(Element method, TypeDefinitionRegistry schema) {
         MethodDetails details = method.accept(new MethodDetailsVisitor(), typeMapper);
+        log.info("{}", details.getReturnType());
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
-                .returns(details.returnType)
+                .returns(details.getReturnType())
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(details.getParameters());
-        List<CodeBlock> args = assembleArguments(details);
-        args.forEach(builder::addStatement);
-        return builder.addStatement(
-                CodeBlock.builder()
-                        .add("return fetcher")
-                        .add(details.mutation ? generateMutationCode(schema, details.getField(), args) : generateQueryCode(schema, details.getField(), args))
-                        .add(".getData()")
-                        .add(".$L()", StringUtils.camelCase("get", details.getField()))
-                        .build()
-        )
-                .build();
+        assembleArguments(details).forEach(builder::addStatement);
+        assembleFetchAndReturn(details, schema).forEach(builder::addStatement);
+        return builder.build();
     }
 
-    private CodeBlock generateQueryCode(TypeDefinitionRegistry schema, String field, List<CodeBlock> args) {
-        String query = generateQuery(schema, field, maxDepth);
-        if (args.isEmpty()) {
-            return CodeBlock.of(".query(\"$L\")", query);
+    private List<CodeBlock> assembleFetchAndReturn(MethodDetails details, TypeDefinitionRegistry schema) {
+        boolean wrapInOptional = details.getReturnType() instanceof ParameterizedTypeName &&
+                ((ParameterizedTypeName) details.getReturnType()).rawType.equals(ClassName.get(Optional.class));
+        CodeBlock.Builder builder = CodeBlock.builder();
+        if (wrapInOptional) {
+            builder.add("return $T.ofNullable(\n", Optional.class)
+                    .indent();
+        } else {
+            builder.add("return ");
         }
-        return CodeBlock.of(".query(\"$L\", args)", query);
-    }
-
-    private CodeBlock generateMutationCode(TypeDefinitionRegistry schema, String field, List<CodeBlock> args) {
-        String query = generateMutation(schema, field, maxDepth);
-        if (args.isEmpty()) {
-            return CodeBlock.of(".mutate(\"$L\")", query);
+        builder.add("fetcher")
+                .add(generateQuery(schema, details))
+                .add("\n").indent()
+                .add(".getData()")
+                .add("\n")
+                .add(".$L()", StringUtils.camelCase("get", details.getField()));
+        if (wrapInOptional) {
+            builder.add("\n)").unindent();
         }
-        return CodeBlock.of(".mutate(\"$L\", args)", query);
+        builder.unindent();
+        return Collections.singletonList(builder.build());
     }
 
-    private String generateQuery(TypeDefinitionRegistry schema, String field, int depth) {
-        QueryGenerator generator = new QueryGenerator(schema, depth);
-        return generator.generateQuery(field, false);
-    }
-
-    private String generateMutation(TypeDefinitionRegistry schema, String field, int depth) {
-        QueryGenerator generator = new QueryGenerator(schema, depth);
-        return generator.generateQuery(field, true);
+    private CodeBlock generateQuery(TypeDefinitionRegistry schema, MethodDetails details) {
+        String query = new QueryGenerator(schema, maxDepth).generateQuery(details.getField(), details.isMutation());
+        boolean hasArgs = details.hasParameters();
+        return CodeBlock.of(
+                String.format(".%s(\"$L\", %s)", details.isQuery() ? "query" : "mutate", hasArgs ? "args" : "null"),
+                query
+        );
     }
 
     public static String generateArgumentClassname(String field) {
@@ -151,45 +153,6 @@ public class ClientGenerator {
                 .skipJavaLangImports(true)
                 .build()
                 .writeTo(filer);
-    }
-
-    @Data
-    @Builder
-    public static class MethodDetails {
-
-        private TypeName returnType;
-
-        private String field;
-
-        @Singular
-        private List<ParameterSpec> parameters;
-
-        private boolean mutation;
-
-    }
-
-    @Slf4j
-    public static class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, TypeMapper> {
-        @Override
-        public MethodDetails visitExecutableAsMethod(ExecutableElement e, TypeMapper typeMapper) {
-            GraphQLQuery annotation = e.getAnnotation(GraphQLQuery.class);
-            TypeName returnType = ClassName.get(e.getReturnType());
-            return MethodDetails.builder()
-                    .returnType(typeMapper.defaultPackage(returnType))
-                    .field(annotation.value())
-                    .mutation(annotation.mutation())
-                    .parameters(
-                            e.getParameters()
-                                    .stream()
-                                    .map(parameter -> ParameterSpec.builder(
-                                            typeMapper.defaultPackage(ClassName.get(parameter.asType())),
-                                            parameter.getSimpleName().toString())
-                                            .build()
-                                    )
-                                    .collect(Collectors.toList())
-                    )
-                    .build();
-        }
     }
 
 }
