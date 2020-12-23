@@ -8,8 +8,4 @@ public interface Fetcher<Q, M> {
 
     <A> Response<M> mutate(String mutation, A args);
 
-    default Response<Q> query(String query) {
-        return query(query, null);
-    }
-
 }
