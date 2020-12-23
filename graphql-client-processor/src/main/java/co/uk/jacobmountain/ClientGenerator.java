@@ -3,6 +3,7 @@ package co.uk.jacobmountain;
 import co.uk.jacobmountain.utils.StringUtils;
 import co.uk.jacobmountain.visitor.MethodDetails;
 import co.uk.jacobmountain.visitor.MethodDetailsVisitor;
+import co.uk.jacobmountain.visitor.Parameter;
 import com.squareup.javapoet.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static graphql.language.TypeName.newTypeName;
 
@@ -92,7 +94,7 @@ public class ClientGenerator {
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .returns(details.getReturnType())
                 .addModifiers(Modifier.PUBLIC)
-                .addParameters(details.getParameters());
+                .addParameters(details.getParameters().stream().map(Parameter::toSpec).collect(Collectors.toList()));
         assembleArguments(details).forEach(builder::addStatement);
         assembleFetchAndReturn(details, schema).forEach(builder::addStatement);
         return builder.build();
@@ -135,7 +137,7 @@ public class ClientGenerator {
     }
 
     private List<CodeBlock> assembleArguments(MethodDetails details) {
-        List<ParameterSpec> parameters = details.getParameters();
+        List<Parameter> parameters = details.getParameters();
         if (parameters.isEmpty()) {
             return Collections.emptyList();
         }
@@ -143,7 +145,13 @@ public class ClientGenerator {
         TypeName type = ClassName.get(dtoPackageName, generateArgumentClassname(details.getField()));
         ret.add(CodeBlock.of("$T args = new $T()", type, type));
         details.getParameters()
-                .forEach(param -> ret.add(CodeBlock.of("args.set$L($L)", StringUtils.capitalize(param.name), param.name)));
+                .forEach(param -> {
+                    String parameter = param.getName();
+                    String field = Optional.ofNullable(param.getAnnotation())
+                            .map(GraphQLArgument::value)
+                            .orElse(parameter);
+                    ret.add(CodeBlock.of("args.set$L($L)", StringUtils.capitalize(field), parameter));
+                });
         return ret;
     }
 

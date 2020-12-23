@@ -47,9 +47,7 @@ public class DTOGenerator {
                 .forEach(details -> {
                     PojoBuilder builder = PojoBuilder.newClass(ClientGenerator.generateArgumentClassname(details.getField()), packageName);
                     details.getParameters()
-                            .forEach(variable -> {
-                                builder.withField(variable.type, variable.name);
-                            });
+                            .forEach(variable -> builder.withField(variable.getType(), variable.getName()));
                     try {
                         builder.build().writeTo(filer);
                     } catch (IOException e) {

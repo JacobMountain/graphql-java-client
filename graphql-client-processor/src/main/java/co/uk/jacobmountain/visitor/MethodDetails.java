@@ -1,6 +1,5 @@
 package co.uk.jacobmountain.visitor;
 
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import lombok.Builder;
 import lombok.Singular;
@@ -15,7 +14,7 @@ public class MethodDetails {
     private final String field;
 
     @Singular
-    private final List<ParameterSpec> parameters;
+    private final List<Parameter> parameters;
 
     private final boolean mutation;
 
@@ -31,7 +30,7 @@ public class MethodDetails {
         return !parameters.isEmpty();
     }
 
-    public List<ParameterSpec> getParameters() {
+    public List<Parameter> getParameters() {
         return parameters;
     }
 

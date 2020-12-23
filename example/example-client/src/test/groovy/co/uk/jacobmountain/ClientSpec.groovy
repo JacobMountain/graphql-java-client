@@ -60,14 +60,26 @@ class ClientSpec extends Specification {
     def "I can get a query and wrap it in an Optional"() {
         given:
         def expected = RandomResultUtil.randomResult()
-        mock.getResult(1) >> expected
+        mock.getResult(2) >> expected
 
         when:
-        def result = client.getResultOptional(1)
+        def result = client.getResultOptional(2)
 
         then:
         result != null
         Assert.assertEquals(expected, result.orElse(null))
+    }
+
+    def "I can get a query with a parameter named differently to its argument"() {
+        given:
+        def expected = RandomResultUtil.randomResult()
+        mock.getResult(3) >> expected
+
+        when:
+        def result = client.getResultWithRenamedArg(3)
+
+        then:
+        Assert.assertEquals(expected, result)
     }
 
 

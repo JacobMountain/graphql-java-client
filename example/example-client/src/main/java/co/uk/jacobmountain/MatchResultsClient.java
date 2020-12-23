@@ -24,4 +24,7 @@ public interface MatchResultsClient {
     @GraphQLQuery("result")
     Optional<MatchResult> getResultOptional(int id);
 
+    @GraphQLQuery("result")
+    MatchResult getResultWithRenamedArg(@GraphQLArgument("id") int integer);
+
 }
