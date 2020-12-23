@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Singular;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder
 public class MethodDetails {
@@ -15,7 +16,7 @@ public class MethodDetails {
     private final String field;
 
     @Singular
-    private final List<ParameterSpec> parameters;
+    private final List<Parameter> parameters;
 
     private final boolean mutation;
 
@@ -31,8 +32,14 @@ public class MethodDetails {
         return !parameters.isEmpty();
     }
 
-    public List<ParameterSpec> getParameters() {
+    public List<Parameter> getParameters() {
         return parameters;
+    }
+
+    public List<ParameterSpec> getParameterSpec() {
+        return parameters.stream()
+                .map(Parameter::toSpec)
+                .collect(Collectors.toList());
     }
 
     public boolean isQuery() {

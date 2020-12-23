@@ -1,5 +1,6 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.visitor.MethodDetails;
 import co.uk.jacobmountain.visitor.MethodDetailsVisitor;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
@@ -43,13 +44,11 @@ public class DTOGenerator {
         client.getEnclosedElements()
                 .stream()
                 .map(method -> method.accept(new MethodDetailsVisitor(), typeMapper))
-                .filter(details -> !details.getParameters().isEmpty()) // don't generate argument classes for methods without args
+                .filter(MethodDetails::hasParameters) // don't generate argument classes for methods without args
                 .forEach(details -> {
                     PojoBuilder builder = PojoBuilder.newClass(ClientGenerator.generateArgumentClassname(details.getField()), packageName);
                     details.getParameters()
-                            .forEach(variable -> {
-                                builder.withField(variable.type, variable.name);
-                            });
+                            .forEach(variable -> builder.withField(variable.getType(), variable.getName()));
                     try {
                         builder.build().writeTo(filer);
                     } catch (IOException e) {

@@ -1,9 +1,9 @@
 package co.uk.jacobmountain.visitor;
 
+import co.uk.jacobmountain.GraphQLArgument;
 import co.uk.jacobmountain.GraphQLQuery;
 import co.uk.jacobmountain.TypeMapper;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,10 +23,11 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                 .parameters(
                         e.getParameters()
                                 .stream()
-                                .map(parameter -> ParameterSpec.builder(
-                                        typeMapper.defaultPackage(ClassName.get(parameter.asType())),
-                                        parameter.getSimpleName().toString()
-                                        ).build()
+                                .map(parameter -> Parameter.builder()
+                                        .type(typeMapper.defaultPackage(ClassName.get(parameter.asType())))
+                                        .name(parameter.getSimpleName().toString())
+                                        .annotation(parameter.getAnnotation(GraphQLArgument.class))
+                                        .build()
                                 )
                                 .collect(Collectors.toList())
                 )
