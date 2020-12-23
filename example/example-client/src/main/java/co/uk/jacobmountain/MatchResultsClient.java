@@ -4,6 +4,7 @@ package co.uk.jacobmountain;
 import co.uk.jacobmountain.dto.MatchResult;
 
 import java.util.List;
+import java.util.Optional;
 
 @GraphQLClient(
         schema = "Schema.gql",
@@ -19,5 +20,8 @@ public interface MatchResultsClient {
 
     @GraphQLQuery("result")
     MatchResult getResult(int id);
+
+    @GraphQLQuery("result")
+    Optional<MatchResult> getResultOptional(int id);
 
 }

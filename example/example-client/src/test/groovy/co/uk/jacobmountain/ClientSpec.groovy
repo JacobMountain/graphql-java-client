@@ -1,29 +1,74 @@
 package co.uk.jacobmountain
 
-import co.uk.jacobmountain.dto.MatchResult
+
+import co.uk.jacobmountain.service.ResultService
+import co.uk.jacobmountain.util.Assert
+import co.uk.jacobmountain.util.RandomResultUtil
+import org.spockframework.spring.SpringBean
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.web.server.LocalServerPort
 import spock.lang.Specification
 import spock.lang.Subject
 
 @SpringBootTest(
         classes = ExampleApplication,
-        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 class ClientSpec extends Specification {
 
-    @Subject
-    MatchResultsClient client = new MatchResultsClientGraph(new ExampleFetcher("http://localhost:8080/graph"))
+    @LocalServerPort
+    int port
 
-    def "I can get a query with an argument"(){
+    @Subject
+    MatchResultsClient client
+
+    @SpringBean
+    ResultService mock = Mock(ResultService)
+
+    def setup() {
+        if (!client) {
+            client = new MatchResultsClientGraph(new ExampleFetcher("http://localhost:$port/graph"))
+        }
+    }
+
+    def "I can get a query with an argument"() {
+        given:
+        def expected = RandomResultUtil.randomResult()
+        mock.getResult(1) >> expected
+
         when:
         def result = client.getResult(1)
 
         then:
         result != null
-        UUID.fromString(result.home.team.id)
-        result.home.points > 0
-        UUID.fromString(result.away.team.id)
-        result.away.points > 0
+        Assert.assertEquals(expected, result)
     }
+
+    def "I can get a query a list"() {
+        given:
+        def expected = (1..3).collect { RandomResultUtil.randomResult() }
+        mock.getResults() >> expected
+
+        when:
+        def result = client.getResults()
+
+        then:
+        result != null
+        Assert.assertEquals(expected, result)
+    }
+
+    def "I can get a query and wrap it in an Optional"() {
+        given:
+        def expected = RandomResultUtil.randomResult()
+        mock.getResult(1) >> expected
+
+        when:
+        def result = client.getResultOptional(1)
+
+        then:
+        result != null
+        Assert.assertEquals(expected, result.orElse(null))
+    }
+
 
 }

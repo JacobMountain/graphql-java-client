@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -19,12 +18,12 @@ public class Query implements GraphQLQueryResolver {
 
     public List<MatchResult> results() {
         log.info("Getting match results");
-        return Collections.emptyList();
+        return resultService.getResults();
     }
 
     public MatchResult getResult(String id) {
         log.info("Getting match result {}", id);
-        return resultService.randomResult();
+        return resultService.getResult(Integer.parseInt(id));
     }
 
 }

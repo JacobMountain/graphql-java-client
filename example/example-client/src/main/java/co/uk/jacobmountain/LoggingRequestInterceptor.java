@@ -22,18 +22,16 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
         return response;
     }
 
-    private void logRequest(HttpRequest request, byte[] body) throws IOException {
+    private void logRequest(HttpRequest request, byte[] body) {
         log.info("=========================== Request =================================================");
         log.info("{} {}", request.getMethod(), request.getURI());
         log.info("Request body: {}", new String(body, StandardCharsets.UTF_8));
-        log.info("=====================================================================================");
     }
 
     private void logResponse(ClientHttpResponse response) throws IOException {
         log.info("=========================== Response ================================================");
         log.info("Status  : {}", response.getStatusCode());
         log.info("Response: {}", StreamUtils.copyToString(response.getBody(), Charset.defaultCharset()));
-        log.info("=====================================================================================");
     }
 
 }
