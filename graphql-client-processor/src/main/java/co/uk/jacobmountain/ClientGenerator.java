@@ -154,7 +154,7 @@ public class ClientGenerator {
                 .orElse(parameter);
         CodeBlock value = CodeBlock.of("$L", parameter);
         if (!param.isNullable()) {
-            value = CodeBlock.of("$T.requireNonNull($L)", Objects.class, parameter);
+            value = CodeBlock.of("$T.requireNonNull($L, $S)", Objects.class, parameter, String.format("%s is not nullable", parameter));
         }
         return CodeBlock.of("args.set$L($L)", StringUtils.capitalize(field), value);
     }
