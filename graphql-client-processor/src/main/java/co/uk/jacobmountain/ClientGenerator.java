@@ -89,6 +89,9 @@ public class ClientGenerator {
     @SneakyThrows
     public void generate(Schema schema, TypeElement element, String suffix) {
         ParameterizedTypeName fetcherType = generateTypeName(schema);
+        if (StringUtils.isEmpty(suffix)) {
+            throw new IllegalArgumentException("Invalid suffix for implementation of client: " + element.getSimpleName());
+        }
         TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
                 .addSuperinterface(ClassName.get(element))
                 .addModifiers(Modifier.PUBLIC)
