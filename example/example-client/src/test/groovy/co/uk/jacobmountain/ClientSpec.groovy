@@ -96,5 +96,4 @@ class ClientSpec extends Specification {
         thrown(NullPointerException)
     }
 
-
 }
