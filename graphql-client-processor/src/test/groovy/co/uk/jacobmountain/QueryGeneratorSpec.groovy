@@ -22,6 +22,7 @@ type Query {
     findObjectNonNullArg(id: String!): Object
     character: [ID]
     hero: Hero
+    enum: Episode
 }
 
 type Object {
@@ -42,6 +43,14 @@ type Droid implements ID {
     primaryFunction: String
 }
 
+enum Episode {
+    # Star Wars Episode IV: A New Hope, released in 1977.
+    NEWHOPE
+    # Star Wars Episode V: The Empire Strikes Back, released in 1980.
+    EMPIRE
+    # Star Wars Episode VI: Return of the Jedi, released in 1983.
+    JEDI
+}
 """
 
     static final TypeDefinitionRegistry TDR = new SchemaParser().parse(SCHEMA)
@@ -58,7 +67,7 @@ type Droid implements ID {
 
     def "I can generate a simple query"(){
         when:
-        def result = generator.generateQuery("string", false)
+        def result = generator.generateQuery(null, "string", [] as Set, false)
 
         then:
         queriesAreEqual("query String { string }", result)
@@ -66,7 +75,7 @@ type Droid implements ID {
 
     def "I can generate a simple object query"(){
         when:
-        def result = generator.generateQuery("obj", false)
+        def result = generator.generateQuery(null, "obj", [] as Set, false)
 
         then:
         queriesAreEqual("query Obj { obj { nested __typename } }", result)
@@ -74,7 +83,7 @@ type Droid implements ID {
 
     def "I can generate an object query with an argument"(){
         when:
-        def result = generator.generateQuery("findObject", false)
+        def result = generator.generateQuery(null, "findObject", ["id"] as Set, false)
 
         then:
         queriesAreEqual("query FindObject(\$id: String) { findObject(id: \$id) { nested __typename } }", result)
@@ -82,7 +91,7 @@ type Droid implements ID {
 
     def "I can generate an object query for an interface"(){
         when:
-        def result = generator.generateQuery("character", false)
+        def result = generator.generateQuery(null, "character", [] as Set, false)
 
         then:
         queriesAreEqual("query Character { character { id ... on Hero { name __typename } ... on Droid { name primaryFunction __typename } __typename } }", result)
@@ -94,7 +103,7 @@ type Droid implements ID {
         QueryGenerator generator = new QueryGenerator(TDR, 5)
 
         when:
-        def result = generator.generateQuery("hero", false)
+        def result = generator.generateQuery(null, "hero", [] as Set, false)
 
         then:
         queriesAreEqual("query Hero { hero { name friends { name friends { name friends { name __typename } __typename } __typename } __typename } }", result)
@@ -102,10 +111,18 @@ type Droid implements ID {
 
     def "I can generate a query with a non null arg"() {
         when:
-        def result = generator.generateQuery("findObjectNonNullArg", false)
+        def result = generator.generateQuery(null, "findObjectNonNullArg", ["id"] as Set, false)
 
         then:
         queriesAreEqual("query FindObjectNonNullArg(\$id: String!) { findObjectNonNullArg(id: \$id) { nested __typename } }", result)
+    }
+
+    def "Enums"() {
+        when:
+        def result = generator.generateQuery(null, "enum", [] as Set, false)
+
+        then:
+        queriesAreEqual("query Enum { enum }", result)
     }
 
 }

@@ -62,8 +62,7 @@ public class TypeMapper {
                     getType(unwrapped)
             );
         } else if (type instanceof NonNullType) {
-            String unwrapped = unwrap(((NonNullType) type).getType());
-            return getType(unwrapped);
+            return getType(((NonNullType) type).getType());
         } else {
             String unwrapped = unwrap(type);
             return getType(unwrapped);

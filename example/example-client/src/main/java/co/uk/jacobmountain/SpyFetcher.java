@@ -4,21 +4,21 @@ import co.uk.jacobmountain.dto.Response;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class SpyFetcher<Query, Mutation> implements Fetcher<Query, Mutation> {
+public class SpyFetcher<Query, Mutation, Error> implements Fetcher<Query, Mutation, Error> {
 
-    private final Fetcher<Query, Mutation> delegate;
+    private final Fetcher<Query, Mutation, Error> delegate;
 
     private int queries = 0;
     private int mutations = 0;
 
     @Override
-    public <A> Response<Query> query(String query, A args) {
+    public <A> Response<Query, Error> query(String query, A args) {
         queries++;
         return delegate.query(query, args);
     }
 
     @Override
-    public <A> Response<Mutation> mutate(String mutation, A args) {
+    public <A> Response<Mutation, Error> mutate(String mutation, A args) {
         mutations++;
         return delegate.mutate(mutation, args);
     }

@@ -1,19 +1,23 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.dto.Mutation;
 import co.uk.jacobmountain.dto.Query;
 import co.uk.jacobmountain.dto.Request;
 import co.uk.jacobmountain.dto.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.util.Collections;
 
-public class ExampleFetcher implements Fetcher<Query, Void> {
+@Slf4j
+public class ExampleFetcher implements Fetcher<Query, Mutation, Error> {
 
     private final RestTemplate template;
 
@@ -24,25 +28,46 @@ public class ExampleFetcher implements Fetcher<Query, Void> {
     }
 
     @Override
-    public <A> Response<Query> query(String s, A a) {
-        return template.exchange(
-                "/graph",
-                HttpMethod.POST,
-                new HttpEntity<>(new Request<>(s, a)),
-                new ParameterizedTypeReference<Response<Query>>() {
+    public <A> Response<Query, Error> query(String s, A a) {
+        return makeRequest(
+                new Request<>(s, a),
+                new ParameterizedTypeReference<Response<Query, Error>>() {
                 }
-        ).getBody();
+        );
     }
 
     @Override
-    public <A> Response<Void> mutate(String s, A a) {
-        return template.exchange(
-                "/graph",
-                HttpMethod.POST,
-                new HttpEntity<>(new Request<>(s, a)),
-                new ParameterizedTypeReference<Response<Void>>() {
+    public <A> Response<Mutation, Error> mutate(String s, A a) {
+        return makeRequest(
+                new Request<>(s, a),
+                new ParameterizedTypeReference<Response<Mutation, Error>>() {
                 }
-        ).getBody();
+        );
+    }
+
+    private <T, V> Response<T, Error> makeRequest(Request<V> request, ParameterizedTypeReference<Response<T, Error>> typeReference) {
+        try {
+            Response<T, Error> response = template.exchange(
+                    "/graph",
+                    HttpMethod.POST,
+                    new HttpEntity<>(request),
+                    typeReference
+            ).getBody();
+            printErrors(response);
+            return response;
+        } catch (Exception e) {
+            return new Response<>(null, Collections.singletonList(new Error(e.getMessage())));
+        }
+    }
+
+    private <T> void printErrors(Response<T, Error> response) {
+        if (!CollectionUtils.isEmpty(response.getErrors())) {
+            response.getErrors().forEach(this::printError);
+        }
+    }
+
+    private void printError(Error error) {
+        log.error(error.getMessage());
     }
 
 }

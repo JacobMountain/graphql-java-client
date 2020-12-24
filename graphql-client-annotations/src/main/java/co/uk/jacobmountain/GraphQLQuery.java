@@ -11,6 +11,8 @@ public @interface GraphQLQuery {
 
     String value();
 
+    String request() default "";
+
     boolean mutation() default false;
 
 }

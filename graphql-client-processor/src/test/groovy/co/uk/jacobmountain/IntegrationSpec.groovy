@@ -6,7 +6,7 @@ import spock.lang.Unroll
 
 class IntegrationSpec extends Specification {
 
-    Fetcher<Query, Void> fetcher = Mock(Fetcher)
+    Fetcher<Query, Void, Void> fetcher = Mock(Fetcher)
 
     Client graph = new ClientGraph(fetcher)
 

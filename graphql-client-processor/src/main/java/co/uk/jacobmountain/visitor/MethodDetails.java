@@ -3,6 +3,7 @@ package co.uk.jacobmountain.visitor;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Singular;
 
 import java.util.List;
@@ -11,8 +12,12 @@ import java.util.stream.Collectors;
 @Builder
 public class MethodDetails {
 
+    @Getter
+    private final String name;
+
     private final TypeName returnType;
 
+    @Getter
     private final String field;
 
     @Singular
@@ -22,10 +27,6 @@ public class MethodDetails {
 
     public TypeName getReturnType() {
         return returnType;
-    }
-
-    public String getField() {
-        return field;
     }
 
     public boolean hasParameters() {

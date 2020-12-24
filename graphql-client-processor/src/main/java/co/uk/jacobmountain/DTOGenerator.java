@@ -8,9 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 @Slf4j
 public class DTOGenerator {
@@ -32,12 +36,17 @@ public class DTOGenerator {
     public void generate(Collection<TypeDefinition> types) {
         types.forEach(this::generateDTO);
         this.types.values().forEach(it -> {
-                    try {
-                        it.build().writeTo(filer);
-                    } catch (Exception e) {
-                        log.error("Failed to create class", e);
-                    }
-                });
+            try {
+                it.build().writeTo(filer);
+            } catch (Exception e) {
+                log.error("Failed to create class", e);
+            }
+        });
+    }
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
     public void generateArgumentDTOs(TypeElement client) {
@@ -45,12 +54,23 @@ public class DTOGenerator {
                 .stream()
                 .map(method -> method.accept(new MethodDetailsVisitor(null), typeMapper))
                 .filter(MethodDetails::hasParameters) // don't generate argument classes for methods without args
-                .forEach(details -> {
-                    PojoBuilder builder = PojoBuilder.newClass(ClientGenerator.generateArgumentClassname(details.getField()), packageName);
+                .map(details -> {
+                    String name = ClientGenerator.generateArgumentClassname(details);
+                    PojoBuilder builder = PojoBuilder.newClass(name, packageName);
                     details.getParameters()
-                            .forEach(variable -> builder.withField(variable.getType(), variable.getName()));
+                            .forEach(variable -> {
+                                String field = variable.getName();
+                                if (variable.getAnnotation() != null) {
+                                    field = variable.getAnnotation().value();
+                                }
+                                builder.withField(variable.getType(), field);
+                            });
+                    return new AbstractMap.SimpleEntry<>(name, builder);
+                })
+                .filter(distinctByKey(AbstractMap.SimpleEntry::getKey)) // don't rebuild new classes if two requests share args
+                .forEach(entry -> {
                     try {
-                        builder.build().writeTo(filer);
+                        entry.getValue().build().writeTo(filer);
                     } catch (IOException e) {
                         log.error("Failed to create class", e);
                     }
@@ -82,6 +102,10 @@ public class DTOGenerator {
                             typeMapper.getType(it.getType()),
                             it.getName()
                     ));
+        } else if (td instanceof EnumTypeDefinition) {
+            EnumTypeDefinition enumTypeDefinition = (EnumTypeDefinition) td;
+            enumTypeDefinition.getEnumValueDefinitions()
+                    .forEach(pojo::withEnumValue);
         }
         log.info("}");
         types.put(td.getName(), pojo);
@@ -103,6 +127,20 @@ public class DTOGenerator {
             return builder;
         } else if (td instanceof InputObjectTypeDefinition) {
             return PojoBuilder.newClass(td.getName(), packageName);
+        } else if (td instanceof EnumTypeDefinition) {
+            return PojoBuilder.newEnum(td.getName(), packageName);
+        } else if (td instanceof UnionTypeDefinition) {
+            UnionTypeDefinition utd = (UnionTypeDefinition) td;
+            PojoBuilder builder = PojoBuilder.newInterface(td.getName(), packageName);
+            utd.getMemberTypes().forEach(supertype -> {
+                // POJO implements interface
+                String member = ((graphql.language.TypeName) supertype).getName();
+                builder.withSubType(member);
+                // interface has POJO as subtype
+                // TODO interface has to be defined before impl, improve?
+                types.get(member).implement(td.getName());
+            });
+            return builder;
         }
         log.info("Unexpected type definition {}", td.getClass());
         return null;

@@ -31,6 +31,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
     public MethodDetails visitExecutableAsMethod(ExecutableElement e, TypeMapper typeMapper) {
         GraphQLQuery annotation = e.getAnnotation(GraphQLQuery.class);
         return MethodDetails.builder()
+                .name(annotation.request())
                 .returnType(typeMapper.defaultPackage(TypeName.get(e.getReturnType())))
                 .field(annotation.value())
                 .mutation(annotation.mutation())
@@ -68,7 +69,6 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                 .filter(it -> StringUtils.equals(it.getName(), arg))
                 .findFirst()
                 .orElse(null);
-        log.info("{}", definition != null ? definition.getName() : null);
         return definition == null || !definition.getType().getClass().equals(NonNullType.class);
     }
 

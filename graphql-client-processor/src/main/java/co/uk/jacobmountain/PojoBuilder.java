@@ -3,6 +3,7 @@ package co.uk.jacobmountain;
 import co.uk.jacobmountain.utils.AnnotationUtils;
 import co.uk.jacobmountain.utils.StringUtils;
 import com.squareup.javapoet.*;
+import graphql.language.EnumValueDefinition;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
@@ -16,7 +17,7 @@ public class PojoBuilder {
 
     private TypeSpec.Builder builder;
 
-    private boolean isInterface;
+    private Type type;
 
     private final List<String> fields = new ArrayList<>();
 
@@ -26,6 +27,12 @@ public class PojoBuilder {
 
     private final String packageName;
 
+    protected PojoBuilder(String name, String packageName) {
+        this.name = name;
+        this.packageName = packageName;
+        ;
+    }
+
     public static PojoBuilder newInterface(String name, String packageName) {
         return new PojoBuilder(name, packageName).interfac(name);
     }
@@ -34,32 +41,38 @@ public class PojoBuilder {
         return new PojoBuilder(name, packageName).clazz(name);
     }
 
-    private PojoBuilder(String name, String packageName) {
-        this.name = name;
-        this.packageName = packageName;;
+    public static PojoBuilder newEnum(String name, String packageName) {
+        return new PojoBuilder(name, packageName).enumeration(name);
     }
 
     private PojoBuilder clazz(String name) {
         log.info(String.format("type %s {", name));
-        isInterface = false;
+        type = Type.Class;
         builder = TypeSpec.classBuilder(name).addModifiers(Modifier.PUBLIC);
         return this;
     }
 
     private PojoBuilder interfac(String name) {
         log.info(String.format("interface %s {", name));
-        isInterface = true;
+        type = Type.Interface;
         builder = TypeSpec.interfaceBuilder(name).addModifiers(Modifier.PUBLIC);
+        return this;
+    }
+
+    private PojoBuilder enumeration(String name) {
+        log.info(String.format("enum %s {", name));
+        type = Type.Enum;
+        builder = TypeSpec.enumBuilder(name).addModifiers(Modifier.PUBLIC);
         return this;
     }
 
     public PojoBuilder withField(TypeName clazz, String name) {
         if (clazz instanceof ClassName) {
-            log.info("\t" + name + ": " + ((ClassName) clazz).simpleName());
+            log.info("\t\t" + name + ": " + ((ClassName) clazz).simpleName());
         } else {
-            log.info("\t" + name + ": " + clazz);
+            log.info("\t\t" + name + ": " + clazz);
         }
-        if (!isInterface) {
+        if (!isInterface()) {
             fields.add(name);
             builder.addField(clazz, name, Modifier.PRIVATE);
         }
@@ -67,9 +80,22 @@ public class PojoBuilder {
         return this;
     }
 
-    public PojoBuilder withSubType(String type){
+    public void withEnumValue(EnumValueDefinition it) {
+        if (type == Type.Enum) {
+            builder.addEnumConstant(it.getName());
+        }
+    }
+
+    public PojoBuilder withSubType(String type) {
         this.subTypes.add(type);
         return this;
+    }
+
+    private void withAccessors(TypeName clazz, String name) {
+        withGetter(clazz, name);
+        if (!isInterface()) {
+            withSetter(clazz, name);
+        }
     }
 
     public PojoBuilder implement(String s) {
@@ -77,17 +103,10 @@ public class PojoBuilder {
         return this;
     }
 
-    private void withAccessors(TypeName clazz, String name) {
-        withGetter(clazz, name);
-        if (!isInterface) {
-            withSetter(clazz, name);
-        }
-    }
-
     private MethodSpec.Builder accessorBuilder(String name, String body, Object... args) {
         MethodSpec.Builder getter = MethodSpec.methodBuilder(name)
                 .addModifiers(Modifier.PUBLIC);
-        if (!isInterface) {
+        if (!isInterface()) {
             getter.addStatement(body, args);
         } else {
             getter.addModifiers(Modifier.ABSTRACT);
@@ -95,24 +114,10 @@ public class PojoBuilder {
         return getter;
     }
 
-    private void withGetter(TypeName clazz, String name) {
-        builder.addMethod(
-                accessorBuilder(StringUtils.camelCase("get", name), "return this.$L", name)
-                        .returns(clazz)
-                        .build()
-        );
-    }
-
-    private void withSetter(TypeName clazz, String name) {
-        builder.addMethod(
-                accessorBuilder(StringUtils.camelCase("set", name), "this.$L = $L", name, name)
-                        .addParameter(clazz, name)
-                        .returns(void.class)
-                        .build()
-        );
-    }
-
     private void generateToString() {
+        if (type == Type.Enum) {
+            return;
+        }
         StringBuilder builder = new StringBuilder();
         builder.append("\"{ ");
         builder.append(this.name);
@@ -136,7 +141,27 @@ public class PojoBuilder {
         this.builder.addMethod(toString);
     }
 
+    private void withGetter(TypeName clazz, String name) {
+        builder.addMethod(
+                accessorBuilder(StringUtils.camelCase("get", name), "return this.$L", name)
+                        .returns(clazz)
+                        .build()
+        );
+    }
+
+    private void withSetter(TypeName clazz, String name) {
+        builder.addMethod(
+                accessorBuilder(StringUtils.camelCase("set", name), "this.$L = $L", name, name)
+                        .addParameter(clazz, name)
+                        .returns(void.class)
+                        .build()
+        );
+    }
+
     private void generateEquals() {
+        if (type == Type.Enum) {
+            return;
+        }
         String variable = StringUtils.camelCase(name);
         CodeBlock.Builder equals = CodeBlock.builder();
         for (int i = 0; i < fields.size(); i++) {
@@ -164,9 +189,12 @@ public class PojoBuilder {
         );
     }
 
+    boolean isInterface() {
+        return type == Type.Interface;
+    }
 
     public JavaFile build() {
-        if (!isInterface) {
+        if (!isInterface()) {
             generateToString();
             generateEquals();
         } else {
@@ -181,6 +209,12 @@ public class PojoBuilder {
         return JavaFile.builder(packageName, builder.build())
                 .indent("\t")
                 .build();
+    }
+
+    enum Type {
+        Class,
+        Interface,
+        Enum
     }
 
 }

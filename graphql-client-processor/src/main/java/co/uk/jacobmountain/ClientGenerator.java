@@ -15,6 +15,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static graphql.language.TypeName.newTypeName;
 
@@ -40,6 +41,14 @@ public class ClientGenerator {
         this.dtoPackageName = packageName + ".dto";
     }
 
+    public static String generateArgumentClassname(MethodDetails details) {
+        String name = details.getName();
+        if (StringUtils.isEmpty(name)) {
+            name = details.getField();
+        }
+        return StringUtils.capitalize(name) + "Arguments";
+    }
+
     private ParameterizedTypeName generateTypeName(TypeDefinitionRegistry schema) {
         ClassName fetcher = ClassName.get(Fetcher.class);
         ClassName query = ClassName.get(this.dtoPackageName, "Query");
@@ -47,31 +56,15 @@ public class ClientGenerator {
             return ParameterizedTypeName.get(
                     fetcher,
                     query,
-                    ClassName.get(this.dtoPackageName, "Mutation")
+                    ClassName.get(this.dtoPackageName, "Mutation"),
+                    TypeVariableName.get("Error")
             );
         return ParameterizedTypeName.get(
                 fetcher,
                 query,
-                ClassName.get(Void.class)
+                ClassName.get(Void.class),
+                TypeVariableName.get("Error")
         );
-    }
-
-    @SneakyThrows
-    public void generate(TypeDefinitionRegistry schema, TypeElement element) {
-        ParameterizedTypeName fetcherType = generateTypeName(schema);
-        TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + "Graph")
-                .addSuperinterface(ClassName.get(element))
-                .addModifiers(Modifier.PUBLIC)
-                .addField(fetcherType, "fetcher", Modifier.PRIVATE, Modifier.FINAL);
-
-        generateConstructor(builder, fetcherType);
-
-        element.getEnclosedElements()
-                .stream()
-                .map(method -> generateImpl(method, schema))
-                .forEach(builder::addMethod);
-
-        writeToFile(builder.build());
     }
 
     private void generateConstructor(TypeSpec.Builder builder, ParameterizedTypeName fetcherType) {
@@ -96,6 +89,25 @@ public class ClientGenerator {
         return builder.build();
     }
 
+    @SneakyThrows
+    public void generate(TypeDefinitionRegistry schema, TypeElement element) {
+        ParameterizedTypeName fetcherType = generateTypeName(schema);
+        TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + "Graph")
+                .addSuperinterface(ClassName.get(element))
+                .addModifiers(Modifier.PUBLIC)
+                .addTypeVariable(TypeVariableName.get("Error"))
+                .addField(fetcherType, "fetcher", Modifier.PRIVATE, Modifier.FINAL);
+
+        generateConstructor(builder, fetcherType);
+
+        element.getEnclosedElements()
+                .stream()
+                .map(method -> generateImpl(method, schema))
+                .forEach(builder::addMethod);
+
+        writeToFile(builder.build());
+    }
+
     private List<CodeBlock> assembleFetchAndReturn(MethodDetails details, TypeDefinitionRegistry schema) {
         boolean wrapInOptional = details.getReturnType() instanceof ParameterizedTypeName &&
                 ((ParameterizedTypeName) details.getReturnType()).rawType.equals(ClassName.get(Optional.class));
@@ -107,7 +119,7 @@ public class ClientGenerator {
             builder.add("return ");
         }
         builder.add("fetcher")
-                .add(generateQuery(schema, details))
+                .add(generateQuery(details.getName(), schema, details))
                 .add("\n").indent()
                 .add(".getData()")
                 .add("\n")
@@ -119,17 +131,17 @@ public class ClientGenerator {
         return Collections.singletonList(builder.build());
     }
 
-    private CodeBlock generateQuery(TypeDefinitionRegistry schema, MethodDetails details) {
-        String query = new QueryGenerator(schema, maxDepth).generateQuery(details.getField(), details.isMutation());
+    private CodeBlock generateQuery(String request, TypeDefinitionRegistry schema, MethodDetails details) {
+        Set<String> params = details.getParameters()
+                .stream()
+                .map(Parameter::getField)
+                .collect(Collectors.toSet());
+        String query = new QueryGenerator(schema, maxDepth).generateQuery(request, details.getField(), params, details.isMutation());
         boolean hasArgs = details.hasParameters();
         return CodeBlock.of(
                 String.format(".%s(\"$L\", %s)", details.isQuery() ? "query" : "mutate", hasArgs ? "args" : "null"),
                 query
         );
-    }
-
-    public static String generateArgumentClassname(String field) {
-        return StringUtils.capitalize(field) + "Arguments";
     }
 
     private List<CodeBlock> assembleArguments(MethodDetails details) {
@@ -138,7 +150,7 @@ public class ClientGenerator {
             return Collections.emptyList();
         }
         List<CodeBlock> ret = new ArrayList<>();
-        TypeName type = ClassName.get(dtoPackageName, generateArgumentClassname(details.getField()));
+        TypeName type = ClassName.get(dtoPackageName, generateArgumentClassname(details));
         ret.add(CodeBlock.of("$T args = new $T()", type, type));
         details.getParameters()
                 .stream()
@@ -149,9 +161,7 @@ public class ClientGenerator {
 
     private CodeBlock setArgumentField(Parameter param) {
         String parameter = param.getName();
-        String field = Optional.ofNullable(param.getAnnotation())
-                .map(GraphQLArgument::value)
-                .orElse(parameter);
+        String field = param.getField();
         CodeBlock value = CodeBlock.of("$L", parameter);
         if (!param.isNullable()) {
             value = CodeBlock.of("$T.requireNonNull($L, $S)", Objects.class, parameter, String.format("%s is not nullable", parameter));
