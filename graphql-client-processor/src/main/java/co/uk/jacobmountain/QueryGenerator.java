@@ -6,10 +6,8 @@ import graphql.language.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,12 +23,12 @@ public class QueryGenerator {
         this.maxDepth = maxDepth;
     }
 
-    public String generateQuery(String field, boolean mutates) {
+    public String generateQuery(String request, String field, Set<String> params, boolean mutates) {
         FieldDefinition definition = schema.findField(field).orElse(null);
 
-        List<String> args = new ArrayList<>();
+        Set<String> args = new HashSet<>();
 
-        String inner = generateQueryRec(field, definition, 1, args).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, definition, params, 1, args).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -38,14 +36,15 @@ public class QueryGenerator {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(field, mutates) + collect + " { " + inner + " }";
+        return generateQueryName(request, field, mutates) + collect + " { " + inner + " }";
     }
 
-    private String generateQueryName(String field, boolean mutates) {
-        return (mutates ? "mutation" : "query") + " " + StringUtils.capitalize(field);
+    private String generateQueryName(String request, String field, boolean mutates) {
+        if (StringUtils.isEmpty(request)) {
+            request = StringUtils.capitalize(field);
+        }
+        return (mutates ? "mutation" : "query") + " " + request;
     }
-
-
 
     private String unwrap(Type<?> type) {
         if (type instanceof ListType) {
@@ -57,11 +56,16 @@ public class QueryGenerator {
         }
     }
 
-    private Optional<String> generateQueryRec(String alias, FieldDefinition field, int depth, List<String> argumentCollector) {
+    private Optional<String> generateQueryRec(String alias, FieldDefinition field, Set<String> params, int depth, Set<String> argumentCollector) {
         String type = unwrap(field.getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
-        String args = generateFieldArgs(field, argumentCollector);
+        Optional<String> optionalArgs = generateFieldArgs(field, params, argumentCollector);
+        // if no args were collected, but the field has args
+        if (!optionalArgs.isPresent() && !methodArgsContainAllNonNullArgs(field, params)) {
+            return optionalArgs;
+        }
+        String args = optionalArgs.orElse("");
 
         // if there's no children just return that field
         if (Objects.isNull(typeDefinition) || typeDefinition.getChildren().isEmpty()) {
@@ -71,18 +75,21 @@ public class QueryGenerator {
         if (depth >= maxDepth) {
             return Optional.empty();
         }
-
-        List<String> children = Stream.concat(
+        if (typeDefinition instanceof EnumTypeDefinition) {
+            return Optional.of(alias);
+        }
+        List<String> children = Stream.of(
                 getChildren(typeDefinition)
-                        .map(definition -> generateQueryRec(definition.getName(), definition, depth + 1, argumentCollector))
+                        .map(definition -> generateQueryRec(definition.getName(), definition, params, depth + 1, argumentCollector))
                         .filter(Optional::isPresent)
                         .map(Optional::get),
                 getInterfaceChildren(typeDefinition)
-                        .map(definition -> generateQueryRec(definition.getName(), definition, depth, argumentCollector))
+                        .map(definition -> generateQueryRec(definition.getName(), definition, params, depth, argumentCollector))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .map(query -> "... on " + query)
         )
+                .flatMap(Function.identity())
                 .collect(Collectors.toList());
 
         if (children.isEmpty()) {
@@ -90,10 +97,24 @@ public class QueryGenerator {
         }
         return Optional.of(
                 alias + args + " { " +
-                            String.join(" ", children) +
-                            " __typename" +
+                        String.join(" ", children) +
+                        " __typename" +
                         " }"
         );
+    }
+
+    /**
+     * whether the client method contains all arguments defined in the graphql schema
+     *
+     * @param field  the graphql field definition
+     * @param params the clients method parameters
+     * @return true if the client method contains all arguments defined in the graphql schema
+     */
+    private boolean methodArgsContainAllNonNullArgs(FieldDefinition field, Collection<String> params) {
+        return field.getInputValueDefinitions()
+                .stream()
+                .filter(input -> input.getType() instanceof NonNullType)
+                .allMatch(nonNull -> params.contains(nonNull.getName()));
     }
 
     private Stream<FieldDefinition> getInterfaceChildren(TypeDefinition<?> typeDefinition) {
@@ -120,8 +141,10 @@ public class QueryGenerator {
                     Optional<FieldDefinition> childDefinition;
                     if (typeDefinition instanceof ObjectTypeDefinition) {
                         childDefinition = schema.findField((ObjectTypeDefinition) typeDefinition, name);
-                    } else {
+                    } else if (typeDefinition instanceof InterfaceTypeDefinition) {
                         childDefinition = schema.findField((InterfaceTypeDefinition) typeDefinition, name);
+                    } else {
+                        childDefinition = Optional.empty();
                     }
                     return childDefinition;
                 })
@@ -129,12 +152,11 @@ public class QueryGenerator {
                 .map(Optional::get);
     }
 
-    private String generateFieldArgs(FieldDefinition field, List<String> argsCollector) {
+    private Optional<String> generateFieldArgs(FieldDefinition field, Set<String> params, Set<String> argsCollector) {
         List<InputValueDefinition> args = field.getInputValueDefinitions();
-        if (args.isEmpty()) {
-            return "";
-        }
+        Set<String> finalParams = new HashSet<>(params);
         String collect = args.stream()
+                .filter(o -> finalParams.remove(o.getName()))
                 .peek(arg -> {
                     boolean nonNull = arg.getType() instanceof NonNullType;
                     String type = unwrap(arg.getType());
@@ -144,7 +166,10 @@ public class QueryGenerator {
                 })
                 .map(arg -> arg.getName() + ": $" + arg.getName())
                 .collect(Collectors.joining(", "));
-        return "(" + collect + ")";
+        if (StringUtils.isEmpty(collect)) {
+            return Optional.empty();
+        }
+        return Optional.of("(" + collect + ")");
     }
 
 }

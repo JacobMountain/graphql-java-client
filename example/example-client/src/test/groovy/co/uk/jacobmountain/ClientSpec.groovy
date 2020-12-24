@@ -1,13 +1,17 @@
 package co.uk.jacobmountain
 
-import co.uk.jacobmountain.service.ResultService
+import co.uk.jacobmountain.dto.LengthUnit
+import co.uk.jacobmountain.resolvers.dto.Episode
+import co.uk.jacobmountain.service.DefaultService
+import co.uk.jacobmountain.service.StarWarsService
 import co.uk.jacobmountain.util.Assert
-import co.uk.jacobmountain.util.RandomResultUtil
 import org.spockframework.spring.SpringBean
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static co.uk.jacobmountain.dto.Episode.EMPIRE
 
 @SpringBootTest(
         classes = ExampleApplication,
@@ -19,25 +23,25 @@ class ClientSpec extends Specification {
     int port
 
     @Subject
-    MatchResultsClient client
-
-    @SpringBean
-    ResultService mock = Mock(ResultService)
+    StarWarsClient client
 
     SpyFetcher fetcher
 
+    @SpringBean
+    StarWarsService service = Spy(DefaultService)
+
     def setup() {
-        fetcher = new SpyFetcher(new ExampleFetcher("http://localhost:$port/graph"))
-        client = new MatchResultsClientGraph(fetcher)
+        fetcher = new SpyFetcher(new ExampleFetcher("http://localhost:$port"))
+        client = new StarWarsClientGraph(fetcher)
     }
 
     def "I can get a query with an argument"() {
         given:
-        def expected = RandomResultUtil.randomResult()
-        mock.getResult(1) >> expected
+        def expected = DefaultService.randomHuman()
+        service.getHero(Episode.EMPIRE) >> expected
 
         when:
-        def result = client.getResult(1)
+        def result = client.getHero(EMPIRE, 0, "1", LengthUnit.METER)
 
         then:
         result != null
@@ -46,11 +50,11 @@ class ClientSpec extends Specification {
 
     def "I can get a query a list"() {
         given:
-        def expected = (1..3).collect { RandomResultUtil.randomResult() }
-        mock.getResults() >> expected
+        def expected = (1..3).collect { DefaultService.randomReview(Episode.EMPIRE) }
+        service.getReviews(Episode.EMPIRE) >> expected
 
         when:
-        def result = client.getResults()
+        def result = client.getReviews(EMPIRE)
 
         then:
         result != null
@@ -59,11 +63,11 @@ class ClientSpec extends Specification {
 
     def "I can get a query and wrap it in an Optional"() {
         given:
-        def expected = RandomResultUtil.randomResult()
-        mock.getResult(2) >> expected
+        def expected = DefaultService.randomHuman()
+        service.getHero(Episode.EMPIRE) >> expected
 
         when:
-        def result = client.getResultOptional(2)
+        def result = client.getHeroOptional(EMPIRE, 0, "1", LengthUnit.METER)
 
         then:
         result != null
@@ -72,33 +76,18 @@ class ClientSpec extends Specification {
 
     def "I can get a query with a parameter named differently to its argument"() {
         given:
-        def expected = RandomResultUtil.randomResult()
-        mock.getResult(3) >> expected
+        def expected = service.getFriend("1000")
 
         when:
-        def result = client.getResultWithRenamedArg(3)
+        def result = client.getHero("1000")
 
         then:
         Assert.assertEquals(expected, result)
     }
 
-
-    def "I can query with non-null arguments"() {
-        given:
-        def expected = RandomResultUtil.randomTeam()
-        mock.getTeam("arsenal") >> expected
-
-        when:
-        def team = client.getTeam("arsenal")
-
-        then:
-        Assert.assertEquals(expected, team)
-    }
-
-
     def "A NPE is thrown for null arguments before the request is made"() {
         when:
-        client.getTeam(null)
+        client.getReviews(null)
 
         then: "No HTTP requests should occur"
         !fetcher.hasInteractions()

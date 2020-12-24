@@ -22,4 +22,11 @@ public class Parameter {
         return ParameterSpec.builder(type, name).build();
     }
 
+    public String getField() {
+        return annotation == null ? name : annotation.value();
+    }
+
+    public GraphQLArgument getAnnotation() {
+        return annotation;
+    }
 }
