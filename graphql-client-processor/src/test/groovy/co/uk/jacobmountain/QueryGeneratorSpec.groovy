@@ -1,6 +1,6 @@
 package co.uk.jacobmountain
 
-
+import co.uk.jacobmountain.utils.Schema
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import groovy.util.logging.Slf4j
@@ -56,7 +56,7 @@ enum Episode {
     static final TypeDefinitionRegistry TDR = new SchemaParser().parse(SCHEMA)
 
     @Subject
-    QueryGenerator generator = new QueryGenerator(TDR, 2)
+    QueryGenerator generator = new QueryGenerator(new Schema(TDR), 2)
 
     static boolean queriesAreEqual(String expected, String result) {
         log.info("Asserting equal: ")
@@ -100,7 +100,7 @@ enum Episode {
 
     def "I can generate a recursive query" (){
         given:
-        QueryGenerator generator = new QueryGenerator(TDR, 5)
+        QueryGenerator generator = new QueryGenerator(new Schema(TDR), 5)
 
         when:
         def result = generator.generateQuery(null, "hero", [] as Set, false)
