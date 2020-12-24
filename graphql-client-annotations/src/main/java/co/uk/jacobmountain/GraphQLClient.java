@@ -17,6 +17,8 @@ public @interface GraphQLClient {
 
     boolean nullChecking() default false;
 
+    String implSuffix() default "Graph";
+
     @interface Scalar {
 
         String from();
