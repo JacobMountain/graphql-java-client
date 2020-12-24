@@ -6,20 +6,10 @@ A Java GraphQL client annotation processor, generate a client class from a graph
 ```GraphQL
 schema {
   query: Query
-  mutation: Mutation
 }
 # The query type, represents all of the entry points into our object graph
 type Query {
   hero(episode: Episode): Character
-  reviews(episode: Episode!): [Review]
-}
-# The mutation type, represents all updates we can make to our data
-type Mutation {
-  createReview(episode: Episode, review: ReviewInput!): Review
-}
-# The subscription type, represents all subscriptions we can make to our data
-type Subscription {
-  reviewAdded(episode: Episode): Review
 }
 # The episodes in the Star Wars trilogy
 enum Episode {
@@ -119,21 +109,6 @@ type Review {
   # Comment about the movie
   commentary: String
 }
-# The input object sent when someone is creating a new review
-input ReviewInput {
-  # 0-5 stars
-  stars: Int!
-  # Comment about the movie, optional
-  commentary: String
-  # Favorite color, optional
-  favorite_color: ColorInput
-}
-# The input object sent when passing in a color
-input ColorInput {
-  red: Int!
-  green: Int!
-  blue: Int!
-}
 type Starship {
   # The ID of the starship
   id: ID!
@@ -143,7 +118,6 @@ type Starship {
   length(unit: LengthUnit = METER): Float
   coordinates: [[Float!]!]
 }
-union SearchResult = Human | Droid | Starship
 ```
 
 #### 2. Create a java interface
@@ -174,12 +148,6 @@ public interface StarWarsClient {
 
     @GraphQLQuery("hero")
     Hero getHero(Episode episode);
-
-    @GraphQLQuery("reviews")
-    List<Review> getReviews(Episode episode);
-
-    @GraphQLQuery(value = "createReview", mutates = true)
-    Review createReview(Episode episode, @GraphQLArgument("review") ReviewInput input);
 
 }
 ```
