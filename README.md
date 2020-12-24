@@ -132,7 +132,8 @@ type Starship {
 )
 public interface StarWarsClient {}
 ```
-if this is the first time you've created the interface it may be a good idea to run build to generate all the DTO classes and to reduce IDE/compilation errors. 
+if this is the first time you've created the interface it may be a good idea to run build to generate all the DTO classes 
+and to reduce IDE/compilation errors. 
 
 #### 3. Add corresponding methods to the interface that match up with the schema
 ```java
@@ -152,4 +153,13 @@ public interface StarWarsClient {
 }
 ```
 #### 4. Implement the `Fetcher` interface
-The Fetcher interface deals with turning queries/mutations into network requests (Usually HTTP, could be websockets, etc.). For a simple example on how to do this please look at [`ExampleFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/ExampleFetcher.java).
+The Fetcher interface deals with turning queries/mutations into network requests (Usually HTTP, could be websockets, etc.). 
+For a simple example on how to do this please look at [`ExampleFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/ExampleFetcher.java).
+
+#### 5. Create an instance of you newly generated interface
+Run `build` and then create an instance of the newly generated implementation.
+```java
+StarWarsClient client = new StarWarsClientGraph(new HttpFetcher());
+```
+where `HttpFetcher` is an implementation of the `Fetcher` interface. The default suffix for the implementation is `Graph`, 
+and is overridable with the `implSuffix` parameter of the `@GraphQLClient` annotation.
