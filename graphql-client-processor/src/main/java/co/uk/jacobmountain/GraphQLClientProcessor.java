@@ -1,5 +1,6 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.exceptions.SchemaNotFoundException;
 import co.uk.jacobmountain.utils.Schema;
 import com.google.auto.service.AutoService;
 import graphql.schema.idl.SchemaParser;
@@ -72,15 +73,19 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
     private Schema readSchema(GraphQLClient annotation) {
         String value = annotation.schema();
-        if (!value.trim().equals("")) {
-            TypeDefinitionRegistry registry = new SchemaParser().parse(
-                    getRoot().resolve(value)
-                            .toAbsolutePath()
-                            .toFile()
-            );
-            return new Schema(registry);
+        try {
+            if (!value.trim().equals("")) {
+                TypeDefinitionRegistry registry = new SchemaParser().parse(
+                        getRoot().resolve(value)
+                                .toAbsolutePath()
+                                .toFile()
+                );
+                return new Schema(registry);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        throw new RuntimeException("");
+        throw new SchemaNotFoundException();
     }
 
     @SneakyThrows
