@@ -1,8 +1,7 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.utils.Schema;
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.TypeName;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.SneakyThrows;
@@ -13,7 +12,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.MirroredTypeException;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
@@ -53,7 +51,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
             String packageName = getPackage(client);
 
-            TypeDefinitionRegistry schema = readSchema(annotation);
+            Schema schema = readSchema(annotation);
 
             TypeMapper typeMapper = new TypeMapper(packageName + ".dto", annotation.mapping());
 
@@ -72,14 +70,15 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         return processingEnv.getElementUtils().getPackageOf(e).toString();
     }
 
-    private TypeDefinitionRegistry readSchema(GraphQLClient annotation) {
+    private Schema readSchema(GraphQLClient annotation) {
         String value = annotation.schema();
         if (!value.trim().equals("")) {
-            return new SchemaParser().parse(
+            TypeDefinitionRegistry registry = new SchemaParser().parse(
                     getRoot().resolve(value)
                             .toAbsolutePath()
                             .toFile()
             );
+            return new Schema(registry);
         }
         throw new RuntimeException("");
     }
