@@ -4,6 +4,7 @@ package co.uk.jacobmountain;
 import co.uk.jacobmountain.dto.Episode;
 import co.uk.jacobmountain.dto.LengthUnit;
 import co.uk.jacobmountain.dto.Review;
+import co.uk.jacobmountain.dto.ReviewInput;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,5 +30,8 @@ public interface StarWarsClient {
 
     @GraphQLQuery("reviews")
     List<Review> getReviews(Episode episode);
+
+    @GraphQLQuery(value = "createReview", mutation = true)
+    Review createReview(Episode episode, @GraphQLArgument("review") ReviewInput input);
 
 }

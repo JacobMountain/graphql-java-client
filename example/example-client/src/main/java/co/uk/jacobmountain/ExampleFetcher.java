@@ -1,5 +1,6 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.dto.Mutation;
 import co.uk.jacobmountain.dto.Query;
 import co.uk.jacobmountain.dto.Request;
 import co.uk.jacobmountain.dto.Response;
@@ -16,7 +17,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import java.util.Collections;
 
 @Slf4j
-public class ExampleFetcher implements Fetcher<Query, Void, Error> {
+public class ExampleFetcher implements Fetcher<Query, Mutation, Error> {
 
     private final RestTemplate template;
 
@@ -28,26 +29,35 @@ public class ExampleFetcher implements Fetcher<Query, Void, Error> {
 
     @Override
     public <A> Response<Query, Error> query(String s, A a) {
-        Response<Query, Error> body = template.exchange(
-                "/graph",
-                HttpMethod.POST,
-                new HttpEntity<>(new Request<>(s, a)),
+        return makeRequest(
+                new Request<>(s, a),
                 new ParameterizedTypeReference<Response<Query, Error>>() {
                 }
-        ).getBody();
-        printErrors(body);
-        return body;
+        );
     }
 
     @Override
-    public <A> Response<Void, Error> mutate(String s, A a) {
-        return template.exchange(
-                "/graph",
-                HttpMethod.POST,
-                new HttpEntity<>(new Request<>(s, a)),
-                new ParameterizedTypeReference<Response<Void, Error>>() {
+    public <A> Response<Mutation, Error> mutate(String s, A a) {
+        return makeRequest(
+                new Request<>(s, a),
+                new ParameterizedTypeReference<Response<Mutation, Error>>() {
                 }
-        ).getBody();
+        );
+    }
+
+    private <T, V> Response<T, Error> makeRequest(Request<V> request, ParameterizedTypeReference<Response<T, Error>> typeReference) {
+        try {
+            Response<T, Error> response = template.exchange(
+                    "/graph",
+                    HttpMethod.POST,
+                    new HttpEntity<>(request),
+                    typeReference
+            ).getBody();
+            printErrors(response);
+            return response;
+        } catch (Exception e) {
+            return new Response<>(null, Collections.singletonList(new Error(e.getMessage())));
+        }
     }
 
     private <T> void printErrors(Response<T, Error> response) {

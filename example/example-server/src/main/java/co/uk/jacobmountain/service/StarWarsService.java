@@ -1,7 +1,9 @@
 package co.uk.jacobmountain.service;
 
 import co.uk.jacobmountain.resolvers.dto.Character;
-import co.uk.jacobmountain.resolvers.dto.*;
+import co.uk.jacobmountain.resolvers.dto.Episode;
+import co.uk.jacobmountain.resolvers.dto.Review;
+import co.uk.jacobmountain.resolvers.dto.Starship;
 
 import java.util.List;
 
@@ -11,7 +13,7 @@ public interface StarWarsService {
 
     List<Review> getReviews(Episode episode);
 
-    Review createReview(Episode episode, ReviewInput input);
+    Review createReview(Episode episode, Review input);
 
     Review reviewAdded(Episode episode);
 

@@ -3,10 +3,7 @@ package co.uk.jacobmountain.resolvers;
 import co.uk.jacobmountain.resolvers.dto.Character;
 import co.uk.jacobmountain.resolvers.dto.*;
 import co.uk.jacobmountain.service.StarWarsService;
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLContext;
-import io.leangen.graphql.annotations.GraphQLNonNull;
-import io.leangen.graphql.annotations.GraphQLQuery;
+import io.leangen.graphql.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -72,5 +69,11 @@ public class Query {
                 .collect(Collectors.toList());
     }
 
+    @GraphQLMutation(name = "createReview")
+    public Review createReview(@GraphQLArgument(name = "episode") Episode episode,
+                               @GraphQLArgument(name = "review") Review input) {
+        input.setEpisode(episode);
+        return starWarsService.createReview(episode, input);
+    }
 
 }

@@ -17,6 +17,7 @@ public class MethodDetails {
 
     private final TypeName returnType;
 
+    @Getter
     private final String field;
 
     @Singular
@@ -26,10 +27,6 @@ public class MethodDetails {
 
     public TypeName getReturnType() {
         return returnType;
-    }
-
-    public String getField() {
-        return field;
     }
 
     public boolean hasParameters() {

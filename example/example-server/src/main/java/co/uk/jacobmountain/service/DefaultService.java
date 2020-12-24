@@ -87,7 +87,7 @@ public class DefaultService implements StarWarsService {
     }
 
     @Override
-    public Review createReview(Episode episode, ReviewInput input) {
+    public Review createReview(Episode episode, Review input) {
         return null;
     }
 

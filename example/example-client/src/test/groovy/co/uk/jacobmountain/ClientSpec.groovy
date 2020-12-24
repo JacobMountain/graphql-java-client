@@ -1,7 +1,9 @@
 package co.uk.jacobmountain
 
 import co.uk.jacobmountain.dto.LengthUnit
+import co.uk.jacobmountain.dto.ReviewInput
 import co.uk.jacobmountain.resolvers.dto.Episode
+import co.uk.jacobmountain.resolvers.dto.Review
 import co.uk.jacobmountain.service.DefaultService
 import co.uk.jacobmountain.service.StarWarsService
 import co.uk.jacobmountain.util.Assert
@@ -94,6 +96,34 @@ class ClientSpec extends Specification {
 
         and: "A NPE should be thrown"
         thrown(NullPointerException)
+    }
+
+    static ReviewInput randomReviewInput() {
+        ReviewInput review = new ReviewInput();
+        review.setCommentary("");
+        review.setStars(new Random().nextInt(5));
+        review
+    }
+
+    static Review fromReview(ReviewInput review, Episode episode) {
+        Review ret = new Review()
+        ret.episode = episode
+        ret.commentary = review.commentary
+        ret.stars = review.stars
+        ret
+    }
+
+    def "I can mutate"() {
+        given:
+        Review saved
+        def expected = randomReviewInput()
+
+        when:
+        client.createReview(co.uk.jacobmountain.dto.Episode.JEDI, expected)
+
+        then:
+        1 * service.createReview(_, _) >> { args -> saved = args[1] }
+        saved == fromReview(expected, Episode.JEDI)
     }
 
 }

@@ -8,7 +8,9 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.experimental.Delegate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class Schema {
 
@@ -19,10 +21,13 @@ public class Schema {
 
     private final ObjectTypeDefinition mutation;
 
+    private final ObjectTypeDefinition subscription;
+
     public Schema(TypeDefinitionRegistry registry) {
         this.registry = registry;
         this.query = (ObjectTypeDefinition) getTypeDefinition("Query").orElseThrow(RuntimeException::new);
         this.mutation = (ObjectTypeDefinition) getTypeDefinition("Mutation").orElse(null);
+        this.subscription = (ObjectTypeDefinition) getTypeDefinition("Subscription").orElse(null);
     }
 
     public Optional<TypeDefinition> getTypeDefinition(String name) {
@@ -30,8 +35,19 @@ public class Schema {
     }
 
     public Optional<FieldDefinition> findField(String field) {
-        return Optional.of(findField(query, field))
-                .orElseGet(() -> findField(mutation, field));
+        return optionals(
+                findField(query, field),
+                () -> findField(mutation, field),
+                () -> findField(subscription, field)
+        );
+    }
+
+    private <T> Optional<T> optionals(Optional<T> first, Supplier<Optional<T>>... later) {
+        if (first.isPresent()) {
+            return first;
+        }
+        Optional<T> head = later[0].get();
+        return optionals(head, Arrays.copyOfRange(later, 1, later.length));
     }
 
     public Optional<FieldDefinition> findField(ObjectTypeDefinition parent, String field) {

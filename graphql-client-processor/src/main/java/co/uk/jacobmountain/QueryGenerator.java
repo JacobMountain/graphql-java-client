@@ -28,6 +28,7 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
+        log.info("Generating query {}", field);
         String inner = generateQueryRec(field, definition, params, 1, args).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
