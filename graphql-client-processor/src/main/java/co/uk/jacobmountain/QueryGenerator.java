@@ -1,9 +1,9 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.exceptions.FieldNotFoundException;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
 import graphql.language.*;
-import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -18,17 +18,16 @@ public class QueryGenerator {
 
     private final int maxDepth;
 
-    public QueryGenerator(TypeDefinitionRegistry registry, int maxDepth) {
-        this.schema = new Schema(registry);
+    public QueryGenerator(Schema registry, int maxDepth) {
+        this.schema = registry;
         this.maxDepth = maxDepth;
     }
 
     public String generateQuery(String request, String field, Set<String> params, boolean mutates) {
-        FieldDefinition definition = schema.findField(field).orElse(null);
+        FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
 
-        log.info("Generating query {}", field);
         String inner = generateQueryRec(field, definition, params, 1, args).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);

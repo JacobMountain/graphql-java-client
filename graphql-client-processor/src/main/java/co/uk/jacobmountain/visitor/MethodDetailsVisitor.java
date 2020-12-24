@@ -10,7 +10,6 @@ import com.squareup.javapoet.TypeName;
 import graphql.language.FieldDefinition;
 import graphql.language.InputValueDefinition;
 import graphql.language.NonNullType;
-import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.ExecutableElement;
@@ -23,8 +22,8 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
 
     private final Schema schema;
 
-    public MethodDetailsVisitor(TypeDefinitionRegistry registry) {
-        this.schema = registry != null ? new Schema(registry) : null;
+    public MethodDetailsVisitor(Schema registry) {
+        this.schema = registry;
     }
 
     @Override

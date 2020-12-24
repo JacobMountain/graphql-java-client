@@ -1,17 +1,20 @@
 package co.uk.jacobmountain.utils;
 
+import co.uk.jacobmountain.exceptions.QueryTypeNotFoundException;
 import graphql.language.FieldDefinition;
 import graphql.language.InterfaceTypeDefinition;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeDefinition;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+@Slf4j
 public class Schema {
 
     @Delegate
@@ -25,9 +28,19 @@ public class Schema {
 
     public Schema(TypeDefinitionRegistry registry) {
         this.registry = registry;
-        this.query = (ObjectTypeDefinition) getTypeDefinition("Query").orElseThrow(RuntimeException::new);
-        this.mutation = (ObjectTypeDefinition) getTypeDefinition("Mutation").orElse(null);
-        this.subscription = (ObjectTypeDefinition) getTypeDefinition("Subscription").orElse(null);
+        this.query = getSchemaDefinition("query").orElseThrow(QueryTypeNotFoundException::new);
+        this.mutation = getSchemaDefinition("mutation").orElse(null);
+        this.subscription = getSchemaDefinition("subscription").orElse(null);
+    }
+
+    private Optional<ObjectTypeDefinition> getSchemaDefinition(String name) {
+        return registry.schemaDefinition()
+                .get()
+                .getOperationTypeDefinitions().stream()
+                .filter(it -> name.equals(it.getName()))
+                .findFirst()
+                .flatMap(it -> getTypeDefinition(it.getTypeName().getName()))
+                .map(it -> (ObjectTypeDefinition) it);
     }
 
     public Optional<TypeDefinition> getTypeDefinition(String name) {
@@ -45,6 +58,9 @@ public class Schema {
     private <T> Optional<T> optionals(Optional<T> first, Supplier<Optional<T>>... later) {
         if (first.isPresent()) {
             return first;
+        }
+        if (later.length == 0) {
+            return Optional.empty();
         }
         Optional<T> head = later[0].get();
         return optionals(head, Arrays.copyOfRange(later, 1, later.length));
@@ -65,4 +81,14 @@ public class Schema {
                 .filter(it -> it.getName().equals(field))
                 .findAny();
     }
+
+    public String getQueryTypeName() {
+        return query.getName();
+    }
+
+    public Optional<String> getMutationTypeName() {
+        return Optional.ofNullable(mutation).map(ObjectTypeDefinition::getName);
+    }
+
+
 }

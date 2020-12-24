@@ -1,11 +1,11 @@
 package co.uk.jacobmountain;
 
+import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
 import co.uk.jacobmountain.visitor.MethodDetails;
 import co.uk.jacobmountain.visitor.MethodDetailsVisitor;
 import co.uk.jacobmountain.visitor.Parameter;
 import com.squareup.javapoet.*;
-import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +16,6 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static graphql.language.TypeName.newTypeName;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -49,14 +47,14 @@ public class ClientGenerator {
         return StringUtils.capitalize(name) + "Arguments";
     }
 
-    private ParameterizedTypeName generateTypeName(TypeDefinitionRegistry schema) {
+    private ParameterizedTypeName generateTypeName(Schema schema) {
         ClassName fetcher = ClassName.get(Fetcher.class);
-        ClassName query = ClassName.get(this.dtoPackageName, "Query");
-        if (schema.hasType(newTypeName("Mutation").build()))
+        ClassName query = ClassName.get(this.dtoPackageName, schema.getQueryTypeName());
+        if (schema.getMutationTypeName().isPresent())
             return ParameterizedTypeName.get(
                     fetcher,
                     query,
-                    ClassName.get(this.dtoPackageName, "Mutation"),
+                    ClassName.get(this.dtoPackageName, schema.getMutationTypeName().get()),
                     TypeVariableName.get("Error")
             );
         return ParameterizedTypeName.get(
@@ -77,9 +75,8 @@ public class ClientGenerator {
         );
     }
 
-    private MethodSpec generateImpl(Element method, TypeDefinitionRegistry schema) {
+    private MethodSpec generateImpl(Element method, Schema schema) {
         MethodDetails details = method.accept(new MethodDetailsVisitor(schema), typeMapper);
-        log.info("{}", details.getReturnType());
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .returns(details.getReturnType())
                 .addModifiers(Modifier.PUBLIC)
@@ -90,7 +87,7 @@ public class ClientGenerator {
     }
 
     @SneakyThrows
-    public void generate(TypeDefinitionRegistry schema, TypeElement element) {
+    public void generate(Schema schema, TypeElement element) {
         ParameterizedTypeName fetcherType = generateTypeName(schema);
         TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + "Graph")
                 .addSuperinterface(ClassName.get(element))
@@ -108,7 +105,7 @@ public class ClientGenerator {
         writeToFile(builder.build());
     }
 
-    private List<CodeBlock> assembleFetchAndReturn(MethodDetails details, TypeDefinitionRegistry schema) {
+    private List<CodeBlock> assembleFetchAndReturn(MethodDetails details, Schema schema) {
         boolean wrapInOptional = details.getReturnType() instanceof ParameterizedTypeName &&
                 ((ParameterizedTypeName) details.getReturnType()).rawType.equals(ClassName.get(Optional.class));
         CodeBlock.Builder builder = CodeBlock.builder();
@@ -131,7 +128,7 @@ public class ClientGenerator {
         return Collections.singletonList(builder.build());
     }
 
-    private CodeBlock generateQuery(String request, TypeDefinitionRegistry schema, MethodDetails details) {
+    private CodeBlock generateQuery(String request, Schema schema, MethodDetails details) {
         Set<String> params = details.getParameters()
                 .stream()
                 .map(Parameter::getField)

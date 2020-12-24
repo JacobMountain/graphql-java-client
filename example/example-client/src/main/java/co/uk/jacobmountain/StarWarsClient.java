@@ -11,9 +11,6 @@ import java.util.Optional;
 
 @GraphQLClient(
         schema = "Schema.gql",
-        mapping = {
-
-        },
         maxDepth = 5,
         nullChecking = true
 )
