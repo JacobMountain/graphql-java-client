@@ -19,18 +19,17 @@ public class PojoBuilder {
 
     private Type type;
 
-    private final List<String> fields = new ArrayList<>();
-
-    private final List<String> subTypes = new ArrayList<>();
-
     private final String name;
 
     private final String packageName;
 
+    private final List<String> fields = new ArrayList<>();
+
+    private final List<String> subTypes = new ArrayList<>();
+
     protected PojoBuilder(String name, String packageName) {
         this.name = name;
         this.packageName = packageName;
-        ;
     }
 
     public static PojoBuilder newInterface(String name, String packageName) {
@@ -72,8 +71,8 @@ public class PojoBuilder {
         } else {
             log.info("\t\t" + name + ": " + clazz);
         }
+        fields.add(name);
         if (!isInterface()) {
-            fields.add(name);
             builder.addField(clazz, name, Modifier.PRIVATE);
         }
         withAccessors(clazz, name);

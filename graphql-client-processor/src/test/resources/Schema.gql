@@ -1,5 +1,6 @@
 schema {
     query: Query
+    mutation: Mutation
 }
 
 #Query root
@@ -7,6 +8,20 @@ type Query {
     hero: Character
     droid(id: ID!): Droid
     humans: [Human]
+    object: Thing
+}
+
+type Mutation {
+    doThing: Thing
+}
+
+input InputThing {
+    number: Int
+}
+
+type Thing {
+    field: String
+    number: Int
 }
 
 interface Character {
@@ -28,3 +43,11 @@ type Droid implements Character {
     friends: [Character]
     primaryFunction: String
 }
+
+enum Numbers {
+    ONE
+    TWO
+    THREE
+}
+
+union Union = Human | Droid

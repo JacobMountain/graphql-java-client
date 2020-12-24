@@ -56,7 +56,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
             TypeMapper typeMapper = new TypeMapper(packageName + ".dto", annotation.mapping());
 
-            DTOGenerator dtoGenerator = new DTOGenerator(packageName + ".dto", this.filer, typeMapper);
+            DTOGenerator dtoGenerator = new DTOGenerator(packageName + ".dto", new FileWriter(this.filer), typeMapper);
             dtoGenerator.generate(schema.types().values());
             dtoGenerator.generateArgumentDTOs(client);
 
