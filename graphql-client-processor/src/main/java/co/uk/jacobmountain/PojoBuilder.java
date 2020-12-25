@@ -59,7 +59,6 @@ public class PojoBuilder {
     }
 
     private PojoBuilder enumeration(String name) {
-        log.info(String.format("enum %s {", name));
         type = Type.Enum;
         builder = TypeSpec.enumBuilder(name).addModifiers(Modifier.PUBLIC);
         return this;
@@ -67,9 +66,9 @@ public class PojoBuilder {
 
     public PojoBuilder withField(TypeName clazz, String name) {
         if (clazz instanceof ClassName) {
-            log.info("\t\t" + name + ": " + ((ClassName) clazz).simpleName());
+            log.info("\t" + name + ": " + ((ClassName) clazz).simpleName());
         } else {
-            log.info("\t\t" + name + ": " + clazz);
+            log.info("\t" + name + ": " + clazz);
         }
         fields.add(name);
         if (!isInterface()) {
@@ -208,6 +207,14 @@ public class PojoBuilder {
         return JavaFile.builder(packageName, builder.build())
                 .indent("\t")
                 .build();
+    }
+
+    public void finalise() {
+        if (type != Type.Enum) {
+            log.info("}");
+        } else {
+            log.info(String.format("enum %s", name));
+        }
     }
 
     enum Type {

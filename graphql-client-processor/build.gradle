@@ -11,10 +11,12 @@ dependencies {
 
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.11.3'
 
+    // annotation processing
     annotationProcessor "com.google.auto.service:auto-service:1.0-rc7"
     compileOnly "com.google.auto.service:auto-service:1.0-rc7"
 
-    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+    // logging
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
 
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'

@@ -65,7 +65,9 @@ public class DTOGenerator {
                     return new AbstractMap.SimpleEntry<>(name, builder);
                 })
                 .filter(distinctByKey(AbstractMap.SimpleEntry::getKey)) // don't rebuild new classes if two requests share args
-                .forEach(entry -> filer.write(entry.getValue()));
+                .map(AbstractMap.SimpleEntry::getValue)
+                .peek(PojoBuilder::finalise)
+                .forEach(filer::write);
     }
 
     private void generateDTO(TypeDefinition<?> td) {
@@ -98,8 +100,8 @@ public class DTOGenerator {
             enumTypeDefinition.getEnumValueDefinitions()
                     .forEach(pojo::withEnumValue);
         }
-        log.info("}");
         types.put(td.getName(), pojo);
+        pojo.finalise();
     }
 
     private PojoBuilder builder(TypeDefinition<?> td) {
