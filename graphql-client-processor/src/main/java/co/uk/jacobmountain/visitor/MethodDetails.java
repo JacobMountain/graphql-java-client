@@ -66,14 +66,14 @@ public class MethodDetails {
         return MessageFormat.format("{0} {1}({2})", getTypeString(returnType), methodName, arguments);
     }
 
-    private String getTypeString(TypeName type) {
+    public static String getTypeString(TypeName type) {
         if (type instanceof ClassName) {
             return ((ClassName) type).simpleName();
         } else if (type instanceof ParameterizedTypeName) {
             ParameterizedTypeName parameterizedTypeName = (ParameterizedTypeName) type;
             String raw = parameterizedTypeName.rawType.simpleName();
             String collect = parameterizedTypeName.typeArguments.stream()
-                    .map(this::getTypeString)
+                    .map(MethodDetails::getTypeString)
                     .collect(Collectors.joining(", "));
             return String.format("%s<%s>", raw, collect);
         } else {
