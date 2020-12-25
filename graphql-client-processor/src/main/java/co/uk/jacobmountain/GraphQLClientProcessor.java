@@ -16,6 +16,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
@@ -56,10 +57,12 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
             TypeMapper typeMapper = new TypeMapper(packageName + ".dto", annotation.mapping());
 
+            log.info("Generating java classes from GraphQL schema");
             DTOGenerator dtoGenerator = new DTOGenerator(packageName + ".dto", new FileWriter(this.filer), typeMapper);
             dtoGenerator.generate(schema.types().values());
             dtoGenerator.generateArgumentDTOs(client);
 
+            log.info("Generating java implementation of {}", client.getSimpleName());
             new ClientGenerator(this.filer, annotation.maxDepth(), typeMapper, packageName)
                     .generate(schema, client, annotation.implSuffix());
             return true;
@@ -75,11 +78,11 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         String value = annotation.schema();
         try {
             if (!value.trim().equals("")) {
-                TypeDefinitionRegistry registry = new SchemaParser().parse(
-                        getRoot().resolve(value)
-                                .toAbsolutePath()
-                                .toFile()
-                );
+                File file = getRoot().resolve(value)
+                        .toAbsolutePath()
+                        .toFile();
+                log.info("Reading schema {}", file);
+                TypeDefinitionRegistry registry = new SchemaParser().parse(file);
                 return new Schema(registry);
             }
         } catch (Exception e) {
