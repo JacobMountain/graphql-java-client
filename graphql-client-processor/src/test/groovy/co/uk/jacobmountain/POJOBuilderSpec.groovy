@@ -27,7 +27,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate a class"(){
         when:
-        def build = PojoBuilder.newClass("MyPojo", "co.uk").build()
+        def build = PojoBuilder.newType("MyPojo", "co.uk").build()
 
         then:
         build.typeSpec.name == "MyPojo"
@@ -47,7 +47,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate getters and setters for private fields"(){
         when:
-        def build = PojoBuilder.newClass("MyPojo", "co.uk")
+        def build = PojoBuilder.newType("MyPojo", "co.uk")
                 .withField(ClassName.get(String.class), "field")
                 .build()
 
@@ -60,7 +60,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate getters and setters for multiple private fields"(){
         when:
-        def build = PojoBuilder.newClass("MyPojo", "co.uk")
+        def build = PojoBuilder.newType("MyPojo", "co.uk")
                 .withField(ClassName.get(String.class), "string")
                 .withField(INT, "integer")
                 .build()
@@ -79,9 +79,9 @@ class POJOBuilderSpec extends Specification {
         PojoBuilder.newInterface("Interface", "co.uk").build()
 
         when:
-        def clazz = PojoBuilder.newClass("Implements", "co.uk.jacobmountain")
-            .implement("Interface")
-            .build()
+        def clazz = PojoBuilder.newType("Implements", "co.uk.jacobmountain")
+                .implement("Interface")
+                .build()
 
         then:
         clazz.typeSpec.superinterfaces.contains(ClassName.get("co.uk.jacobmountain", "Interface"))

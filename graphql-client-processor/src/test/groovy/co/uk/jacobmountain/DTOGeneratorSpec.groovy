@@ -94,7 +94,7 @@ class DTOGeneratorSpec extends Specification {
         1 * writer.write({ arg -> arg.name == "Union" }) >> { actual = it[0] }
         actual.name == "Union"
         actual.packageName == "com.package"
-        actual.type == PojoBuilder.Type.Interface
+        actual.type == PojoBuilder.Type.Union
     }
 
     def "Input"() {
