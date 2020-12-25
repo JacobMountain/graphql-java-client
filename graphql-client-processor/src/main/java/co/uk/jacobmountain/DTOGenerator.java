@@ -5,9 +5,7 @@ import co.uk.jacobmountain.visitor.MethodDetailsVisitor;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.processing.Filer;
 import javax.lang.model.element.TypeElement;
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,7 +17,7 @@ import java.util.function.Predicate;
 @Slf4j
 public class DTOGenerator {
 
-    private final Filer filer;
+    private final FileWriter filer;
 
     private final TypeMapper typeMapper;
 
@@ -27,26 +25,25 @@ public class DTOGenerator {
 
     private final String packageName;
 
-    public DTOGenerator(String packageName, Filer filer, TypeMapper typeMapper) {
+    public DTOGenerator(String packageName, FileWriter filer, TypeMapper typeMapper) {
         this.packageName = packageName;
         this.filer = filer;
-        this.typeMapper =  typeMapper;
+        this.typeMapper = typeMapper;
     }
 
-    public void generate(Collection<TypeDefinition> types) {
-        types.forEach(this::generateDTO);
-        this.types.values().forEach(it -> {
-            try {
-                it.build().writeTo(filer);
-            } catch (Exception e) {
-                log.error("Failed to create class", e);
-            }
-        });
-    }
-
-    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    /**
+     * Generates the types according to the GraphQL schema
+     *
+     * @param types the type definitions from the GraphQL schema
+     */
+    public void generate(Collection<TypeDefinition> types) {
+        types.forEach(this::generateDTO);
+        this.types.values().forEach(filer::write);
     }
 
     public void generateArgumentDTOs(TypeElement client) {
@@ -68,13 +65,7 @@ public class DTOGenerator {
                     return new AbstractMap.SimpleEntry<>(name, builder);
                 })
                 .filter(distinctByKey(AbstractMap.SimpleEntry::getKey)) // don't rebuild new classes if two requests share args
-                .forEach(entry -> {
-                    try {
-                        entry.getValue().build().writeTo(filer);
-                    } catch (IOException e) {
-                        log.error("Failed to create class", e);
-                    }
-                });
+                .forEach(entry -> filer.write(entry.getValue()));
     }
 
     private void generateDTO(TypeDefinition<?> td) {
@@ -142,6 +133,7 @@ public class DTOGenerator {
             });
             return builder;
         }
+        log.info("{}", td);
         log.info("Unexpected type definition {}", td.getClass());
         return null;
     }
