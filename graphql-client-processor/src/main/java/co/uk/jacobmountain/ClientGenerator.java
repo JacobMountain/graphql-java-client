@@ -2,8 +2,8 @@ package co.uk.jacobmountain;
 
 import co.uk.jacobmountain.modules.AbstractModule;
 import co.uk.jacobmountain.modules.ArgumentAssemblerModule;
+import co.uk.jacobmountain.modules.BlockingQueryModule;
 import co.uk.jacobmountain.modules.OptionalReturnModule;
-import co.uk.jacobmountain.modules.QueryMutationModule;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
 import co.uk.jacobmountain.visitor.MethodDetails;
@@ -46,7 +46,7 @@ public class ClientGenerator {
         this.schema = schema;
         this.modules = Arrays.asList(
                 new ArgumentAssemblerModule(dtoPackageName),
-                new QueryMutationModule(schema, dtoPackageName, maxDepth, typeMapper),
+                new BlockingQueryModule(schema, dtoPackageName, maxDepth, typeMapper),
                 new OptionalReturnModule(schema, typeMapper)
         );
     }
