@@ -36,30 +36,44 @@ public class PojoBuilder {
         return new PojoBuilder(name, packageName).interfac(name);
     }
 
-    public static PojoBuilder newClass(String name, String packageName) {
-        return new PojoBuilder(name, packageName).clazz(name);
+    public static PojoBuilder newType(String name, String packageName) {
+        return new PojoBuilder(name, packageName).clazz(name, false);
+    }
+
+    public static PojoBuilder newInput(String name, String packageName) {
+        return new PojoBuilder(name, packageName).clazz(name, true);
     }
 
     public static PojoBuilder newEnum(String name, String packageName) {
         return new PojoBuilder(name, packageName).enumeration(name);
     }
 
-    private PojoBuilder clazz(String name) {
-        log.info(String.format("type %s {", name));
+    public static PojoBuilder newUnion(String name, String packageName) {
+        return new PojoBuilder(name, packageName).union(name);
+    }
+
+    private PojoBuilder clazz(String name, boolean input) {
+        log.info("{} {} {", input ? "input" : "type", name);
         type = Type.Class;
         builder = TypeSpec.classBuilder(name).addModifiers(Modifier.PUBLIC);
         return this;
     }
 
     private PojoBuilder interfac(String name) {
-        log.info(String.format("interface %s {", name));
+        log.info("interface {} {", name);
         type = Type.Interface;
         builder = TypeSpec.interfaceBuilder(name).addModifiers(Modifier.PUBLIC);
         return this;
     }
 
+    private PojoBuilder union(String name) {
+        type = Type.Union;
+        builder = TypeSpec.interfaceBuilder(name).addModifiers(Modifier.PUBLIC);
+        return this;
+    }
+
     private PojoBuilder enumeration(String name) {
-        log.info(String.format("enum %s {", name));
+        log.info("enum {} {", name);
         type = Type.Enum;
         builder = TypeSpec.enumBuilder(name).addModifiers(Modifier.PUBLIC);
         return this;
@@ -67,9 +81,9 @@ public class PojoBuilder {
 
     public PojoBuilder withField(TypeName clazz, String name) {
         if (clazz instanceof ClassName) {
-            log.info("\t\t" + name + ": " + ((ClassName) clazz).simpleName());
+            log.info("\t" + name + ": " + ((ClassName) clazz).simpleName());
         } else {
-            log.info("\t\t" + name + ": " + clazz);
+            log.info("\t" + name + ": " + clazz);
         }
         fields.add(name);
         if (!isInterface()) {
@@ -82,6 +96,7 @@ public class PojoBuilder {
     public void withEnumValue(EnumValueDefinition it) {
         if (type == Type.Enum) {
             builder.addEnumConstant(it.getName());
+            log.info("\t{}", it.getName());
         }
     }
 
@@ -189,7 +204,7 @@ public class PojoBuilder {
     }
 
     boolean isInterface() {
-        return type == Type.Interface;
+        return type == Type.Interface || type == Type.Union;
     }
 
     public JavaFile build() {
@@ -210,10 +225,20 @@ public class PojoBuilder {
                 .build();
     }
 
+    public void finalise() {
+        if (type == Type.Union) {
+            log.info("union {} = {}", name, String.join(" | ", subTypes));
+        } else {
+            log.info("}");
+        }
+        log.info("");
+    }
+
     enum Type {
         Class,
         Interface,
-        Enum
+        Enum,
+        Union
     }
 
 }

@@ -40,7 +40,7 @@ public class ClientGenerator {
     }
 
     public static String generateArgumentClassname(MethodDetails details) {
-        String name = details.getName();
+        String name = details.getRequestName();
         if (StringUtils.isEmpty(name)) {
             name = details.getField();
         }
@@ -77,6 +77,7 @@ public class ClientGenerator {
 
     private MethodSpec generateImpl(Element method, Schema schema) {
         MethodDetails details = method.accept(new MethodDetailsVisitor(schema), typeMapper);
+        log.info("{}", details);
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .returns(details.getReturnType())
                 .addModifiers(Modifier.PUBLIC)
@@ -102,6 +103,7 @@ public class ClientGenerator {
 
         element.getEnclosedElements()
                 .stream()
+                .peek(it -> log.info(""))
                 .map(method -> generateImpl(method, schema))
                 .forEach(builder::addMethod);
 
@@ -119,7 +121,7 @@ public class ClientGenerator {
             builder.add("return ");
         }
         builder.add("fetcher")
-                .add(generateQuery(details.getName(), schema, details))
+                .add(generateQuery(details.getRequestName(), schema, details))
                 .add("\n").indent()
                 .add(".getData()")
                 .add("\n")

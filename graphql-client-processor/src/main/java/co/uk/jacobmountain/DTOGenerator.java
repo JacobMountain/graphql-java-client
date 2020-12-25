@@ -6,7 +6,6 @@ import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.TypeElement;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,9 +50,10 @@ public class DTOGenerator {
                 .stream()
                 .map(method -> method.accept(new MethodDetailsVisitor(null), typeMapper))
                 .filter(MethodDetails::hasParameters) // don't generate argument classes for methods without args
+                .filter(distinctByKey(ClientGenerator::generateArgumentClassname)) // don't rebuild new classes if two requests share args
                 .map(details -> {
                     String name = ClientGenerator.generateArgumentClassname(details);
-                    PojoBuilder builder = PojoBuilder.newClass(name, packageName);
+                    PojoBuilder builder = PojoBuilder.newType(name, packageName);
                     details.getParameters()
                             .forEach(variable -> {
                                 String field = variable.getName();
@@ -62,10 +62,10 @@ public class DTOGenerator {
                                 }
                                 builder.withField(variable.getType(), field);
                             });
-                    return new AbstractMap.SimpleEntry<>(name, builder);
+                    return builder;
                 })
-                .filter(distinctByKey(AbstractMap.SimpleEntry::getKey)) // don't rebuild new classes if two requests share args
-                .forEach(entry -> filer.write(entry.getValue()));
+                .peek(PojoBuilder::finalise)
+                .forEach(filer::write);
     }
 
     private void generateDTO(TypeDefinition<?> td) {
@@ -98,15 +98,15 @@ public class DTOGenerator {
             enumTypeDefinition.getEnumValueDefinitions()
                     .forEach(pojo::withEnumValue);
         }
-        log.info("}");
         types.put(td.getName(), pojo);
+        pojo.finalise();
     }
 
     private PojoBuilder builder(TypeDefinition<?> td) {
         if (td instanceof InterfaceTypeDefinition) {
             return PojoBuilder.newInterface(td.getName(), packageName);
         } else if (td instanceof ObjectTypeDefinition) {
-            PojoBuilder builder = PojoBuilder.newClass(td.getName(), packageName);
+            PojoBuilder builder = PojoBuilder.newType(td.getName(), packageName);
             ObjectTypeDefinition otd = ((ObjectTypeDefinition) td);
             otd.getImplements().forEach(supertype -> {
                 // POJO implements interface
@@ -117,12 +117,12 @@ public class DTOGenerator {
             });
             return builder;
         } else if (td instanceof InputObjectTypeDefinition) {
-            return PojoBuilder.newClass(td.getName(), packageName);
+            return PojoBuilder.newInput(td.getName(), packageName);
         } else if (td instanceof EnumTypeDefinition) {
             return PojoBuilder.newEnum(td.getName(), packageName);
         } else if (td instanceof UnionTypeDefinition) {
             UnionTypeDefinition utd = (UnionTypeDefinition) td;
-            PojoBuilder builder = PojoBuilder.newInterface(td.getName(), packageName);
+            PojoBuilder builder = PojoBuilder.newUnion(td.getName(), packageName);
             utd.getMemberTypes().forEach(supertype -> {
                 // POJO implements interface
                 String member = ((graphql.language.TypeName) supertype).getName();
