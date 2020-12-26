@@ -9,7 +9,7 @@ import lombok.Value;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class AbstractModule {
+public abstract class AbstractStage {
 
     public List<MemberVariable> getMemberVariables() {
         return Collections.emptyList();

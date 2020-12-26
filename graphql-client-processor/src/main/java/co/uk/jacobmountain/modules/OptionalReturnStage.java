@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.*;
 
 @RequiredArgsConstructor
-public class OptionalReturnModule extends AbstractModule {
+public class OptionalReturnStage extends AbstractStage {
 
     private final Schema schema;
 
@@ -35,6 +35,7 @@ public class OptionalReturnModule extends AbstractModule {
                         CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", details.getField()))
                 )
         );
+
         if (!returnsOptional(details)) {
             ret.add(CodeBlock.of("orElse(null)"));
         }

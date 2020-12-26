@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class QueryMutationModule extends AbstractModule {
+public class QueryMutationStage extends AbstractStage {
 
     private final Schema schema;
 
@@ -29,7 +29,7 @@ public class QueryMutationModule extends AbstractModule {
 
     private final TypeName mutation;
 
-    public QueryMutationModule(Schema schema, String dtoPackageName, int maxDepth, TypeMapper typeMapper) {
+    public QueryMutationStage(Schema schema, String dtoPackageName, int maxDepth, TypeMapper typeMapper) {
         this.schema = schema;
         this.dtoPackageName = dtoPackageName;
         this.maxDepth = maxDepth;

@@ -1,9 +1,9 @@
 package co.uk.jacobmountain;
 
-import co.uk.jacobmountain.modules.AbstractModule;
-import co.uk.jacobmountain.modules.ArgumentAssemblerModule;
-import co.uk.jacobmountain.modules.OptionalReturnModule;
-import co.uk.jacobmountain.modules.QueryMutationModule;
+import co.uk.jacobmountain.modules.AbstractStage;
+import co.uk.jacobmountain.modules.ArgumentAssemblyStage;
+import co.uk.jacobmountain.modules.OptionalReturnStage;
+import co.uk.jacobmountain.modules.QueryMutationStage;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
 import co.uk.jacobmountain.visitor.MethodDetails;
@@ -36,7 +36,7 @@ public class ClientGenerator {
 
     private final Schema schema;
 
-    private final List<AbstractModule> modules;
+    private final List<AbstractStage> modules;
 
     public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, Schema schema) {
         this.filer = filer;
@@ -45,9 +45,9 @@ public class ClientGenerator {
         this.dtoPackageName = packageName + ".dto";
         this.schema = schema;
         this.modules = Arrays.asList(
-                new ArgumentAssemblerModule(dtoPackageName),
-                new QueryMutationModule(schema, dtoPackageName, maxDepth, typeMapper),
-                new OptionalReturnModule(schema, typeMapper)
+                new ArgumentAssemblyStage(dtoPackageName),
+                new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper),
+                new OptionalReturnStage(schema, typeMapper)
         );
     }
 
@@ -60,7 +60,7 @@ public class ClientGenerator {
     }
 
 
-    private void generateConstructor(TypeSpec.Builder type, List<AbstractModule.MemberVariable> variables) {
+    private void generateConstructor(TypeSpec.Builder type, List<AbstractStage.MemberVariable> variables) {
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
         variables.forEach(var -> constructor.addParameter(var.getType(), var.getName())
                 .addStatement("this.$L = $L", var.getName(), var.getName()));
@@ -98,8 +98,8 @@ public class ClientGenerator {
                 .map(TypeVariableName::get)
                 .forEach(builder::addTypeVariable);
 
-        List<AbstractModule.MemberVariable> memberVariables = this.modules.stream()
-                .map(AbstractModule::getMemberVariables)
+        List<AbstractStage.MemberVariable> memberVariables = this.modules.stream()
+                .map(AbstractStage::getMemberVariables)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
