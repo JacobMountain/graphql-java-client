@@ -1,5 +1,6 @@
 package co.uk.jacobmountain.visitor;
 
+import co.uk.jacobmountain.utils.StringUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -64,6 +65,13 @@ public class MethodDetails {
                 .map(param -> MessageFormat.format("{0} {1}", getTypeString(param.getType()), param.getName()))
                 .collect(Collectors.joining(", "));
         return MessageFormat.format("{0} {1}({2})", getTypeString(returnType), methodName, arguments);
+    }
+
+    public String getArgumentClassname() {
+        return StringUtils.pascalCase(methodName, "By") + parameters.stream()
+                .map(Parameter::getName)
+                .map(StringUtils::pascalCase)
+                .collect(Collectors.joining("And"));
     }
 
     public static String getTypeString(TypeName type) {

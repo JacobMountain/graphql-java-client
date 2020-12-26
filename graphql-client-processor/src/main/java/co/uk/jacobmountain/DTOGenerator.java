@@ -45,9 +45,9 @@ public class DTOGenerator {
                 .stream()
                 .map(method -> method.accept(new MethodDetailsVisitor(null), typeMapper))
                 .filter(MethodDetails::hasParameters) // don't generate argument classes for methods without args
-                .filter(distinctByKey(ClientGenerator::generateArgumentClassname)) // don't rebuild new classes if two requests share args
+                .filter(distinctByKey(MethodDetails::getArgumentClassname)) // don't rebuild new classes if two requests share args
                 .map(details -> {
-                    String name = ClientGenerator.generateArgumentClassname(details);
+                    String name = details.getArgumentClassname();
                     PojoBuilder builder = PojoBuilder.newType(name, packageName);
                     details.getParameters()
                             .forEach(variable -> {

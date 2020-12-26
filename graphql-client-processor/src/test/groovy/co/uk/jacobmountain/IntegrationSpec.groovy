@@ -45,7 +45,7 @@ class IntegrationSpec extends Specification {
     @Unroll
     def "Can query for data with args (#name)"() {
         given:
-        def args = new DroidArguments()
+        def args = new GetDroidById()
         args.id = id
         def droid = newDroid(id, name)
         fetcher.query("query Droid(\$id: ID!) { droid(id: \$id) { id name friends { id name ... on Human { id name totalCredits __typename } ... on Droid { id name primaryFunction __typename } __typename } primaryFunction __typename } }", args) >> Response.builder()

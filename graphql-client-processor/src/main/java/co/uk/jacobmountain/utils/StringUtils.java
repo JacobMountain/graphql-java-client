@@ -26,6 +26,12 @@ public class StringUtils {
         ).collect(Collectors.joining());
     }
 
+    public String pascalCase(String... parts) {
+        return Stream.of(parts)
+                .map(StringUtils::capitalize)
+                .collect(Collectors.joining());
+    }
+
     public String enquote(String value) {
         return "\"" + value + "\"";
     }

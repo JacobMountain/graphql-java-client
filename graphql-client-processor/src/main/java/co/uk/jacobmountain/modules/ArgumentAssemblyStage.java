@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static co.uk.jacobmountain.ClientGenerator.generateArgumentClassname;
 
 @RequiredArgsConstructor
 public class ArgumentAssemblyStage extends AbstractStage {
@@ -32,7 +31,7 @@ public class ArgumentAssemblyStage extends AbstractStage {
             return Collections.emptyList();
         }
         List<CodeBlock> ret = new ArrayList<>();
-        TypeName type = ClassName.get(dtoPackageName, generateArgumentClassname(details));
+        TypeName type = ClassName.get(dtoPackageName, details.getArgumentClassname());
         ret.add(CodeBlock.of("$T args = new $T()", type, type));
         details.getParameters()
                 .stream()

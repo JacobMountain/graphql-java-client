@@ -29,7 +29,6 @@ public class ClientGenerator {
 
     private final String packageName;
 
-
     private final Schema schema;
 
     private final List<AbstractStage> modules = new ArrayList<>();
@@ -48,15 +47,6 @@ public class ClientGenerator {
             this.modules.add(new OptionalReturnStage(schema, typeMapper));
         }
     }
-
-    public static String generateArgumentClassname(MethodDetails details) {
-        String name = details.getRequestName();
-        if (StringUtils.isEmpty(name)) {
-            name = details.getField();
-        }
-        return StringUtils.capitalize(name) + "Arguments";
-    }
-
 
     private void generateConstructor(TypeSpec.Builder type, List<AbstractStage.MemberVariable> variables) {
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
