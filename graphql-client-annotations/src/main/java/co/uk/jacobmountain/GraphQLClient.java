@@ -21,6 +21,8 @@ public @interface GraphQLClient {
 
     boolean reactive() default false;
 
+    String dtoPackage() default "dto";
+
     @interface Scalar {
 
         String from();

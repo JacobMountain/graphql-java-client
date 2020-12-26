@@ -3,9 +3,10 @@ package co.uk.jacobmountain;
 import co.uk.jacobmountain.exceptions.SchemaNotFoundException;
 import co.uk.jacobmountain.utils.Schema;
 import com.google.auto.service.AutoService;
-import graphql.schema.idl.SchemaParser;
-import graphql.schema.idl.TypeDefinitionRegistry;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.processing.*;
@@ -19,7 +20,10 @@ import javax.tools.StandardLocation;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 @Slf4j
 @AutoService(Processor.class)
@@ -38,65 +42,100 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         this.messager = processingEnv.getMessager();
     }
 
+    private Path root;
+
     @Override
     @SneakyThrows
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (Element el : roundEnv.getElementsAnnotatedWith(GraphQLClient.class)) {
+        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(GraphQLClient.class);
+        for (Element el : elements) {
             if (!(el.getKind() == ElementKind.CLASS || el.getKind() == ElementKind.INTERFACE)) {
                 messager.printMessage(Diagnostic.Kind.ERROR, "Can't be applied to class");
                 return true;
             }
-
-            TypeElement client = (TypeElement) el;
-
-            GraphQLClient annotation = client.getAnnotation(GraphQLClient.class);
-
-            String packageName = getPackage(client);
-
-            Schema schema = readSchema(annotation);
-
-            TypeMapper typeMapper = new TypeMapper(packageName + ".dto", annotation.mapping());
-
-            log.info("Generating java classes from GraphQL schema");
-            DTOGenerator dtoGenerator = new DTOGenerator(packageName + ".dto", new FileWriter(this.filer), typeMapper);
-            dtoGenerator.generate(schema.types().values());
-            dtoGenerator.generateArgumentDTOs(client);
-
-            log.info("Generating java implementation of {}", client.getSimpleName());
-            new ClientGenerator(this.filer, annotation.maxDepth(), typeMapper, packageName, schema, annotation.reactive())
-                    .generate(client, annotation.implSuffix());
-            return true;
         }
-        return false;
+        return elements.stream()
+                .map(el -> (TypeElement) el)
+                .map(Input::new)
+                .peek(this.generateJavaDataClasses())
+                .peek(this::generateClientImplementation)
+                .count() > 0;
     }
 
-    private String getPackage(TypeElement e) {
-        return processingEnv.getElementUtils().getPackageOf(e).toString();
-    }
-
-    private Schema readSchema(GraphQLClient annotation) {
-        String value = annotation.schema();
-        try {
-            if (!value.trim().equals("")) {
-                File file = getRoot().resolve(value)
-                        .toAbsolutePath()
-                        .toFile();
-                log.info("Reading schema {}", file);
-                TypeDefinitionRegistry registry = new SchemaParser().parse(file);
-                return new Schema(registry);
+    Consumer<Input> generateJavaDataClasses() {
+        Set<Input> generated = new HashSet<>();
+        return input -> {
+            Schema schema = input.getSchema();
+            if (generated.add(input)) {
+                log.info("Generating java classes from GraphQL schema");
+                DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
+                dtoGenerator.generate(schema.types().values());
+                dtoGenerator.generateArgumentDTOs(input.element);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        throw new SchemaNotFoundException();
+        };
+    }
+
+    void generateClientImplementation(Input client) {
+        GraphQLClient annotation = client.getAnnotation();
+        log.info("Generating java implementation of {}", client.element.getSimpleName());
+        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema(), annotation.reactive())
+                .generate(client.element, annotation.implSuffix());
     }
 
     @SneakyThrows
     private Path getRoot() {
-        FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "tmp", (Element[]) null);
-        Path projectPath = Paths.get(resource.toUri()).getParent().getParent().getParent().getParent().getParent();
-        resource.delete();
-        return projectPath;
+        if (root == null) {
+            FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "tmp", (Element[]) null);
+            root = Paths.get(resource.toUri()).getParent().getParent().getParent().getParent().getParent();
+            resource.delete();
+        }
+        return root;
+    }
+
+    @Value
+    @AllArgsConstructor
+    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+    class Input {
+
+        TypeElement element;
+
+        GraphQLClient getAnnotation() {
+            return element.getAnnotation(GraphQLClient.class);
+        }
+
+        TypeMapper getTypeMapper() {
+            return new TypeMapper(getDtoPackage(), getAnnotation().mapping());
+        }
+
+        @EqualsAndHashCode.Include
+        String getDtoPackage() {
+            return String.join(".", Arrays.asList(
+                    getPackage(),
+                    getAnnotation().dtoPackage()
+            ));
+        }
+
+        String getPackage() {
+            return processingEnv.getElementUtils().getPackageOf(element).toString();
+        }
+
+        @EqualsAndHashCode.Include
+        Schema getSchema() {
+            String value = getAnnotation().schema();
+            try {
+                if (!value.trim().equals("")) {
+                    File file = getRoot().resolve(value)
+                            .toAbsolutePath()
+                            .toFile();
+                    log.info("Reading schema {}", file);
+                    return new Schema(file);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            throw new SchemaNotFoundException();
+        }
+
     }
 
 }
