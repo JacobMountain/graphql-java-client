@@ -6,6 +6,7 @@ import graphql.language.InterfaceTypeDefinition;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeDefinition;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,8 +21,10 @@ public class Schema {
     @Delegate
     private final TypeDefinitionRegistry registry;
 
+    @Getter
     private final ObjectTypeDefinition query;
 
+    @Getter
     private final ObjectTypeDefinition mutation;
 
     private final ObjectTypeDefinition subscription;
@@ -36,7 +39,8 @@ public class Schema {
     private Optional<ObjectTypeDefinition> getSchemaDefinition(String name) {
         return registry.schemaDefinition()
                 .get()
-                .getOperationTypeDefinitions().stream()
+                .getOperationTypeDefinitions()
+                .stream()
                 .filter(it -> name.equals(it.getName()))
                 .findFirst()
                 .flatMap(it -> getTypeDefinition(it.getTypeName().getName()))
