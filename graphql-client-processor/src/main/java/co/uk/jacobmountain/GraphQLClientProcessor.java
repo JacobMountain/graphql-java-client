@@ -4,6 +4,7 @@ import co.uk.jacobmountain.exceptions.SchemaNotFoundException;
 import co.uk.jacobmountain.utils.Schema;
 import com.google.auto.service.AutoService;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import javax.tools.StandardLocation;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -61,10 +63,10 @@ public class GraphQLClientProcessor extends AbstractProcessor {
     }
 
     Consumer<Input> generateJavaDataClasses() {
-        Set<Schema> generated = new HashSet<>();
+        Set<Input> generated = new HashSet<>();
         return input -> {
             Schema schema = input.getSchema();
-            if (generated.add(schema)) {
+            if (generated.add(input)) {
                 log.info("Generating java classes from GraphQL schema");
                 DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
                 dtoGenerator.generate(schema.types().values());
@@ -76,7 +78,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
     void generateClientImplementation(Input client) {
         GraphQLClient annotation = client.getAnnotation();
         log.info("Generating java implementation of {}", client.element.getSimpleName());
-        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getSchema())
+        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema())
                 .generate(client.element, annotation.implSuffix());
     }
 
@@ -92,6 +94,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
     @Value
     @AllArgsConstructor
+    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
     class Input {
 
         TypeElement element;
@@ -104,14 +107,19 @@ public class GraphQLClientProcessor extends AbstractProcessor {
             return new TypeMapper(getDtoPackage(), getAnnotation().mapping());
         }
 
+        @EqualsAndHashCode.Include
         String getDtoPackage() {
-            return getPackage() + ".dto";
+            return String.join(".", Arrays.asList(
+                    getPackage(),
+                    getAnnotation().dtoPackage()
+            ));
         }
 
         String getPackage() {
             return processingEnv.getElementUtils().getPackageOf(element).toString();
         }
 
+        @EqualsAndHashCode.Include
         Schema getSchema() {
             String value = getAnnotation().schema();
             try {

@@ -19,6 +19,8 @@ public @interface GraphQLClient {
 
     String implSuffix() default "Graph";
 
+    String dtoPackage() default "dto";
+
     @interface Scalar {
 
         String from();
