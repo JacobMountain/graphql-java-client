@@ -21,9 +21,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 @Slf4j
 @AutoService(Processor.class)
@@ -57,28 +55,22 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         return elements.stream()
                 .map(el -> (TypeElement) el)
                 .map(Input::new)
-                .peek(this.generateJavaDataClasses())
+                .peek(this::generateJavaDataClasses)
                 .peek(this::generateClientImplementation)
                 .count() > 0;
     }
 
-    Consumer<Input> generateJavaDataClasses() {
-        Set<Input> generated = new HashSet<>();
-        return input -> {
-            Schema schema = input.getSchema();
-            if (generated.add(input)) {
-                log.info("Generating java classes from GraphQL schema");
-                DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
-                dtoGenerator.generate(schema.types().values());
-                dtoGenerator.generateArgumentDTOs(input.element);
-            }
-        };
+    void generateJavaDataClasses(Input input) {
+        log.info("Generating java classes from GraphQL schema");
+        DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
+        dtoGenerator.generate(input.getSchema().types().values());
+        dtoGenerator.generateArgumentDTOs(input.element);
     }
 
     void generateClientImplementation(Input client) {
         GraphQLClient annotation = client.getAnnotation();
         log.info("Generating java implementation of {}", client.element.getSimpleName());
-        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema())
+        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema(), annotation.reactive())
                 .generate(client.element, annotation.implSuffix());
     }
 

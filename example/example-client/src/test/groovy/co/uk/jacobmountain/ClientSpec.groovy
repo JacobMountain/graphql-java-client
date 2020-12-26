@@ -1,7 +1,9 @@
 package co.uk.jacobmountain
 
-import co.uk.jacobmountain.domain.LengthUnit
-import co.uk.jacobmountain.domain.ReviewInput
+import co.uk.jacobmountain.dto.LengthUnit
+import co.uk.jacobmountain.dto.ReviewInput
+import co.uk.jacobmountain.fetchers.RestTemplateFetcher
+import co.uk.jacobmountain.fetchers.SpyFetcher
 import co.uk.jacobmountain.resolvers.dto.Episode
 import co.uk.jacobmountain.resolvers.dto.Review
 import co.uk.jacobmountain.service.DefaultService
@@ -13,7 +15,7 @@ import org.springframework.boot.web.server.LocalServerPort
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static co.uk.jacobmountain.domain.Episode.EMPIRE
+import static co.uk.jacobmountain.dto.Episode.EMPIRE
 
 @SpringBootTest(
         classes = ExampleApplication,
@@ -33,7 +35,7 @@ class ClientSpec extends Specification {
     StarWarsService service = Spy(DefaultService)
 
     def setup() {
-        fetcher = new SpyFetcher(new ExampleFetcher("http://localhost:$port"))
+        fetcher = new SpyFetcher(new RestTemplateFetcher("http://localhost:$port"))
         client = new StarWarsClientGraph(fetcher)
     }
 
@@ -119,7 +121,7 @@ class ClientSpec extends Specification {
         def expected = randomReviewInput()
 
         when:
-        client.createReview(co.uk.jacobmountain.domain.Episode.JEDI, expected)
+        client.createReview(co.uk.jacobmountain.dto.Episode.JEDI, expected)
 
         then:
         1 * service.createReview(_, _) >> { args -> saved = args[1] }

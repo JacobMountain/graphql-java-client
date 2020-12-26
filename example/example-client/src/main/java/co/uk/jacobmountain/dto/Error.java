@@ -1,4 +1,4 @@
-package co.uk.jacobmountain;
+package co.uk.jacobmountain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

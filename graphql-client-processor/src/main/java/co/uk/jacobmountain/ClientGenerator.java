@@ -1,9 +1,6 @@
 package co.uk.jacobmountain;
 
-import co.uk.jacobmountain.modules.AbstractStage;
-import co.uk.jacobmountain.modules.ArgumentAssemblyStage;
-import co.uk.jacobmountain.modules.OptionalReturnStage;
-import co.uk.jacobmountain.modules.QueryMutationStage;
+import co.uk.jacobmountain.modules.*;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
 import co.uk.jacobmountain.visitor.MethodDetails;
@@ -17,7 +14,7 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,31 +29,24 @@ public class ClientGenerator {
 
     private final String packageName;
 
-
     private final Schema schema;
 
-    private final List<AbstractStage> modules;
+    private final List<AbstractStage> modules = new ArrayList<>();
 
-    public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, String dtoPackageName, Schema schema) {
+    public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, String dtoPackageName, Schema schema, boolean reactive) {
         this.filer = filer;
         this.typeMapper = typeMapper;
         this.packageName = packageName;
         this.schema = schema;
-        this.modules = Arrays.asList(
-                new ArgumentAssemblyStage(dtoPackageName),
-                new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper),
-                new OptionalReturnStage(schema, typeMapper)
-        );
-    }
-
-    public static String generateArgumentClassname(MethodDetails details) {
-        String name = details.getRequestName();
-        if (StringUtils.isEmpty(name)) {
-            name = details.getField();
+        this.modules.add(new ArgumentAssemblyStage(dtoPackageName));
+        if (reactive) {
+            this.modules.add(new ReactiveQueryModule(schema, maxDepth, typeMapper, dtoPackageName));
+            this.modules.add(new ReactiveReturnModule(schema, typeMapper));
+        } else {
+            this.modules.add(new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper));
+            this.modules.add(new OptionalReturnStage(schema, typeMapper));
         }
-        return StringUtils.capitalize(name) + "Arguments";
     }
-
 
     private void generateConstructor(TypeSpec.Builder type, List<AbstractStage.MemberVariable> variables) {
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
@@ -83,12 +73,12 @@ public class ClientGenerator {
     }
 
     @SneakyThrows
-    public void generate(TypeElement element, String suffix) {
+    public void generate(Element element, String suffix) {
         if (StringUtils.isEmpty(suffix)) {
             throw new IllegalArgumentException("Invalid suffix for implementation of client: " + element.getSimpleName());
         }
         TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
-                .addSuperinterface(ClassName.get(element))
+                .addSuperinterface(ClassName.get((TypeElement) element))
                 .addModifiers(Modifier.PUBLIC);
 
         this.modules.stream()

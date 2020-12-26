@@ -128,7 +128,8 @@ type Starship {
                 @GraphQLClient.Scalar(from = "ID", to = String.class)
         },
         maxDepth = 5, // the max depth to use for graphql queries
-        nullChecking = true // whether we should add client side null checks
+        nullChecking = true, // whether we should add client side null checks,
+        reactive = false
 )
 public interface StarWarsClient {}
 ```
@@ -154,12 +155,13 @@ public interface StarWarsClient {
 ```
 #### 4. Implement the `Fetcher` interface
 The Fetcher interface deals with turning queries/mutations into network requests (Usually HTTP, could be websockets, etc.). 
-For a simple example on how to do this please look at [`ExampleFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/ExampleFetcher.java).
+For a simple example on how to do this please look at [`RestTemplateFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/fetchers/RestTemplateFetcher.java) 
+or [`WebClientFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/fetchers/WebClientFetcher.java).
 
 #### 5. Create an instance of you newly generated interface
 Run `build` and then create an instance of the newly generated implementation.
 ```java
-StarWarsClient client = new StarWarsClientGraph(new HttpFetcher());
+StarWarsClient client = new StarWarsClientGraph(new RestTemplateFetcher("http://your.domain.com"));
 ```
 where `HttpFetcher` is an implementation of the `Fetcher` interface. The default suffix for the implementation is `Graph`, 
 and is overridable with the `implSuffix` parameter of the `@GraphQLClient` annotation.

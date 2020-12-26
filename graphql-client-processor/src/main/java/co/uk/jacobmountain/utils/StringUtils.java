@@ -26,12 +26,22 @@ public class StringUtils {
         ).collect(Collectors.joining());
     }
 
+    public String pascalCase(String... parts) {
+        return Stream.of(parts)
+                .map(StringUtils::capitalize)
+                .collect(Collectors.joining());
+    }
+
     public String enquote(String value) {
         return "\"" + value + "\"";
     }
 
     public boolean isEmpty(String str) {
         return str == null || str.trim().equals("");
+    }
+
+    public boolean hasLength(String str) {
+        return !isEmpty(str);
     }
 
     public static boolean equals(CharSequence cs1, CharSequence cs2) {
