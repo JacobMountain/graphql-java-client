@@ -40,6 +40,10 @@ public class Schema {
         this(file, new SchemaParser().parse(file));
     }
 
+    public Schema(String gql) {
+        this(null, new SchemaParser().parse(gql));
+    }
+
     private Schema(File file, TypeDefinitionRegistry registry) {
         this.file = file;
         this.registry = registry;
