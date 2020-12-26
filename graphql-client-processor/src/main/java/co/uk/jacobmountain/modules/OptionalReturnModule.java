@@ -11,10 +11,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import graphql.language.ObjectTypeDefinition;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor
 public class OptionalReturnModule extends AbstractModule {
@@ -31,10 +28,12 @@ public class OptionalReturnModule extends AbstractModule {
     @Override
     public List<CodeBlock> assemble(MethodDetails details) {
         ObjectTypeDefinition typeDefinition = details.isQuery() ? schema.getQuery() : schema.getMutation();
-        List<CodeBlock> ret = Arrays.asList(
-                CodeBlock.of("return $T.ofNullable(thing)", Optional.class),
-                CodeBlock.of("map($T::getData)", ClassName.get(Response.class)),
-                CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", details.getField()))
+        List<CodeBlock> ret = new ArrayList<>(
+                Arrays.asList(
+                        CodeBlock.of("return $T.ofNullable(thing)", Optional.class),
+                        CodeBlock.of("map($T::getData)", ClassName.get(Response.class)),
+                        CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", details.getField()))
+                )
         );
         if (!returnsOptional(details)) {
             ret.add(CodeBlock.of("orElse(null)"));
