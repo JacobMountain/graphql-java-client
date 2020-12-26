@@ -5,18 +5,25 @@ import graphql.language.FieldDefinition;
 import graphql.language.InterfaceTypeDefinition;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeDefinition;
+import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Schema {
+
+    @EqualsAndHashCode.Include
+    private final File file;
 
     @Delegate
     private final TypeDefinitionRegistry registry;
@@ -29,7 +36,12 @@ public class Schema {
 
     private final ObjectTypeDefinition subscription;
 
-    public Schema(TypeDefinitionRegistry registry) {
+    public Schema(File file) {
+        this(file, new SchemaParser().parse(file));
+    }
+
+    private Schema(File file, TypeDefinitionRegistry registry) {
+        this.file = file;
         this.registry = registry;
         this.query = getSchemaDefinition("query").orElseThrow(QueryTypeNotFoundException::new);
         this.mutation = getSchemaDefinition("mutation").orElse(null);
