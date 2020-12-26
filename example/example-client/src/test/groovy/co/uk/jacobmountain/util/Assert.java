@@ -1,8 +1,8 @@
 package co.uk.jacobmountain.util;
 
 
-import co.uk.jacobmountain.domain.Character;
-import co.uk.jacobmountain.domain.Review;
+import co.uk.jacobmountain.dto.Character;
+import co.uk.jacobmountain.dto.Review;
 import co.uk.jacobmountain.resolvers.dto.Human;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,12 +23,12 @@ public class Assert {
     }
 
     public static void assertEquals(co.uk.jacobmountain.resolvers.dto.Character expected, Character actual) {
-        Human result = MAPPER.to((co.uk.jacobmountain.domain.Human) actual);
+        Human result = MAPPER.to((co.uk.jacobmountain.dto.Human) actual);
         Assertions.assertEquals(expected, result);
     }
 
     public static void assertEquals(Human expected, Character actual) {
-        Human result = MAPPER.to((co.uk.jacobmountain.domain.Human) actual);
+        Human result = MAPPER.to((co.uk.jacobmountain.dto.Human) actual);
         Assertions.assertEquals(expected, result);
     }
 

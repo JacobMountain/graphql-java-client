@@ -33,5 +33,4 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
         log.info("Status  : {}", response.getStatusCode());
         log.info("Response: {}", StreamUtils.copyToString(response.getBody(), Charset.defaultCharset()));
     }
-
 }
