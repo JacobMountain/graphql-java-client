@@ -128,7 +128,8 @@ type Starship {
                 @GraphQLClient.Scalar(from = "ID", to = String.class)
         },
         maxDepth = 5, // the max depth to use for graphql queries
-        nullChecking = true // whether we should add client side null checks
+        nullChecking = true, // whether we should add client side null checks,
+        reactive = false
 )
 public interface StarWarsClient {}
 ```
