@@ -1,5 +1,6 @@
-package co.uk.jacobmountain;
+package co.uk.jacobmountain.fetchers;
 
+import co.uk.jacobmountain.Fetcher;
 import co.uk.jacobmountain.dto.Response;
 import lombok.RequiredArgsConstructor;
 

@@ -2,6 +2,8 @@ package co.uk.jacobmountain
 
 import co.uk.jacobmountain.domain.LengthUnit
 import co.uk.jacobmountain.domain.ReviewInput
+import co.uk.jacobmountain.fetchers.RestTemplateFetcher
+import co.uk.jacobmountain.fetchers.SpyFetcher
 import co.uk.jacobmountain.resolvers.dto.Episode
 import co.uk.jacobmountain.resolvers.dto.Review
 import co.uk.jacobmountain.service.DefaultService
@@ -33,7 +35,7 @@ class ClientSpec extends Specification {
     StarWarsService service = Spy(DefaultService)
 
     def setup() {
-        fetcher = new SpyFetcher(new ExampleFetcher("http://localhost:$port"))
+        fetcher = new SpyFetcher(new RestTemplateFetcher("http://localhost:$port"))
         client = new StarWarsClientGraph(fetcher)
     }
 

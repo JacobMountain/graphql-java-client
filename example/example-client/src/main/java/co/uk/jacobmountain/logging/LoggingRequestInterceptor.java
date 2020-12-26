@@ -1,4 +1,4 @@
-package co.uk.jacobmountain;
+package co.uk.jacobmountain.logging;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpRequest;

@@ -1,9 +1,12 @@
-package co.uk.jacobmountain;
+package co.uk.jacobmountain.fetchers;
 
+import co.uk.jacobmountain.Fetcher;
 import co.uk.jacobmountain.domain.Mutation;
 import co.uk.jacobmountain.domain.Query;
+import co.uk.jacobmountain.dto.Error;
 import co.uk.jacobmountain.dto.Request;
 import co.uk.jacobmountain.dto.Response;
+import co.uk.jacobmountain.logging.LoggingRequestInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -17,11 +20,11 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import java.util.Collections;
 
 @Slf4j
-public class ExampleFetcher implements Fetcher<Query, Mutation, Error> {
+public class RestTemplateFetcher implements Fetcher<Query, Mutation, Error> {
 
     private final RestTemplate template;
 
-    public ExampleFetcher(String url) {
+    public RestTemplateFetcher(String url) {
         this.template = new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
         this.template.setUriTemplateHandler(new DefaultUriBuilderFactory(url));
         this.template.setInterceptors(Collections.singletonList(new LoggingRequestInterceptor()));
