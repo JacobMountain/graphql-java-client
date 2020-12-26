@@ -11,6 +11,7 @@ import lombok.Singular;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Builder
@@ -68,7 +69,8 @@ public class MethodDetails {
     }
 
     public String getArgumentClassname() {
-        return StringUtils.pascalCase(methodName, "By") + parameters.stream()
+        String request = Optional.ofNullable(requestName).filter(StringUtils::hasLength).orElse(methodName);
+        return StringUtils.pascalCase(request, "By") + parameters.stream()
                 .map(Parameter::getName)
                 .map(StringUtils::pascalCase)
                 .collect(Collectors.joining("And"));

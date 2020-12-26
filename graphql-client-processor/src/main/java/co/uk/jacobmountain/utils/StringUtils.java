@@ -40,6 +40,10 @@ public class StringUtils {
         return str == null || str.trim().equals("");
     }
 
+    public boolean hasLength(String str) {
+        return !isEmpty(str);
+    }
+
     public static boolean equals(CharSequence cs1, CharSequence cs2) {
         if (cs1 == cs2) {
             return true;
