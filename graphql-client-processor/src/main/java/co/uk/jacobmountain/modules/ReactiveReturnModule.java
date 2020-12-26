@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class ReactiveReturnModule extends AbstractModule {
+public class ReactiveReturnModule extends AbstractStage {
 
     private final Schema schema;
 

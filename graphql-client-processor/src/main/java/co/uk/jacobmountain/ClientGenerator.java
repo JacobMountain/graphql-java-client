@@ -33,7 +33,7 @@ public class ClientGenerator {
 
     private final Schema schema;
 
-    private final List<AbstractModule> modules = new ArrayList<>();
+    private final List<AbstractStage> modules = new ArrayList<>();
 
     public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, Schema schema, boolean reactive) {
         this.filer = filer;
@@ -41,13 +41,13 @@ public class ClientGenerator {
         this.packageName = packageName;
         this.dtoPackageName = packageName + ".dto";
         this.schema = schema;
-        this.modules.add(new ArgumentAssemblerModule(dtoPackageName));
+        this.modules.add(new ArgumentAssemblyStage(dtoPackageName));
         if (reactive) {
             this.modules.add(new ReactiveQueryModule(schema, maxDepth, typeMapper, dtoPackageName));
             this.modules.add(new ReactiveReturnModule(schema, typeMapper));
         } else {
-            this.modules.add(new BlockingQueryModule(schema, dtoPackageName, maxDepth, typeMapper));
-            this.modules.add(new OptionalReturnModule(schema, typeMapper));
+            this.modules.add(new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper));
+            this.modules.add(new OptionalReturnStage(schema, typeMapper));
         }
     }
 
@@ -60,7 +60,7 @@ public class ClientGenerator {
     }
 
 
-    private void generateConstructor(TypeSpec.Builder type, List<AbstractModule.MemberVariable> variables) {
+    private void generateConstructor(TypeSpec.Builder type, List<AbstractStage.MemberVariable> variables) {
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
         variables.forEach(var -> constructor.addParameter(var.getType(), var.getName())
                 .addStatement("this.$L = $L", var.getName(), var.getName()));
@@ -98,8 +98,8 @@ public class ClientGenerator {
                 .map(TypeVariableName::get)
                 .forEach(builder::addTypeVariable);
 
-        List<AbstractModule.MemberVariable> memberVariables = this.modules.stream()
-                .map(AbstractModule::getMemberVariables)
+        List<AbstractStage.MemberVariable> memberVariables = this.modules.stream()
+                .map(AbstractStage::getMemberVariables)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 

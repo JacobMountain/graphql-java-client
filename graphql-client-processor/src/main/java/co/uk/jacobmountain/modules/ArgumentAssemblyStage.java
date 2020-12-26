@@ -16,7 +16,7 @@ import java.util.Objects;
 import static co.uk.jacobmountain.ClientGenerator.generateArgumentClassname;
 
 @RequiredArgsConstructor
-public class ArgumentAssemblerModule extends AbstractModule {
+public class ArgumentAssemblyStage extends AbstractStage {
 
     private final String dtoPackageName;
 

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractQueryModule extends AbstractModule {
+public abstract class AbstractQueryModule extends AbstractStage {
 
     private final Schema schema;
 
