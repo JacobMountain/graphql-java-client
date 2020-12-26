@@ -63,7 +63,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
             dtoGenerator.generateArgumentDTOs(client);
 
             log.info("Generating java implementation of {}", client.getSimpleName());
-            new ClientGenerator(this.filer, annotation.maxDepth(), typeMapper, packageName, schema)
+            new ClientGenerator(this.filer, annotation.maxDepth(), typeMapper, packageName, schema, annotation.reactive())
                     .generate(client, annotation.implSuffix());
             return true;
         }

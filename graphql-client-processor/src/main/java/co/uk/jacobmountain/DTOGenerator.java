@@ -5,13 +5,12 @@ import co.uk.jacobmountain.visitor.MethodDetailsVisitor;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.Element;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
+
+import static co.uk.jacobmountain.utils.StreamUtils.distinctByKey;
 
 @Slf4j
 public class DTOGenerator {
@@ -30,10 +29,6 @@ public class DTOGenerator {
         this.typeMapper = typeMapper;
     }
 
-    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
 
     /**
      * Generates the types according to the GraphQL schema
@@ -45,7 +40,7 @@ public class DTOGenerator {
         this.types.values().forEach(filer::write);
     }
 
-    public void generateArgumentDTOs(TypeElement client) {
+    public void generateArgumentDTOs(Element client) {
         client.getEnclosedElements()
                 .stream()
                 .map(method -> method.accept(new MethodDetailsVisitor(null), typeMapper))

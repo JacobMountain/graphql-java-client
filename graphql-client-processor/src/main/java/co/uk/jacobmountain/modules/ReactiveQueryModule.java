@@ -1,6 +1,6 @@
 package co.uk.jacobmountain.modules;
 
-import co.uk.jacobmountain.Fetcher;
+import co.uk.jacobmountain.ReactiveFetcher;
 import co.uk.jacobmountain.TypeMapper;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.visitor.MethodDetails;
@@ -8,19 +8,20 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeVariableName;
+import org.reactivestreams.Publisher;
 
 import java.util.Collections;
 import java.util.List;
 
-public class BlockingQueryModule extends AbstractQueryModule {
+public class ReactiveQueryModule extends AbstractQueryModule {
 
-    public BlockingQueryModule(Schema schema, String dtoPackageName, int maxDepth, TypeMapper typeMapper) {
+    public ReactiveQueryModule(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
         super(schema, maxDepth, typeMapper, dtoPackageName);
     }
 
     private ParameterizedTypeName generateTypeName() {
         return ParameterizedTypeName.get(
-                ClassName.get(Fetcher.class),
+                ClassName.get(ReactiveFetcher.class),
                 query,
                 mutation,
                 TypeVariableName.get("Error")
@@ -46,10 +47,9 @@ public class BlockingQueryModule extends AbstractQueryModule {
     public List<CodeBlock> assemble(MethodDetails details) {
         return Collections.singletonList(
                 CodeBlock.builder()
-                        .add("$T thing = ", getReturnTypeName(details))
+                        .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Publisher.class), getReturnTypeName(details)))
                         .add("fetcher.$L", details.isQuery() ? "query" : "mutate").add(generateQueryCode(details.getRequestName(), details))
                         .build()
         );
     }
-
 }

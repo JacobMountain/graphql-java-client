@@ -22,10 +22,16 @@ public abstract class AbstractQueryModule extends AbstractModule {
 
     private final TypeMapper typeMapper;
 
-    public AbstractQueryModule(Schema schema, int maxDepth, TypeMapper typeMapper) {
+    protected final TypeName query;
+
+    protected final TypeName mutation;
+
+    public AbstractQueryModule(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
         this.schema = schema;
         this.maxDepth = maxDepth;
         this.typeMapper = typeMapper;
+        this.query = ClassName.get(dtoPackageName, schema.getQueryTypeName());
+        this.mutation = schema.getMutationTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
     }
 
     @Override

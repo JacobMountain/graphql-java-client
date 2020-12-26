@@ -1,9 +1,6 @@
 package co.uk.jacobmountain;
 
-import co.uk.jacobmountain.modules.AbstractModule;
-import co.uk.jacobmountain.modules.ArgumentAssemblerModule;
-import co.uk.jacobmountain.modules.BlockingQueryModule;
-import co.uk.jacobmountain.modules.OptionalReturnModule;
+import co.uk.jacobmountain.modules.*;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
 import co.uk.jacobmountain.visitor.MethodDetails;
@@ -17,7 +14,7 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,19 +33,22 @@ public class ClientGenerator {
 
     private final Schema schema;
 
-    private final List<AbstractModule> modules;
+    private final List<AbstractModule> modules = new ArrayList<>();
 
-    public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, Schema schema) {
+    public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, Schema schema, boolean reactive) {
         this.filer = filer;
         this.typeMapper = typeMapper;
         this.packageName = packageName;
         this.dtoPackageName = packageName + ".dto";
         this.schema = schema;
-        this.modules = Arrays.asList(
-                new ArgumentAssemblerModule(dtoPackageName),
-                new BlockingQueryModule(schema, dtoPackageName, maxDepth, typeMapper),
-                new OptionalReturnModule(schema, typeMapper)
-        );
+        this.modules.add(new ArgumentAssemblerModule(dtoPackageName));
+        if (reactive) {
+            this.modules.add(new ReactiveQueryModule(schema, maxDepth, typeMapper, dtoPackageName));
+            this.modules.add(new ReactiveReturnModule(schema, typeMapper));
+        } else {
+            this.modules.add(new BlockingQueryModule(schema, dtoPackageName, maxDepth, typeMapper));
+            this.modules.add(new OptionalReturnModule(schema, typeMapper));
+        }
     }
 
     public static String generateArgumentClassname(MethodDetails details) {
@@ -85,12 +85,12 @@ public class ClientGenerator {
     }
 
     @SneakyThrows
-    public void generate(TypeElement element, String suffix) {
+    public void generate(Element element, String suffix) {
         if (StringUtils.isEmpty(suffix)) {
             throw new IllegalArgumentException("Invalid suffix for implementation of client: " + element.getSimpleName());
         }
         TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
-                .addSuperinterface(ClassName.get(element))
+                .addSuperinterface(ClassName.get((TypeElement) element))
                 .addModifiers(Modifier.PUBLIC);
 
         this.modules.stream()
