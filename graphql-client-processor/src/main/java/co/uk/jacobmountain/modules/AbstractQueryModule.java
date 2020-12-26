@@ -26,12 +26,15 @@ public abstract class AbstractQueryModule extends AbstractStage {
 
     protected final TypeName mutation;
 
+    protected final TypeName subscription;
+
     public AbstractQueryModule(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
         this.schema = schema;
         this.maxDepth = maxDepth;
         this.typeMapper = typeMapper;
         this.query = ClassName.get(dtoPackageName, schema.getQueryTypeName());
         this.mutation = schema.getMutationTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
+        this.subscription = schema.getSubscriptionTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
     }
 
     @Override

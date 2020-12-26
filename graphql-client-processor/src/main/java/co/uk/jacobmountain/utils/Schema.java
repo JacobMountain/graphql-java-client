@@ -110,5 +110,8 @@ public class Schema {
         return Optional.ofNullable(mutation).map(ObjectTypeDefinition::getName);
     }
 
+    public Optional<String> getSubscriptionTypeName() {
+        return Optional.ofNullable(subscription).map(ObjectTypeDefinition::getName);
+    }
 
 }

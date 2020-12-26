@@ -24,6 +24,7 @@ public class ReactiveQueryModule extends AbstractQueryModule {
                 ClassName.get(ReactiveFetcher.class),
                 query,
                 mutation,
+                subscription,
                 TypeVariableName.get("Error")
         );
     }

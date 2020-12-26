@@ -9,7 +9,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @RequiredArgsConstructor
-public class WebClientFetcher implements ReactiveFetcher<Query, Mutation, Error> {
+public class WebClientFetcher implements ReactiveFetcher<Query, Mutation, Subscription, Error> {
 
     private final WebClient web;
 
@@ -28,6 +28,12 @@ public class WebClientFetcher implements ReactiveFetcher<Query, Mutation, Error>
     @Override
     public <A> Publisher<Response<Mutation, Error>> mutate(String mutation, A args) {
         return doRequest(mutation, args, new ParameterizedTypeReference<Response<Mutation, Error>>() {
+        });
+    }
+
+    @Override
+    public <A> Publisher<Response<Subscription, Error>> subscribe(String query, A args) {
+        return doRequest(query, args, new ParameterizedTypeReference<Response<Subscription, Error>>() {
         });
     }
 
