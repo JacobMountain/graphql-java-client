@@ -1,7 +1,7 @@
 package co.uk.jacobmountain;
 
-import co.uk.jacobmountain.dto.Mutation;
-import co.uk.jacobmountain.dto.Query;
+import co.uk.jacobmountain.domain.Mutation;
+import co.uk.jacobmountain.domain.Query;
 import co.uk.jacobmountain.dto.Request;
 import co.uk.jacobmountain.dto.Response;
 import lombok.extern.slf4j.Slf4j;

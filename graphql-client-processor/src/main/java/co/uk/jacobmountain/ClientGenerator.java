@@ -32,17 +32,15 @@ public class ClientGenerator {
 
     private final String packageName;
 
-    private final String dtoPackageName;
 
     private final Schema schema;
 
     private final List<AbstractStage> modules;
 
-    public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, Schema schema) {
+    public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, String dtoPackageName, Schema schema) {
         this.filer = filer;
         this.typeMapper = typeMapper;
         this.packageName = packageName;
-        this.dtoPackageName = packageName + ".dto";
         this.schema = schema;
         this.modules = Arrays.asList(
                 new ArgumentAssemblyStage(dtoPackageName),

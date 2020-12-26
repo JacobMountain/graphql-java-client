@@ -19,6 +19,7 @@ import javax.tools.StandardLocation;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -76,7 +77,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
     void generateClientImplementation(Input client) {
         GraphQLClient annotation = client.getAnnotation();
         log.info("Generating java implementation of {}", client.element.getSimpleName());
-        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getSchema())
+        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema())
                 .generate(client.element, annotation.implSuffix());
     }
 
@@ -105,7 +106,11 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         }
 
         String getDtoPackage() {
-            return getPackage() + ".dto";
+            return String.join(".", Arrays.asList(
+                    getPackage(),
+                    getAnnotation().dtoPackage()
+            ));
+//            return getPackage() + getAnnotation().dtoPackage();
         }
 
         String getPackage() {
