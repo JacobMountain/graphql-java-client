@@ -154,7 +154,8 @@ public interface StarWarsClient {
 ```
 #### 4. Implement the `Fetcher` interface
 The Fetcher interface deals with turning queries/mutations into network requests (Usually HTTP, could be websockets, etc.). 
-For a simple example on how to do this please look at [`ExampleFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/ExampleFetcher.java).
+For a simple example on how to do this please look at [`RestTemplateFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/reactive-clients/example/example-client/src/main/java/co/uk/jacobmountain/fetchers/RestTemplateFetcher.java) 
+or [`WebClientFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/reactive-clients/example/example-client/src/main/java/co/uk/jacobmountain/fetchers/WebClientFetcher.java).
 
 #### 5. Create an instance of you newly generated interface
 Run `build` and then create an instance of the newly generated implementation.
