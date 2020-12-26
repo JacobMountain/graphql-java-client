@@ -46,6 +46,7 @@ public class ClientGenerator {
             this.modules.add(new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper));
             this.modules.add(new OptionalReturnStage(schema, typeMapper));
         }
+
     }
 
     private void generateConstructor(TypeSpec.Builder type, List<AbstractStage.MemberVariable> variables) {

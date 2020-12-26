@@ -34,6 +34,8 @@ public class MethodDetails {
 
     private final boolean mutation;
 
+    private final boolean subscription;
+
     public TypeName getReturnType() {
         return returnType;
     }
@@ -53,11 +55,15 @@ public class MethodDetails {
     }
 
     public boolean isQuery() {
-        return !mutation;
+        return !(mutation || subscription);
     }
 
     public boolean isMutation() {
         return mutation;
+    }
+
+    public boolean isSubscription() {
+        return subscription;
     }
 
     @Override

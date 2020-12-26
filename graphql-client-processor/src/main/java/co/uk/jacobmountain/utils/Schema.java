@@ -34,6 +34,7 @@ public class Schema {
     @Getter
     private final ObjectTypeDefinition mutation;
 
+    @Getter
     private final ObjectTypeDefinition subscription;
 
     public Schema(File file) {

@@ -41,7 +41,7 @@ public class ReactiveQueryModule extends AbstractQueryModule {
 
     @Override
     public boolean handlesAssembly(MethodDetails details) {
-        return details.isQuery() || details.isMutation();
+        return true;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ReactiveQueryModule extends AbstractQueryModule {
         return Collections.singletonList(
                 CodeBlock.builder()
                         .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Publisher.class), getReturnTypeName(details)))
-                        .add("fetcher.$L", details.isQuery() ? "query" : "mutate").add(generateQueryCode(details.getRequestName(), details))
+                        .add("fetcher.$L", getMethod(details)).add(generateQueryCode(details.getRequestName(), details))
                         .build()
         );
     }

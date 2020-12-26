@@ -13,6 +13,4 @@ public @interface GraphQLSubscription {
 
     String request() default "";
 
-    boolean mutation() default false;
-
 }

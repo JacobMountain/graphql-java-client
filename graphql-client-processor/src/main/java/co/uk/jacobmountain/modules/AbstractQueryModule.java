@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractQueryModule extends AbstractStage {
 
-    private final Schema schema;
+    protected final Schema schema;
 
     private final int maxDepth;
 
-    private final TypeMapper typeMapper;
+    protected final TypeMapper typeMapper;
 
     protected final TypeName query;
 
@@ -43,8 +43,18 @@ public abstract class AbstractQueryModule extends AbstractStage {
     }
 
     protected TypeName getReturnTypeName(MethodDetails details) {
-        ObjectTypeDefinition query = details.isQuery() ? schema.getQuery() : schema.getMutation();
-        return ParameterizedTypeName.get(ClassName.get(Response.class), typeMapper.getType(query.getName()), TypeVariableName.get("Error"));
+        ObjectTypeDefinition typeDefinition = getTypeDefinition(details, schema);
+        return ParameterizedTypeName.get(ClassName.get(Response.class), typeMapper.getType(typeDefinition.getName()), TypeVariableName.get("Error"));
+    }
+
+    protected String getMethod(MethodDetails details) {
+        String method = "query";
+        if (details.isMutation()) {
+            method = "mutate";
+        } else if (details.isSubscription()) {
+            method = "subscribe";
+        }
+        return method;
     }
 
     protected CodeBlock generateQueryCode(String request, MethodDetails details) {
@@ -55,8 +65,7 @@ public abstract class AbstractQueryModule extends AbstractStage {
         String query = new QueryGenerator(schema, maxDepth).generateQuery(request, details.getField(), params, details.isMutation());
         boolean hasArgs = details.hasParameters();
         return CodeBlock.of(
-                String.format("(\"$L\", %s)", hasArgs ? "args" : "null"),
-                query
+                "(\"$L\", $L)", query, hasArgs ? "args" : "null"
         );
     }
 

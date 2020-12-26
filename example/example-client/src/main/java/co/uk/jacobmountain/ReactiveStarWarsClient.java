@@ -39,4 +39,7 @@ public interface ReactiveStarWarsClient {
     @GraphQLQuery(value = "createReview", mutation = true)
     Review createReview(Episode episode, @GraphQLArgument("review") ReviewInput input);
 
+    @GraphQLSubscription("reviewAdded")
+    Flux<Review> watchReviews(Episode episode);
+
 }
