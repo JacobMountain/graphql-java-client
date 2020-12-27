@@ -13,9 +13,9 @@ import org.reactivestreams.Publisher;
 import java.util.Collections;
 import java.util.List;
 
-public class ReactiveQueryModule extends AbstractQueryModule {
+public class ReactiveQueryStage extends AbstractQueryStage {
 
-    public ReactiveQueryModule(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
+    public ReactiveQueryStage(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
         super(schema, maxDepth, typeMapper, dtoPackageName);
     }
 
@@ -37,11 +37,6 @@ public class ReactiveQueryModule extends AbstractQueryModule {
                         .type(generateTypeName())
                         .build()
         );
-    }
-
-    @Override
-    public boolean handlesAssembly(MethodDetails details) {
-        return true;
     }
 
     @Override

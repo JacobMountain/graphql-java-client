@@ -21,11 +21,6 @@ public class OptionalReturnStage extends AbstractStage {
     private final TypeMapper typeMapper;
 
     @Override
-    public boolean handlesAssembly(MethodDetails details) {
-        return true;
-    }
-
-    @Override
     public List<CodeBlock> assemble(MethodDetails details) {
         ObjectTypeDefinition typeDefinition = details.isQuery() ? schema.getQuery() : schema.getMutation();
         List<CodeBlock> ret = new ArrayList<>(

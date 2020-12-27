@@ -21,10 +21,6 @@ public abstract class AbstractStage {
         return Collections.emptyList();
     }
 
-    public boolean handlesAssembly(MethodDetails details) {
-        return false;
-    }
-
     public List<CodeBlock> assemble(MethodDetails details) {
         return Collections.emptyList();
     }

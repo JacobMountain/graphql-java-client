@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractQueryModule extends AbstractStage {
+public abstract class AbstractQueryStage extends AbstractStage {
 
     protected final Schema schema;
 
@@ -28,7 +28,7 @@ public abstract class AbstractQueryModule extends AbstractStage {
 
     protected final TypeName subscription;
 
-    public AbstractQueryModule(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
+    public AbstractQueryStage(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
         this.schema = schema;
         this.maxDepth = maxDepth;
         this.typeMapper = typeMapper;

@@ -14,10 +14,10 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,32 +31,85 @@ public class ClientGenerator {
 
     private final Schema schema;
 
-    private final List<AbstractStage> modules = new ArrayList<>();
+    private final AbstractStage arguments;
+
+    private final AbstractStage query;
+
+    private final AbstractStage returnResults;
 
     public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, String dtoPackageName, Schema schema, boolean reactive) {
         this.filer = filer;
         this.typeMapper = typeMapper;
         this.packageName = packageName;
         this.schema = schema;
-        this.modules.add(new ArgumentAssemblyStage(dtoPackageName));
+        this.arguments = new ArgumentAssemblyStage(dtoPackageName);
         if (reactive) {
-            this.modules.add(new ReactiveQueryModule(schema, maxDepth, typeMapper, dtoPackageName));
-            this.modules.add(new ReactiveReturnModule(schema, typeMapper));
+            this.query = new ReactiveQueryStage(schema, maxDepth, typeMapper, dtoPackageName);
+            this.returnResults = new ReactiveReturnStage(schema, typeMapper);
         } else {
-            this.modules.add(new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper));
-            this.modules.add(new OptionalReturnStage(schema, typeMapper));
+            this.query = new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper);
+            this.returnResults = new OptionalReturnStage(schema, typeMapper);
         }
-
     }
 
-    private void generateConstructor(TypeSpec.Builder type, List<AbstractStage.MemberVariable> variables) {
+    /**
+     * Generates the implementation of the @GraphQLClient interface
+     *
+     * @param element the Element that has the @GraphQLClient on
+     * @param suffix  the implementations suffix
+     */
+    @SneakyThrows
+    public void generate(Element element, String suffix) {
+        if (StringUtils.isEmpty(suffix)) {
+            throw new IllegalArgumentException("Invalid suffix for implementation of client: " + element.getSimpleName());
+        }
+        // Generate the class
+        TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
+                .addSuperinterface(ClassName.get((TypeElement) element))
+                .addModifiers(Modifier.PUBLIC);
+        // Add type argument to the client
+        Stream.of(arguments, query, returnResults)
+                .flatMap(it -> it.getTypeArguments().stream())
+                .map(TypeVariableName::get)
+                .forEach(builder::addTypeVariable);
+        // Add any necessary member variables to the client
+        List<AbstractStage.MemberVariable> memberVariables = Stream.of(arguments, query, returnResults)
+                .map(AbstractStage::getMemberVariables)
+                .flatMap(Collection::stream)
+                .peek(memberVariable -> builder.addField(memberVariable.getType(), memberVariable.getName(), Modifier.PRIVATE, Modifier.FINAL))
+                .collect(Collectors.toList());
+        // generate the constructor
+        builder.addMethod(generateConstructor(memberVariables));
+
+        // for each method on the interface, generate its implementation
+        element.getEnclosedElements()
+                .stream()
+                .map(this::generateImpl)
+                .forEach(builder::addMethod);
+
+        writeToFile(builder.build());
+    }
+
+    /**
+     * Generates a constructor which takes in any required member variables (usually the fetcher)
+     *
+     * @param variables the required member variables
+     */
+    private MethodSpec generateConstructor(List<AbstractStage.MemberVariable> variables) {
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
         variables.forEach(var -> constructor.addParameter(var.getType(), var.getName())
                 .addStatement("this.$L = $L", var.getName(), var.getName()));
-        type.addMethod(constructor.build());
+        return constructor.build();
     }
 
+    /**
+     * Generates the client implementation of one method of the interface
+     *
+     * @param method the method of the @GraphQLClient annotated interface
+     * @return a method spec to add to the implementation
+     */
     private MethodSpec generateImpl(Element method) {
+        log.info("");
         MethodDetails details = method.accept(new MethodDetailsVisitor(schema), typeMapper);
         log.info("{}", details);
 
@@ -65,46 +118,12 @@ public class ClientGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(details.getParameterSpec());
 
-        modules.stream()
-                .filter(it -> it.handlesAssembly(details))
-                .flatMap(module -> module.assemble(details).stream())
-                .forEach(builder::addStatement);
+        this.arguments.assemble(details).forEach(builder::addStatement);
+        this.query.assemble(details).forEach(builder::addStatement);
+        this.returnResults.assemble(details).forEach(builder::addStatement);
 
         return builder.build();
     }
-
-    @SneakyThrows
-    public void generate(Element element, String suffix) {
-        if (StringUtils.isEmpty(suffix)) {
-            throw new IllegalArgumentException("Invalid suffix for implementation of client: " + element.getSimpleName());
-        }
-        TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
-                .addSuperinterface(ClassName.get((TypeElement) element))
-                .addModifiers(Modifier.PUBLIC);
-
-        this.modules.stream()
-                .flatMap(it -> it.getTypeArguments().stream())
-                .map(TypeVariableName::get)
-                .forEach(builder::addTypeVariable);
-
-        List<AbstractStage.MemberVariable> memberVariables = this.modules.stream()
-                .map(AbstractStage::getMemberVariables)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-
-        memberVariables.forEach(memberVariable -> builder.addField(memberVariable.getType(), memberVariable.getName(), Modifier.PRIVATE, Modifier.FINAL));
-
-        generateConstructor(builder, memberVariables);
-
-        element.getEnclosedElements()
-                .stream()
-                .peek(it -> log.info(""))
-                .map(this::generateImpl)
-                .forEach(builder::addMethod);
-
-        writeToFile(builder.build());
-    }
-
 
     private void writeToFile(TypeSpec spec) throws Exception {
         JavaFile.builder(packageName, spec)

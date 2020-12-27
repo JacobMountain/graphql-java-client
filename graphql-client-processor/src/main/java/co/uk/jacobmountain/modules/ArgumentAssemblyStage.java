@@ -20,11 +20,6 @@ public class ArgumentAssemblyStage extends AbstractStage {
     private final String dtoPackageName;
 
     @Override
-    public boolean handlesAssembly(MethodDetails details) {
-        return true;
-    }
-
-    @Override
     public List<CodeBlock> assemble(MethodDetails details) {
         List<Parameter> parameters = details.getParameters();
         if (parameters.isEmpty()) {

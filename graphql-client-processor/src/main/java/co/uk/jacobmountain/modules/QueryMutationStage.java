@@ -14,7 +14,7 @@ import graphql.language.ObjectTypeDefinition;
 import java.util.Collections;
 import java.util.List;
 
-public class QueryMutationStage extends AbstractQueryModule {
+public class QueryMutationStage extends AbstractQueryStage {
 
     public QueryMutationStage(Schema schema, String dtoPackageName, int maxDepth, TypeMapper typeMapper) {
         super(schema, maxDepth, typeMapper, dtoPackageName);
@@ -42,11 +42,6 @@ public class QueryMutationStage extends AbstractQueryModule {
     @Override
     public List<String> getTypeArguments() {
         return Collections.singletonList("Error");
-    }
-
-    @Override
-    public boolean handlesAssembly(MethodDetails details) {
-        return details.isQuery() || details.isMutation();
     }
 
     @Override

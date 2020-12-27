@@ -17,16 +17,11 @@ import java.util.*;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class ReactiveReturnModule extends AbstractStage {
+public class ReactiveReturnStage extends AbstractStage {
 
     private final Schema schema;
 
     private final TypeMapper typeMapper;
-
-    @Override
-    public boolean handlesAssembly(MethodDetails details) {
-        return true;
-    }
 
     @Override
     public List<CodeBlock> assemble(MethodDetails details) {
