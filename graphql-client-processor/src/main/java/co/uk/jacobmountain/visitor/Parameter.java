@@ -29,4 +29,5 @@ public class Parameter {
     public GraphQLArgument getAnnotation() {
         return annotation;
     }
+
 }

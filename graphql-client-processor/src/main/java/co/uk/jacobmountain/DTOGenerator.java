@@ -6,11 +6,8 @@ import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Element;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import static co.uk.jacobmountain.utils.StreamUtils.distinctByKey;
+import java.util.*;
+import java.util.function.Predicate;
 
 @Slf4j
 public class DTOGenerator {
@@ -45,7 +42,6 @@ public class DTOGenerator {
                 .stream()
                 .map(method -> method.accept(new MethodDetailsVisitor(null), typeMapper))
                 .filter(MethodDetails::hasParameters) // don't generate argument classes for methods without args
-                .filter(distinctByKey(MethodDetails::getArgumentClassname)) // don't rebuild new classes if two requests share args
                 .map(details -> {
                     String name = details.getArgumentClassname();
                     PojoBuilder builder = PojoBuilder.newType(name, packageName);
@@ -59,13 +55,26 @@ public class DTOGenerator {
                             });
                     return builder;
                 })
+                .filter(detectArgumentNameCollisions())
                 .peek(PojoBuilder::finalise)
                 .forEach(filer::write);
     }
 
+    private Predicate<PojoBuilder> detectArgumentNameCollisions() {
+        Set<String> names = new HashSet<>();
+        return builder -> {
+            String fqdn = builder.getFQDN();
+            boolean collision = !names.add(fqdn);
+            if (collision) {
+                log.error("Argument class name collision detected: {}", fqdn);
+            }
+            return !collision;
+        };
+    }
+
     private void generateDTO(TypeDefinition<?> td) {
         PojoBuilder pojo = builder(td);
-        if (pojo == null){
+        if (pojo == null) {
             return;
         }
         td.getChildren()

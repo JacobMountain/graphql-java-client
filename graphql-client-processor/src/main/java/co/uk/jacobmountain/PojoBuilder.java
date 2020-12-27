@@ -32,6 +32,10 @@ public class PojoBuilder {
         this.packageName = packageName;
     }
 
+    public String getFQDN() {
+        return String.format("%s.%s", packageName, name);
+    }
+
     public static PojoBuilder newInterface(String name, String packageName) {
         return new PojoBuilder(name, packageName).interfac(name);
     }
