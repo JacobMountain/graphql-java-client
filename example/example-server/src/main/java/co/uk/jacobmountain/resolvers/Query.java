@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,11 @@ public class Query {
                                @GraphQLArgument(name = "review") Review input) {
         input.setEpisode(episode);
         return starWarsService.createReview(episode, input);
+    }
+
+    @GraphQLSubscription(name = "reviewAdded")
+    public Flux<Review> watchReviews(@GraphQLArgument(name = "episode") Episode episode) {
+        return starWarsService.watchReviews(episode);
     }
 
 }

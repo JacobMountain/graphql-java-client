@@ -33,7 +33,6 @@ public class WebClientFetcher implements ReactiveFetcher<Query, Mutation, Error>
 
     private <T, A> Publisher<Response<T, Error>> doRequest(String query, A args, ParameterizedTypeReference<Response<T, Error>> typeReference) {
         return web.post()
-                .uri("/graph")
                 .bodyValue(new Request<>(query, args))
                 .retrieve()
                 .bodyToMono(typeReference);

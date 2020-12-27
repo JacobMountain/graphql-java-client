@@ -4,6 +4,7 @@ import co.uk.jacobmountain.resolvers.dto.Character;
 import co.uk.jacobmountain.resolvers.dto.Episode;
 import co.uk.jacobmountain.resolvers.dto.Review;
 import co.uk.jacobmountain.resolvers.dto.Starship;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -20,5 +21,9 @@ public interface StarWarsService {
     Character getFriend(String id);
 
     Starship getShip(String id);
+
+    Flux<Review> watchReviews(Episode episode);
+
+    Review createRandomReview(Episode episode);
 
 }

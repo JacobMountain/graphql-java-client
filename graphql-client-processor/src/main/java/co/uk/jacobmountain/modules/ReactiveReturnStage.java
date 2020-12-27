@@ -9,31 +9,24 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import graphql.language.ObjectTypeDefinition;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.function.Function;
 
-@RequiredArgsConstructor
-public class ReactiveReturnModule extends AbstractStage {
+public class ReactiveReturnStage extends AbstractStage {
 
-    private final Schema schema;
-
-    private final TypeMapper typeMapper;
-
-    @Override
-    public boolean handlesAssembly(MethodDetails details) {
-        return true;
+    public ReactiveReturnStage(Schema schema, TypeMapper typeMapper) {
+        super(schema, typeMapper);
     }
 
     @Override
     public List<CodeBlock> assemble(MethodDetails details) {
-        ObjectTypeDefinition typeDefinition = details.isQuery() ? schema.getQuery() : schema.getMutation();
+        ObjectTypeDefinition typeDefinition = getTypeDefinition(details);
         List<CodeBlock> ret = new ArrayList<>(
                 Arrays.asList(
-                        CodeBlock.of("return $T.from(thing)", Mono.class),
+                        CodeBlock.of("return $T.from(thing)", details.isSubscription() ? Flux.class : Mono.class),
                         CodeBlock.of("map($T::getData)", ClassName.get(Response.class)),
                         CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", details.getField()))
                 )
@@ -43,10 +36,8 @@ public class ReactiveReturnModule extends AbstractStage {
             if (!returnsOptional(details)) {
                 ret.add(CodeBlock.of("orElse(null)"));
             }
-        } else {
-            if (returnsClass(details, Flux.class)) {
-                ret.add(CodeBlock.of("flatMapIterable($T.identity())", Function.class));
-            }
+        } else if (returnsClass(details, Flux.class) && !details.isSubscription()) {
+            ret.add(CodeBlock.of("flatMapIterable($T.identity())", Function.class));
         }
         return Collections.singletonList(CodeBlock.join(ret, "\n\t."));
     }

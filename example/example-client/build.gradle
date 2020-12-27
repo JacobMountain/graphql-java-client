@@ -11,6 +11,7 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.1'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.1'
 
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
@@ -21,6 +22,7 @@ dependencies {
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.3.4.RELEASE'
     testImplementation group: 'org.spockframework', name: 'spock-spring', version: '2.0-M3-groovy-2.5'
     testImplementation 'org.awaitility:awaitility-groovy:4.0.3'
+
 
     testImplementation 'org.mapstruct:mapstruct:1.4.1.Final'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.4.1.Final'

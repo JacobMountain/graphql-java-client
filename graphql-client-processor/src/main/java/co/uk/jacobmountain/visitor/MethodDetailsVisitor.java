@@ -2,6 +2,7 @@ package co.uk.jacobmountain.visitor;
 
 import co.uk.jacobmountain.GraphQLArgument;
 import co.uk.jacobmountain.GraphQLQuery;
+import co.uk.jacobmountain.GraphQLSubscription;
 import co.uk.jacobmountain.TypeMapper;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.utils.StringUtils;
@@ -28,31 +29,66 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
 
     @Override
     public MethodDetails visitExecutableAsMethod(ExecutableElement e, TypeMapper typeMapper) {
-        GraphQLQuery annotation = e.getAnnotation(GraphQLQuery.class);
-        return MethodDetails.builder()
-                .methodName(e.getSimpleName().toString())
-                .requestName(annotation.request())
-                .returnType(typeMapper.defaultPackage(TypeName.get(e.getReturnType())))
-                .field(annotation.value())
-                .mutation(annotation.mutation())
-                .parameters(
-                        e.getParameters()
-                                .stream()
-                                .map(parameter -> {
-                                            String className = parameter.getSimpleName().toString();
-                                            return Parameter.builder()
-                                                    .type(typeMapper.defaultPackage(ClassName.get(parameter.asType())))
-                                                    .name(className)
-                                                    .annotation(parameter.getAnnotation(GraphQLArgument.class))
-                                                    .nullable(
-                                                            isNullableArg(annotation.value(), className)
-                                                    )
-                                                    .build();
-                                        }
-                                )
-                                .collect(Collectors.toList())
-                )
-                .build();
+        return getQueryDetails(e, typeMapper)
+                .orElseGet(() -> getSubscriptionDetails(e, typeMapper).orElse(null));
+    }
+
+    private Optional<MethodDetails> getQueryDetails(ExecutableElement e, TypeMapper typeMapper) {
+        return Optional.ofNullable(e.getAnnotation(GraphQLQuery.class))
+                .map(annotation -> MethodDetails.builder()
+                        .methodName(e.getSimpleName().toString())
+                        .requestName(annotation.request())
+                        .returnType(typeMapper.defaultPackage(TypeName.get(e.getReturnType())))
+                        .field(annotation.value())
+                        .mutation(annotation.mutation())
+                        .subscription(false)
+                        .parameters(
+                                e.getParameters()
+                                        .stream()
+                                        .map(parameter -> {
+                                                    String className = parameter.getSimpleName().toString();
+                                                    return Parameter.builder()
+                                                            .type(typeMapper.defaultPackage(ClassName.get(parameter.asType())))
+                                                            .name(className)
+                                                            .annotation(parameter.getAnnotation(GraphQLArgument.class))
+                                                            .nullable(
+                                                                    isNullableArg(annotation.value(), className)
+                                                            )
+                                                            .build();
+                                                }
+                                        )
+                                        .collect(Collectors.toList())
+                        )
+                        .build());
+    }
+
+    private Optional<MethodDetails> getSubscriptionDetails(ExecutableElement e, TypeMapper typeMapper) {
+        return Optional.ofNullable(e.getAnnotation(GraphQLSubscription.class))
+                .map(annotation -> MethodDetails.builder()
+                        .methodName(e.getSimpleName().toString())
+                        .requestName(annotation.request())
+                        .returnType(typeMapper.defaultPackage(TypeName.get(e.getReturnType())))
+                        .field(annotation.value())
+                        .mutation(false)
+                        .subscription(true)
+                        .parameters(
+                                e.getParameters()
+                                        .stream()
+                                        .map(parameter -> {
+                                                    String className = parameter.getSimpleName().toString();
+                                                    return Parameter.builder()
+                                                            .type(typeMapper.defaultPackage(ClassName.get(parameter.asType())))
+                                                            .name(className)
+                                                            .annotation(parameter.getAnnotation(GraphQLArgument.class))
+                                                            .nullable(
+                                                                    isNullableArg(annotation.value(), className)
+                                                            )
+                                                            .build();
+                                                }
+                                        )
+                                        .collect(Collectors.toList())
+                        )
+                        .build());
     }
 
     private boolean isNullableArg(String field, String arg) {

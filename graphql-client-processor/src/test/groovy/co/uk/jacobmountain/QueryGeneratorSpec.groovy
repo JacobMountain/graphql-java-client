@@ -63,7 +63,7 @@ enum Episode {
 
     def "I can generate a simple query"(){
         when:
-        def result = generator.generateQuery(null, "string", [] as Set, false)
+        def result = generator.generateQuery(null, "string", [] as Set)
 
         then:
         queriesAreEqual("query String { string }", result)
@@ -71,7 +71,7 @@ enum Episode {
 
     def "I can generate a simple object query"(){
         when:
-        def result = generator.generateQuery(null, "obj", [] as Set, false)
+        def result = generator.generateQuery(null, "obj", [] as Set)
 
         then:
         queriesAreEqual("query Obj { obj { nested __typename } }", result)
@@ -79,7 +79,7 @@ enum Episode {
 
     def "I can generate an object query with an argument"(){
         when:
-        def result = generator.generateQuery(null, "findObject", ["id"] as Set, false)
+        def result = generator.generateQuery(null, "findObject", ["id"] as Set)
 
         then:
         queriesAreEqual("query FindObject(\$id: String) { findObject(id: \$id) { nested __typename } }", result)
@@ -87,7 +87,7 @@ enum Episode {
 
     def "I can generate an object query for an interface"(){
         when:
-        def result = generator.generateQuery(null, "character", [] as Set, false)
+        def result = generator.generateQuery(null, "character", [] as Set)
 
         then:
         queriesAreEqual("query Character { character { id ... on Hero { name __typename } ... on Droid { name primaryFunction __typename } __typename } }", result)
@@ -99,7 +99,7 @@ enum Episode {
         QueryGenerator generator = new QueryGenerator(new Schema(SCHEMA), 5)
 
         when:
-        def result = generator.generateQuery(null, "hero", [] as Set, false)
+        def result = generator.generateQuery(null, "hero", [] as Set)
 
         then:
         queriesAreEqual("query Hero { hero { name friends { name friends { name friends { name __typename } __typename } __typename } __typename } }", result)
@@ -107,7 +107,7 @@ enum Episode {
 
     def "I can generate a query with a non null arg"() {
         when:
-        def result = generator.generateQuery(null, "findObjectNonNullArg", ["id"] as Set, false)
+        def result = generator.generateQuery(null, "findObjectNonNullArg", ["id"] as Set)
 
         then:
         queriesAreEqual("query FindObjectNonNullArg(\$id: String!) { findObjectNonNullArg(id: \$id) { nested __typename } }", result)
@@ -115,7 +115,7 @@ enum Episode {
 
     def "Enums"() {
         when:
-        def result = generator.generateQuery(null, "enum", [] as Set, false)
+        def result = generator.generateQuery(null, "enum", [] as Set)
 
         then:
         queriesAreEqual("query Enum { enum }", result)

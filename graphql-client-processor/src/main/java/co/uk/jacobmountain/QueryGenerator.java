@@ -23,7 +23,19 @@ public class QueryGenerator {
         this.maxDepth = maxDepth;
     }
 
-    public String generateQuery(String request, String field, Set<String> params, boolean mutates) {
+    public String generateQuery(String request, String field, Set<String> params) {
+        return doGenerateQuery(request, field, "query", params);
+    }
+
+    public String generateMutation(String request, String field, Set<String> params) {
+        return doGenerateQuery(request, field, "mutation", params);
+    }
+
+    public String generateSubscription(String request, String field, Set<String> params) {
+        return doGenerateQuery(request, field, "subscription", params);
+    }
+
+    private String doGenerateQuery(String request, String field, String type, Set<String> params) {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
@@ -36,14 +48,14 @@ public class QueryGenerator {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(request, field, mutates) + collect + " { " + inner + " }";
+        return generateQueryName(request, type, field) + collect + " { " + inner + " }";
     }
 
-    private String generateQueryName(String request, String field, boolean mutates) {
+    private String generateQueryName(String request, String type, String field) {
         if (StringUtils.isEmpty(request)) {
             request = StringUtils.capitalize(field);
         }
-        return (mutates ? "mutation" : "query") + " " + request;
+        return type + " " + request;
     }
 
     private String unwrap(Type<?> type) {
