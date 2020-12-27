@@ -66,6 +66,7 @@ public class ClientGenerator {
         if (StringUtils.isEmpty(suffix)) {
             throw new IllegalArgumentException("Invalid suffix for implementation of client: " + element.getSimpleName());
         }
+        ClientDetails details = element.accept(new ClientDetailsVisitor(), null);
         // Generate the class
         TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
                 .addSuperinterface(ClassName.get((TypeElement) element))
@@ -77,7 +78,7 @@ public class ClientGenerator {
                 .forEach(builder::addTypeVariable);
         // Add any necessary member variables to the client
         List<AbstractStage.MemberVariable> memberVariables = Stream.of(arguments, query, returnResults)
-                .map(AbstractStage::getMemberVariables)
+                .map(it -> it.getMemberVariables(details))
                 .flatMap(Collection::stream)
                 .peek(memberVariable -> builder.addField(memberVariable.getType(), memberVariable.getName(), Modifier.PRIVATE, Modifier.FINAL))
                 .collect(Collectors.toList());

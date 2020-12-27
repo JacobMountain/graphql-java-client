@@ -20,7 +20,7 @@ public abstract class AbstractStage {
 
     protected final TypeMapper typeMapper;
 
-    public List<MemberVariable> getMemberVariables() {
+    public List<MemberVariable> getMemberVariables(ClientDetails details) {
         return Collections.emptyList();
     }
 

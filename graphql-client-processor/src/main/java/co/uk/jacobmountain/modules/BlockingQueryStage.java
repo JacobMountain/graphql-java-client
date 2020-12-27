@@ -13,6 +13,8 @@ import graphql.language.ObjectTypeDefinition;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BlockingQueryStage extends AbstractQueryStage {
 
@@ -30,13 +32,15 @@ public class BlockingQueryStage extends AbstractQueryStage {
     }
 
     @Override
-    public List<MemberVariable> getMemberVariables() {
-        return Collections.singletonList(
+    public List<MemberVariable> getMemberVariables(ClientDetails details) {
+        return Stream.of(
                 MemberVariable.builder()
                         .name("fetcher")
                         .type(generateTypeName())
                         .build()
-        );
+        )
+                .filter(it -> details.requiresFetcher())
+                .collect(Collectors.toList());
     }
 
     @Override

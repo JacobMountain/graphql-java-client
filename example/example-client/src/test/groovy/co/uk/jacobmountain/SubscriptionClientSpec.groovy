@@ -3,6 +3,7 @@ package co.uk.jacobmountain
 import co.uk.jacobmountain.dto.Episode
 import co.uk.jacobmountain.dto.ReviewInput
 import co.uk.jacobmountain.fetchers.WebClientFetcher
+import co.uk.jacobmountain.fetchers.WebSocketSubscriber
 import co.uk.jacobmountain.service.DefaultService
 import co.uk.jacobmountain.service.StarWarsService
 import org.spockframework.spring.SpringBean
@@ -32,7 +33,10 @@ class SubscriptionClientSpec extends Specification {
 
     def setup() {
         Hooks.onOperatorDebug()
-        client = new ReactiveStarWarsClientGraph(new WebClientFetcher("http://localhost:$port", "ws://localhost:$port"))
+        client = new ReactiveStarWarsClientGraph(
+                new WebClientFetcher("http://localhost:$port/graph"),
+                new WebSocketSubscriber("ws://localhost:$port/subscriptions")
+        )
     }
 
     static ReviewInput randomReviewInput() {
