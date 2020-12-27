@@ -6,7 +6,6 @@ import co.uk.jacobmountain.visitor.Parameter;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
-import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,10 +13,14 @@ import java.util.List;
 import java.util.Objects;
 
 
-@RequiredArgsConstructor
 public class ArgumentAssemblyStage extends AbstractStage {
 
     private final String dtoPackageName;
+
+    public ArgumentAssemblyStage(String dtoPackageName) {
+        super(null, null);
+        this.dtoPackageName = dtoPackageName;
+    }
 
     @Override
     public List<CodeBlock> assemble(MethodDetails details) {

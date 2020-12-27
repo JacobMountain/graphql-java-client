@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * ClientGenerator generates the implementation of the interface annotated with @GraphQLClient
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class ClientGenerator {
@@ -44,10 +47,10 @@ public class ClientGenerator {
         this.schema = schema;
         this.arguments = new ArgumentAssemblyStage(dtoPackageName);
         if (reactive) {
-            this.query = new ReactiveQueryStage(schema, maxDepth, typeMapper, dtoPackageName);
+            this.query = new ReactiveQueryStage(schema, typeMapper, dtoPackageName, maxDepth);
             this.returnResults = new ReactiveReturnStage(schema, typeMapper);
         } else {
-            this.query = new QueryMutationStage(schema, dtoPackageName, maxDepth, typeMapper);
+            this.query = new BlockingQueryStage(schema, typeMapper, dtoPackageName, maxDepth);
             this.returnResults = new OptionalReturnStage(schema, typeMapper);
         }
     }

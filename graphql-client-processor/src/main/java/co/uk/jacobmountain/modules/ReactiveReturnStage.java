@@ -9,23 +9,21 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import graphql.language.ObjectTypeDefinition;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.function.Function;
 
-@RequiredArgsConstructor
 public class ReactiveReturnStage extends AbstractStage {
 
-    private final Schema schema;
-
-    private final TypeMapper typeMapper;
+    public ReactiveReturnStage(Schema schema, TypeMapper typeMapper) {
+        super(schema, typeMapper);
+    }
 
     @Override
     public List<CodeBlock> assemble(MethodDetails details) {
-        ObjectTypeDefinition typeDefinition = getTypeDefinition(details, schema);
+        ObjectTypeDefinition typeDefinition = getTypeDefinition(details);
         List<CodeBlock> ret = new ArrayList<>(
                 Arrays.asList(
                         CodeBlock.of("return $T.from(thing)", details.isSubscription() ? Flux.class : Mono.class),

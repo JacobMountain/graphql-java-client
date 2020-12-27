@@ -16,11 +16,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractQueryStage extends AbstractStage {
 
-    protected final Schema schema;
-
     private final int maxDepth;
-
-    protected final TypeMapper typeMapper;
 
     protected final TypeName query;
 
@@ -28,10 +24,9 @@ public abstract class AbstractQueryStage extends AbstractStage {
 
     protected final TypeName subscription;
 
-    public AbstractQueryStage(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
-        this.schema = schema;
+    public AbstractQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName, int maxDepth) {
+        super(schema, typeMapper);
         this.maxDepth = maxDepth;
-        this.typeMapper = typeMapper;
         this.query = ClassName.get(dtoPackageName, schema.getQueryTypeName());
         this.mutation = schema.getMutationTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
         this.subscription = schema.getSubscriptionTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
@@ -43,7 +38,7 @@ public abstract class AbstractQueryStage extends AbstractStage {
     }
 
     protected TypeName getReturnTypeName(MethodDetails details) {
-        ObjectTypeDefinition typeDefinition = getTypeDefinition(details, schema);
+        ObjectTypeDefinition typeDefinition = getTypeDefinition(details);
         return ParameterizedTypeName.get(ClassName.get(Response.class), typeMapper.getType(typeDefinition.getName()), TypeVariableName.get("Error"));
     }
 

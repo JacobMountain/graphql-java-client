@@ -14,10 +14,10 @@ import graphql.language.ObjectTypeDefinition;
 import java.util.Collections;
 import java.util.List;
 
-public class QueryMutationStage extends AbstractQueryStage {
+public class BlockingQueryStage extends AbstractQueryStage {
 
-    public QueryMutationStage(Schema schema, String dtoPackageName, int maxDepth, TypeMapper typeMapper) {
-        super(schema, maxDepth, typeMapper, dtoPackageName);
+    public BlockingQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName, int maxDepth) {
+        super(schema, typeMapper, dtoPackageName, maxDepth);
     }
 
     private ParameterizedTypeName generateTypeName() {
@@ -46,7 +46,7 @@ public class QueryMutationStage extends AbstractQueryStage {
 
     @Override
     public List<CodeBlock> assemble(MethodDetails details) {
-        ObjectTypeDefinition query = details.isQuery() ? schema.getQuery() : schema.getMutation();
+        ObjectTypeDefinition query = getTypeDefinition(details);
         return Collections.singletonList(
                 CodeBlock.builder()
                         .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Response.class), typeMapper.getType(query.getName()), TypeVariableName.get("Error")))

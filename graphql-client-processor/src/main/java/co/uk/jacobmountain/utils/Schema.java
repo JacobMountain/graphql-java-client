@@ -7,7 +7,6 @@ import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeDefinition;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +18,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Schema {
-
-    @EqualsAndHashCode.Include
-    private final File file;
 
     @Delegate
     private final TypeDefinitionRegistry registry;
@@ -38,15 +33,14 @@ public class Schema {
     private final ObjectTypeDefinition subscription;
 
     public Schema(File file) {
-        this(file, new SchemaParser().parse(file));
+        this(new SchemaParser().parse(file));
     }
 
     public Schema(String gql) {
-        this(null, new SchemaParser().parse(gql));
+        this(new SchemaParser().parse(gql));
     }
 
-    private Schema(File file, TypeDefinitionRegistry registry) {
-        this.file = file;
+    private Schema(TypeDefinitionRegistry registry) {
         this.registry = registry;
         this.query = getSchemaDefinition("query").orElseThrow(QueryTypeNotFoundException::new);
         this.mutation = getSchemaDefinition("mutation").orElse(null);
@@ -76,7 +70,8 @@ public class Schema {
         );
     }
 
-    private <T> Optional<T> optionals(Optional<T> first, Supplier<Optional<T>>... later) {
+    @SafeVarargs
+    private final <T> Optional<T> optionals(Optional<T> first, Supplier<Optional<T>>... later) {
         if (first.isPresent()) {
             return first;
         }

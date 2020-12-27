@@ -15,8 +15,8 @@ import java.util.List;
 
 public class ReactiveQueryStage extends AbstractQueryStage {
 
-    public ReactiveQueryStage(Schema schema, int maxDepth, TypeMapper typeMapper, String dtoPackageName) {
-        super(schema, maxDepth, typeMapper, dtoPackageName);
+    public ReactiveQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName, int maxDepth) {
+        super(schema, typeMapper, dtoPackageName, maxDepth);
     }
 
     private ParameterizedTypeName generateTypeName() {

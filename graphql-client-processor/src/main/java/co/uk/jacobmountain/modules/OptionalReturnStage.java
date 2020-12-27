@@ -9,20 +9,18 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import graphql.language.ObjectTypeDefinition;
-import lombok.RequiredArgsConstructor;
 
 import java.util.*;
 
-@RequiredArgsConstructor
 public class OptionalReturnStage extends AbstractStage {
 
-    private final Schema schema;
-
-    private final TypeMapper typeMapper;
+    public OptionalReturnStage(Schema schema, TypeMapper typeMapper) {
+        super(schema, typeMapper);
+    }
 
     @Override
     public List<CodeBlock> assemble(MethodDetails details) {
-        ObjectTypeDefinition typeDefinition = details.isQuery() ? schema.getQuery() : schema.getMutation();
+        ObjectTypeDefinition typeDefinition = getTypeDefinition(details);
         List<CodeBlock> ret = new ArrayList<>(
                 Arrays.asList(
                         CodeBlock.of("return $T.ofNullable(thing)", Optional.class),
