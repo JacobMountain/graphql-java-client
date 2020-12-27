@@ -3,7 +3,6 @@ package co.uk.jacobmountain;
 
 import co.uk.jacobmountain.dto.Episode;
 import co.uk.jacobmountain.dto.Review;
-import co.uk.jacobmountain.dto.ReviewInput;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,9 +34,6 @@ public interface ReactiveStarWarsClient {
 
     @GraphQLQuery("reviews")
     Mono<List<Review>> getReviewListMono(Episode episode);
-
-    @GraphQLQuery(value = "createReview", mutation = true)
-    Review createReview(Episode episode, @GraphQLArgument("review") ReviewInput input);
 
     @GraphQLSubscription("reviewAdded")
     Flux<Review> watchReviews(Episode episode);

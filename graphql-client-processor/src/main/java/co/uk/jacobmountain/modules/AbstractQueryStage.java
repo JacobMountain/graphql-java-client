@@ -57,12 +57,21 @@ public abstract class AbstractQueryStage extends AbstractStage {
                 .stream()
                 .map(Parameter::getField)
                 .collect(Collectors.toSet());
-        String query = new QueryGenerator(schema, maxDepth).generateQuery(request, details.getField(), params, details.isMutation());
+        QueryGenerator queryGenerator = new QueryGenerator(schema, maxDepth);
+        String query;
+        if (details.isQuery()) {
+            query = queryGenerator.generateQuery(request, details.getField(), params);
+        } else if (details.isMutation()) {
+            query = queryGenerator.generateMutation(request, details.getField(), params);
+        } else if (details.isSubscription()) {
+            query = queryGenerator.generateSubscription(request, details.getField(), params);
+        } else {
+            throw new RuntimeException("");
+        }
         boolean hasArgs = details.hasParameters();
         return CodeBlock.of(
                 "(\"$L\", $L)", query, hasArgs ? "args" : "null"
         );
     }
-
 
 }

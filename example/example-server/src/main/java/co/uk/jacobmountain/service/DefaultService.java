@@ -4,20 +4,22 @@ import co.uk.jacobmountain.resolvers.dto.Character;
 import co.uk.jacobmountain.resolvers.dto.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class DefaultService implements StarWarsService {
 
@@ -29,6 +31,8 @@ public class DefaultService implements StarWarsService {
     private static ConcurrentMap<String, Droid> droids;
     private static ConcurrentMap<String, Starship> starships;
     private static ConcurrentMap<String, Character> characters;
+
+    private final Map<Episode, Sinks.Many<Review>> sinks = new HashMap<>();
 
     static {
         try {
@@ -88,7 +92,12 @@ public class DefaultService implements StarWarsService {
 
     @Override
     public Review createReview(Episode episode, Review input) {
-        return null;
+        log.info("Creating review for {}", episode);
+        input.setEpisode(episode);
+        if (sinks.get(episode) != null) {
+            sinks.get(episode).tryEmitNext(input);
+        }
+        return input;
     }
 
     @Override
@@ -104,5 +113,17 @@ public class DefaultService implements StarWarsService {
     @Override
     public Starship getShip(String id) {
         return starships.get(id);
+    }
+
+    @Override
+    public Flux<Review> watchReviews(Episode episode) {
+        sinks.computeIfAbsent(episode, ep -> Sinks.many().multicast().onBackpressureBuffer());
+        return sinks.get(episode).asFlux()
+                .doOnNext(it -> log.info("Emitted {}", it));
+    }
+
+    @Override
+    public Review createRandomReview(Episode episode) {
+        return this.createReview(episode, randomReview(episode));
     }
 }

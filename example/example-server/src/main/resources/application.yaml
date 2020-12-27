@@ -2,3 +2,6 @@ graphql:
   servlet:
     mapping: /graph
     enabled: true
+    websocket:
+      enabled: true
+
