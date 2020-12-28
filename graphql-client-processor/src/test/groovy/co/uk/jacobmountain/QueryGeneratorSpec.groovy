@@ -5,50 +5,13 @@ import groovy.util.logging.Slf4j
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.junit.Assert.assertEquals
+import static co.uk.jacobmountain.utils.QueryAssertion.assertQueriesAreEqual
 
 @Slf4j
 class QueryGeneratorSpec extends Specification {
 
     @Subject
     QueryGenerator generator
-
-    static String clean(String query) {
-        query.split("\n").collect { it.trim() }.join(" ").trim()
-    }
-
-    static List<String> split(String query) {
-        return [
-                query.find("(query|mutation|subscription)\\s*").trim(), // finds the type
-                query.find("\\((\\\$\\w+:\\s+\\w+,?\\s*)+\\)"),         // finds the args
-                query.find("\\{.*")                                     // finds the selections
-        ]
-    }
-
-    static void assertArgs(String expected = "", String actual) {
-        actual = actual ?: "()"
-        expected = expected ?: "()"
-        assertEquals("Args are incorrect", "(", actual.substring(0, 1))
-        assertEquals("Args are incorrect", ")", actual.substring(actual.length() - 1))
-        assertEquals(
-                "Args are incorrect",
-                expected.substring(1, expected.length() - 1).split(", ") as Set,
-                actual.substring(1, expected.length() - 1).split(", ") as Set
-        )
-    }
-
-    static void queriesAreEqual(String expected, String result) {
-        log.info("Asserting equal: ")
-        expected = clean(expected)
-        result = clean(result)
-        log.info("\t{}", expected)
-        log.info("\t{}", result)
-        def a = split(expected)
-        def b = split(result)
-        assertEquals("Type is incorrect", a[0], b[0])
-        assertArgs(a[1], b[1])
-        assertEquals("Fields are incorrect", a[2], b[2])
-    }
 
     def givenSchema(String schema, int depth = 2) {
         println schema.stripIndent()
@@ -79,7 +42,7 @@ class QueryGeneratorSpec extends Specification {
         def result = generator.generateQuery(null, "field", [] as Set)
 
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         query Field { 
             field { 
                 id
@@ -97,7 +60,7 @@ class QueryGeneratorSpec extends Specification {
         def result = generator.generateQuery(null, "number", [] as Set)
 
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         query Number { 
             number
         }
@@ -117,7 +80,7 @@ class QueryGeneratorSpec extends Specification {
         def result = generator.generateQuery(null, "ep", [] as Set)
 
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         query Ep { 
             ep
         }
@@ -142,7 +105,7 @@ class QueryGeneratorSpec extends Specification {
         def result = generator.generateQuery(null, "field", [] as Set)
 
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         query Field { 
             field {
                 id
@@ -166,7 +129,7 @@ class QueryGeneratorSpec extends Specification {
         def result = generator.generateQuery(null, "field", params as Set)
 
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         query Field($vars) { 
             field($args) {
                 id
@@ -195,7 +158,7 @@ class QueryGeneratorSpec extends Specification {
         def result = generator.generateQuery(null, "friend", [] as Set)
 
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         query Friend { 
             friend {
                 id
@@ -232,7 +195,7 @@ class QueryGeneratorSpec extends Specification {
         when:
         def result = generator.generateMutation(null, "doAction", [] as Set)
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         mutation Friend {
             doAction
         }
@@ -255,7 +218,7 @@ class QueryGeneratorSpec extends Specification {
         when:
         def result = generator.generateSubscription(null, "doSubscribe", [] as Set)
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         subscription Friend {
             doSubscribe
         }
@@ -277,7 +240,7 @@ class QueryGeneratorSpec extends Specification {
         def result = generator.generateQuery(null, "field", [] as Set)
 
         then:
-        queriesAreEqual("""
+        assertQueriesAreEqual("""
         query Field { 
             field {
                 name
