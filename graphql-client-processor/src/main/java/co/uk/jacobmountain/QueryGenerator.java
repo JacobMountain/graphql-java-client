@@ -40,7 +40,7 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
-        String inner = generateQueryRec(field, definition, params, 1, args).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, definition, params, new HashSet<>(), 1, args).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -68,7 +68,7 @@ public class QueryGenerator {
         }
     }
 
-    private Optional<String> generateQueryRec(String alias, FieldDefinition field, Set<String> params, int depth, Set<String> argumentCollector) {
+    private Optional<String> generateQueryRec(String alias, FieldDefinition field, Set<String> params, Set<String> included, int depth, Set<String> argumentCollector) {
         String type = unwrap(field.getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
@@ -83,20 +83,23 @@ public class QueryGenerator {
         if (Objects.isNull(typeDefinition) || typeDefinition.getChildren().isEmpty()) {
             return Optional.of(alias + args);
         }
+        if (typeDefinition instanceof EnumTypeDefinition) {
+            return Optional.of(alias);
+        }
         // if the depth is too high, don't go deeper
         if (depth >= maxDepth) {
             return Optional.empty();
         }
-        if (typeDefinition instanceof EnumTypeDefinition) {
-            return Optional.of(alias);
-        }
+        Set<String> incl = new HashSet<>();
         List<String> children = Stream.of(
                 getChildren(typeDefinition)
-                        .map(definition -> generateQueryRec(definition.getName(), definition, params, depth + 1, argumentCollector))
+                        .peek(it -> incl.add(it.getName()))
+                        .filter(it -> included.add(it.getName()))
+                        .map(definition -> generateQueryRec(definition.getName(), definition, params, new HashSet<>(), depth + 1, argumentCollector))
                         .filter(Optional::isPresent)
                         .map(Optional::get),
                 getInterfaceChildren(typeDefinition)
-                        .map(definition -> generateQueryRec(definition.getName(), definition, params, depth, argumentCollector))
+                        .map(definition -> generateQueryRec(definition.getName(), definition, params, incl, depth, argumentCollector))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .map(query -> "... on " + query)
