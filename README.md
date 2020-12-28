@@ -1,5 +1,5 @@
-# graphql-client ![Build + Test](https://github.com/JacobMountain/graphql-client/workflows/Build%20+%20Test/badge.svg)
-A Java GraphQL client annotation processor, generate a client class from a graphql schema file, and a Java interface
+# graphql-client ![Build + Test](https://github.com/JacobMountain/graphql-client/workflows/Build%20+%20Test/badge.svg) [![Documentation](https://img.shields.io/badge/read%20the-docs-blue)](https://jacobmountain.github.io/graphql-client/#/)
+A Java GraphQL client annotation processor, generate a client class from a graphql schema file, and a Java interface.
 
 ## Usage guide
 #### 1. Generate a graphql schema file:
