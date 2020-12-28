@@ -1,0 +1,17 @@
+<!-- docs/_sidebar.md -->
+
+* [Home](/)
+* [Installation](installation.md)
+    * [Gradle](installation.md?id=gradle)
+    * [Maven](installation.md?id=maven)
+    * [IDE](installation.md?id=development-environment)
+* [Usage](/usage/)
+    * [Example](/usage/example.md)
+* [Reference](/refs/)
+    * [`@GraphQLClient`](/refs/annotations.md?id=graphqlclient)
+    * [`@GraphQLQuery`](/refs/annotations.md?id=graphqlquery)
+    * [`@GraphQLMutation`](/refs/annotations.md?id=graphqlmutation)
+    * [`@GraphQLSubscription`](/refs/annotations.md?id=graphqlsubscription)
+    * [`Fetcher`](/refs/interfaces?id=fetcher)
+    * [`ReactiveFetcher`](/refs/interfaces.md?id=reactivefetcher)
+    * [`ReactiveSubscriber`](/refs/interfaces.md?id=reactivesubscriber)
