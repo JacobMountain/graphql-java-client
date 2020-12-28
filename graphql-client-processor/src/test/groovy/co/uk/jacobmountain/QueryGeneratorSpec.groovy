@@ -5,120 +5,290 @@ import groovy.util.logging.Slf4j
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static org.junit.Assert.assertEquals
+
 @Slf4j
 class QueryGeneratorSpec extends Specification {
 
-    static final String SCHEMA = """
-schema {
-    query: Query
-}
-
-type Query {
-    string: String
-    obj: Object
-    findObject(id: String): Object
-    findObjectNonNullArg(id: String!): Object
-    character: [ID]
-    hero: Hero
-    enum: Episode
-}
-
-type Object {
-    nested: String
-}
-
-interface ID {
-    id: int
-}
-
-type Hero implements ID {
-    name: string
-    friends: [Hero]
-}
-
-type Droid implements ID {
-    name: string
-    primaryFunction: String
-}
-
-enum Episode {
-    # Star Wars Episode IV: A New Hope, released in 1977.
-    NEWHOPE
-    # Star Wars Episode V: The Empire Strikes Back, released in 1980.
-    EMPIRE
-    # Star Wars Episode VI: Return of the Jedi, released in 1983.
-    JEDI
-}
-"""
-
     @Subject
-    QueryGenerator generator = new QueryGenerator(new Schema(SCHEMA), 2)
+    QueryGenerator generator
 
-    static boolean queriesAreEqual(String expected, String result) {
+    static String clean(String query) {
+        query.split("\n").collect { it.trim() }.join(" ").trim()
+    }
+
+    static List<String> split(String query) {
+        return [
+                query.find("(query|mutation|subscription)\\s*").trim(), // finds the type
+                query.find("\\((\\\$\\w+:\\s+\\w+,?\\s*)+\\)"),         // finds the args
+                query.find("\\{.*")                                     // finds the selections
+        ]
+    }
+
+    static void assertArgs(String expected = "", String actual) {
+        actual = actual ?: "()"
+        expected = expected ?: "()"
+        assertEquals("Args are incorrect", "(", actual.substring(0, 1))
+        assertEquals("Args are incorrect", ")", actual.substring(actual.length() - 1))
+        assertEquals(
+                "Args are incorrect",
+                expected.substring(1, expected.length() - 1).split(", ") as Set,
+                actual.substring(1, expected.length() - 1).split(", ") as Set
+        )
+    }
+
+    static void queriesAreEqual(String expected, String result) {
         log.info("Asserting equal: ")
+        expected = clean(expected)
+        result = clean(result)
         log.info("\t{}", expected)
         log.info("\t{}", result)
-        expected == result
+        def a = split(expected)
+        def b = split(result)
+        assertEquals("Type is incorrect", a[0], b[0])
+        assertArgs(a[1], b[1])
+        assertEquals("Fields are incorrect", a[2], b[2])
     }
 
-    def "I can generate a simple query"(){
-        when:
-        def result = generator.generateQuery(null, "string", [] as Set)
-
-        then:
-        queriesAreEqual("query String { string }", result)
+    def givenSchema(String schema, int depth = 2) {
+        println schema.stripIndent()
+        generator = new QueryGenerator(new Schema(schema.stripIndent()), depth)
     }
 
-    def "I can generate a simple object query"(){
-        when:
-        def result = generator.generateQuery(null, "obj", [] as Set)
-
-        then:
-        queriesAreEqual("query Obj { obj { nested __typename } }", result)
+    def givenQuery(String query, String types = "", int depth = 2) {
+        givenSchema("""
+        schema {
+            query: Query
+        }
+        type Query {
+            ${query}
+        }
+        ${types}
+        """, depth)
     }
 
-    def "I can generate an object query with an argument"(){
-        when:
-        def result = generator.generateQuery(null, "findObject", ["id"] as Set)
-
-        then:
-        queriesAreEqual("query FindObject(\$id: String) { findObject(id: \$id) { nested __typename } }", result)
-    }
-
-    def "I can generate an object query for an interface"(){
-        when:
-        def result = generator.generateQuery(null, "character", [] as Set)
-
-        then:
-        queriesAreEqual("query Character { character { id ... on Hero { name __typename } ... on Droid { name primaryFunction __typename } __typename } }", result)
-    }
-
-
-    def "I can generate a recursive query" (){
+    def "I can query structured type fields"() {
         given:
-        QueryGenerator generator = new QueryGenerator(new Schema(SCHEMA), 5)
-
+        givenQuery("field: Field", """
+        type Field implements ID {
+            id: Int
+            name: String
+        }
+        """)
         when:
-        def result = generator.generateQuery(null, "hero", [] as Set)
+        def result = generator.generateQuery(null, "field", [] as Set)
 
         then:
-        queriesAreEqual("query Hero { hero { name friends { name friends { name friends { name __typename } __typename } __typename } __typename } }", result)
+        queriesAreEqual("""
+        query Field { 
+            field { 
+                id
+                name
+                __typename
+            } 
+        }
+        """, result)
     }
 
-    def "I can generate a query with a non null arg"() {
+    def "I can query scalar type fields"() {
+        given:
+        givenQuery("number: Int")
         when:
-        def result = generator.generateQuery(null, "findObjectNonNullArg", ["id"] as Set)
+        def result = generator.generateQuery(null, "number", [] as Set)
 
         then:
-        queriesAreEqual("query FindObjectNonNullArg(\$id: String!) { findObjectNonNullArg(id: \$id) { nested __typename } }", result)
+        queriesAreEqual("""
+        query Number { 
+            number
+        }
+        """, result)
     }
 
-    def "Enums"() {
+    def "I can query enum fields"() {
+        given:
+        givenQuery("ep: Episode", """
+        enum Episode {
+            NEWHOPE
+            EMPIRE
+            JEDI
+        }
+        """)
         when:
-        def result = generator.generateQuery(null, "enum", [] as Set)
+        def result = generator.generateQuery(null, "ep", [] as Set)
 
         then:
-        queriesAreEqual("query Enum { enum }", result)
+        queriesAreEqual("""
+        query Ep { 
+            ep
+        }
+        """, result)
+    }
+
+    def "I can query nested enum fields"() {
+        given:
+        givenQuery("field: Field", """
+        type Field implements ID {
+            id: Int
+            name: String
+            number: Number
+        }
+        enum Number {
+            ONE
+            TWO
+            THREE
+        }
+        """)
+        when:
+        def result = generator.generateQuery(null, "field", [] as Set)
+
+        then:
+        queriesAreEqual("""
+        query Field { 
+            field {
+                id
+                name
+                number
+                __typename
+            }
+        }
+        """, result)
+    }
+
+    def "I can query for fields with args"() {
+        given:
+        givenQuery("field(${vars.split(", ").collect { it.substring(1) }.join(", ")}): Field", """
+        type Field implements ID {
+            id: Int
+            name: String
+        }
+        """)
+        when:
+        def result = generator.generateQuery(null, "field", params as Set)
+
+        then:
+        queriesAreEqual("""
+        query Field($vars) { 
+            field($args) {
+                id
+                name
+                __typename
+            }
+        }
+        """, result)
+
+        where:
+        vars                      | args                   | params
+        '$id: Int'                | 'id: $id'              | ["id"]
+        '$id: Int, $name: String' | 'id: $id, name: $name' | ["id", "name"]
+    }
+
+    def "Recursive queries don't fail"() {
+        given:
+        givenQuery("friend: Person", """
+        type Person {
+            id: Int
+            name: String
+            friends: [Person]
+        }
+        """, 4)
+        when:
+        def result = generator.generateQuery(null, "friend", [] as Set)
+
+        then:
+        queriesAreEqual("""
+        query Friend { 
+            friend {
+                id
+                name
+                friends {
+                    id
+                    name
+                    friends {
+                        id
+                        name
+                        __typename
+                    }
+                    __typename
+                }
+                __typename
+            }
+        }
+        """, result)
+    }
+
+    def "I can generate a mutation"() {
+        given:
+        givenSchema("""
+        schema {
+            query: Query
+            mutation: Mutation
+        }
+        type Query {}
+        type Mutation {
+            doAction: String
+        }
+        """)
+
+        when:
+        def result = generator.generateMutation(null, "doAction", [] as Set)
+        then:
+        queriesAreEqual("""
+        mutation Friend {
+            doAction
+        }
+        """, result)
+    }
+
+    def "I can generate a subscription"() {
+        given:
+        givenSchema("""
+        schema {
+            query: Query
+            subscription: Subscription
+        }
+        type Query {}
+        type Subscription {
+            doSubscribe: String
+        }
+        """)
+
+        when:
+        def result = generator.generateSubscription(null, "doSubscribe", [] as Set)
+        then:
+        queriesAreEqual("""
+        subscription Friend {
+            doSubscribe
+        }
+        """, result)
+    }
+
+    def "I can query for interfaces"() {
+        given:
+        givenQuery("field: Named", """
+        type Field implements Named {
+            id: Int
+            name: String
+        }
+        interface Named {
+            name: String
+        }
+        """)
+        when:
+        def result = generator.generateQuery(null, "field", [] as Set)
+
+        then:
+        queriesAreEqual("""
+        query Field { 
+            field {
+                name
+                ... on Field { 
+                    id
+                    __typename 
+                }
+                __typename 
+            }
+        }
+        """, result)
     }
 
 }
