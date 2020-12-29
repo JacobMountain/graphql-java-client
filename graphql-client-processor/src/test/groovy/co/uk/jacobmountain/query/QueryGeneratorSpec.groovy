@@ -1,5 +1,6 @@
-package co.uk.jacobmountain
+package co.uk.jacobmountain.query
 
+import co.uk.jacobmountain.query.QueryGenerator
 import co.uk.jacobmountain.utils.Schema
 import groovy.util.logging.Slf4j
 import spock.lang.Specification

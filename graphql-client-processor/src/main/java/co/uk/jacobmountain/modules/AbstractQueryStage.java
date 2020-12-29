@@ -1,8 +1,8 @@
 package co.uk.jacobmountain.modules;
 
-import co.uk.jacobmountain.QueryGenerator;
 import co.uk.jacobmountain.TypeMapper;
 import co.uk.jacobmountain.dto.Response;
+import co.uk.jacobmountain.query.QueryGenerator;
 import co.uk.jacobmountain.utils.Schema;
 import co.uk.jacobmountain.visitor.MethodDetails;
 import co.uk.jacobmountain.visitor.Parameter;

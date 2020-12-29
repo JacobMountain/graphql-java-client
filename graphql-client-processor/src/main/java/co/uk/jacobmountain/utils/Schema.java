@@ -1,10 +1,7 @@
 package co.uk.jacobmountain.utils;
 
 import co.uk.jacobmountain.exceptions.QueryTypeNotFoundException;
-import graphql.language.FieldDefinition;
-import graphql.language.InterfaceTypeDefinition;
-import graphql.language.ObjectTypeDefinition;
-import graphql.language.TypeDefinition;
+import graphql.language.*;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import lombok.Getter;
@@ -16,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @Slf4j
 public class Schema {
@@ -108,6 +106,25 @@ public class Schema {
 
     public Optional<String> getSubscriptionTypeName() {
         return Optional.ofNullable(subscription).map(ObjectTypeDefinition::getName);
+    }
+
+    /**
+     * Takes a type definition and returns a stream of types that implement it
+     *
+     * @param typeDefinition the possible InterfaceTypeDefinition
+     * @return
+     */
+    public Stream<String> getTypesImplementing(TypeDefinition<?> typeDefinition) {
+        if (!(typeDefinition instanceof InterfaceTypeDefinition)) {
+            return Stream.empty();
+        }
+        return types()
+                .values()
+                .stream()
+                .filter(it -> it instanceof ObjectTypeDefinition)
+                .map(it -> (ObjectTypeDefinition) it)
+                .filter(it -> it.getImplements().stream().anyMatch(ty -> ((TypeName) ty).getName().equals(typeDefinition.getName())))
+                .map((ObjectTypeDefinition impl) -> ((NamedNode<?>) impl).getName());
     }
 
 }
