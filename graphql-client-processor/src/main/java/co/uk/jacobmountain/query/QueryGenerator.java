@@ -39,7 +39,7 @@ public class QueryGenerator {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
-        FragmentHandler fragments = new CollectFragmentHandler(schema, this);
+        FragmentHandler fragments = new SpreadFragmentHandler(schema, this);
 
         String inner = generateQueryRec(field, definition, params, new HashSet<>(), 1, args, fragments).orElseThrow(RuntimeException::new);
 
