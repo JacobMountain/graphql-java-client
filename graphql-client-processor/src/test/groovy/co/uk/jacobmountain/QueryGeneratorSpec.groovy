@@ -227,7 +227,7 @@ class QueryGeneratorSpec extends Specification {
 
     def "I can query for interfaces"() {
         given:
-        givenQuery("field: Named", """
+        givenQuery("named: Named", """
         type Field implements Named {
             id: Int
             name: String
@@ -237,15 +237,45 @@ class QueryGeneratorSpec extends Specification {
         }
         """)
         when:
+        def result = generator.generateQuery(null, "named", [] as Set)
+
+        then:
+        assertQueriesAreEqual("""
+        query Field { 
+            named {
+                name
+                ...field
+                __typename 
+            }
+        }
+        fragment field on Field {
+            id
+            __typename
+        }
+        """, result)
+    }
+
+    def "We should add nested fields of the same name (a problem potentially caused by interface recursion)"() {
+        given:
+        givenQuery("field: Field", """
+        type Field {
+            id: Int
+            nested: Nested
+        }
+        type Nested {
+            nested: String
+        }
+        """, 5)
+        when:
         def result = generator.generateQuery(null, "field", [] as Set)
 
         then:
         assertQueriesAreEqual("""
         query Field { 
             field {
-                name
-                ... on Field { 
-                    id
+                id
+                nested {
+                    nested
                     __typename 
                 }
                 __typename 

@@ -39,8 +39,9 @@ public class QueryGenerator {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
+        FragmentHandler fragments = new CollectFragmentHandler();
 
-        String inner = generateQueryRec(field, definition, params, new HashSet<>(), 1, args).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, definition, params, new HashSet<>(), 1, args, fragments).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -48,7 +49,7 @@ public class QueryGenerator {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(request, type, field) + collect + " { " + inner + " }";
+        return generateQueryName(request, type, field) + collect + " { " + inner + " } " + fragments.getFragments();
     }
 
     private String generateQueryName(String request, String type, String field) {
@@ -68,7 +69,13 @@ public class QueryGenerator {
         }
     }
 
-    private Optional<String> generateQueryRec(String alias, FieldDefinition field, Set<String> params, Set<String> included, int depth, Set<String> argumentCollector) {
+    private Optional<String> generateQueryRec(String alias,
+                                              FieldDefinition field,
+                                              Set<String> params,
+                                              Set<String> previouslyVisited,
+                                              int depth,
+                                              Set<String> argumentCollector,
+                                              FragmentHandler fragments) {
         String type = unwrap(field.getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
@@ -90,19 +97,15 @@ public class QueryGenerator {
         if (depth >= maxDepth) {
             return Optional.empty();
         }
-        Set<String> incl = new HashSet<>();
+        Set<String> visited = new HashSet<>();
         List<String> children = Stream.of(
                 getChildren(typeDefinition)
-                        .peek(it -> incl.add(it.getName()))
-                        .filter(it -> included.add(it.getName()))
-                        .map(definition -> generateQueryRec(definition.getName(), definition, params, new HashSet<>(), depth + 1, argumentCollector))
+                        .peek(it -> visited.add(it.getName())) // add to the list of discovered fields
+                        .filter(it -> previouslyVisited.add(it.getName())) // don't add to the list if we've already discovered these fields (used with interfaces)
+                        .map(definition -> generateQueryRec(definition.getName(), definition, params, new HashSet<>(), depth + 1, argumentCollector, fragments))
                         .filter(Optional::isPresent)
                         .map(Optional::get),
-                getInterfaceChildren(typeDefinition)
-                        .map(definition -> generateQueryRec(definition.getName(), definition, params, incl, depth, argumentCollector))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .map(query -> "... on " + query)
+                fragments.handle(typeDefinition, params, visited, depth, argumentCollector)
         )
                 .flatMap(Function.identity())
                 .collect(Collectors.toList());
@@ -119,6 +122,70 @@ public class QueryGenerator {
     }
 
     /**
+     * Takes a type definition and returns a stream of types that implement it
+     *
+     * @param typeDefinition the possible InterfaceTypeDefinition
+     * @return
+     */
+    private Stream<String> getTypesImplementing(TypeDefinition<?> typeDefinition) {
+        if (!(typeDefinition instanceof InterfaceTypeDefinition)) {
+            return Stream.empty();
+        }
+        return schema.types()
+                .values()
+                .stream()
+                .filter(it -> it instanceof ObjectTypeDefinition)
+                .map(it -> (ObjectTypeDefinition) it)
+                .filter(it -> it.getImplements().stream().anyMatch(ty -> ((TypeName) ty).getName().equals(typeDefinition.getName())))
+                .map((ObjectTypeDefinition impl) -> ((NamedNode<?>) impl).getName());
+    }
+
+    interface FragmentHandler {
+
+        /**
+         * Takes a possible interface type definition, and converts it into an interface selection
+         *
+         * @param typeDefinition    the TypeDefinition that may be an interface
+         * @param params            the whitelist of params to include
+         * @param visited           the blacklist of visited fields
+         * @param depth             the current depth of the query
+         * @param argumentCollector the current collected list of arguments
+         * @return a stream of selections (or fragment spreads)
+         */
+        Stream<String> handle(TypeDefinition<?> typeDefinition,
+                              Set<String> params,
+                              Set<String> visited,
+                              int depth,
+                              Set<String> argumentCollector);
+
+        String getFragments();
+
+    }
+
+    class CollectFragmentHandler implements FragmentHandler {
+
+        Map<String, String> fragments = new HashMap<>();
+
+        @Override
+        public Stream<String> handle(TypeDefinition<?> typeDefinition, Set<String> params, Set<String> visited, int depth, Set<String> argumentCollector) {
+            return getTypesImplementing(typeDefinition)
+                    .map(interfac -> {
+                        if (!fragments.containsKey(interfac)) {
+                            generateQueryRec(interfac, new FieldDefinition(interfac, new TypeName(interfac)), params, visited, depth, argumentCollector, this)
+                                    .map(query -> "fragment " + interfac + " on " + query)
+                                    .ifPresent(selection -> fragments.put(interfac, selection));
+                        }
+                        return "..." + interfac;
+                    });
+        }
+
+        @Override
+        public String getFragments() {
+            return String.join(" ", fragments.values());
+        }
+    }
+
+    /**
      * whether the client method contains all arguments defined in the graphql schema
      *
      * @param field  the graphql field definition
@@ -132,20 +199,21 @@ public class QueryGenerator {
                 .allMatch(nonNull -> params.contains(nonNull.getName()));
     }
 
-    private Stream<FieldDefinition> getInterfaceChildren(TypeDefinition<?> typeDefinition) {
-        if (!(typeDefinition instanceof InterfaceTypeDefinition)) {
-            return Stream.of();
+    class SpreadFragmentHandler implements FragmentHandler {
+
+        @Override
+        public Stream<String> handle(TypeDefinition<?> typeDefinition, Set<String> params, Set<String> visited, int depth, Set<String> argumentCollector) {
+            return getTypesImplementing(typeDefinition)
+                    .map(interfac -> generateQueryRec(interfac, new FieldDefinition(interfac, new TypeName(interfac)), params, visited, depth, argumentCollector, this))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(query -> "... on " + query);
         }
-        return schema.types()
-                .values()
-                .stream()
-                .filter(it -> it instanceof ObjectTypeDefinition)
-                .map(it -> (ObjectTypeDefinition) it)
-                .filter(it -> it.getImplements().stream().anyMatch(ty -> ((TypeName) ty).getName().equals(typeDefinition.getName())))
-                .map((ObjectTypeDefinition impl) -> {
-                    String name = ((NamedNode) impl).getName();
-                    return new FieldDefinition(name, new TypeName(name));
-                });
+
+        @Override
+        public String getFragments() {
+            return "";
+        }
     }
 
     private Stream<FieldDefinition> getChildren(TypeDefinition<?> typeDefinition) {

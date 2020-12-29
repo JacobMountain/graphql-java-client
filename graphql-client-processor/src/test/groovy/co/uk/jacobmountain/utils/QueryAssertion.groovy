@@ -31,14 +31,73 @@ class QueryAssertion {
         )
     }
 
+    static class Fragment {
+
+        String name
+
+        String on
+
+        String selection
+
+        Fragment(String name, String on, String selection) {
+            this.name = name
+            this.on = on
+            this.selection = selection
+        }
+
+        @Override
+        String toString() {
+            "$name on $on $selection"
+        }
+
+        String inline() {
+            "... on $on $selection"
+        }
+
+        String regex() {
+            def spaces = "\\s+"
+            "$name${spaces}on$spaces$on$spaces${selection.replaceAll(spaces, "\\\\s+")}"
+        }
+
+        String spreadRegex() {
+            "...\\s*$name"
+        }
+    }
+
+    static Map<String, Fragment> collectFragments(String input) {
+        input.split("fragment")
+                .tail()
+                .collect {
+                    def on = it.split("on")
+                    new Fragment(
+                            on[0].trim(),
+                            on[1].find("\\w+"),
+                            it.find("\\{.*")
+                    )
+                }
+                .collectEntries() { [(it.name): it] }
+    }
+
+    static String expandFragments(String input) {
+        def fragments = collectFragments(input)
+        def output = input.split("fragment")[0].trim()
+        fragments.values()
+                .forEach { fragment -> output = output.replaceAll(fragment.spreadRegex(), fragment.inline()) }
+        output
+    }
+
     static void assertQueriesAreEqual(String expected, String result) {
         log.info("Asserting equal: ")
-        expected = clean(expected)
-        result = clean(result)
+        log.info("\t{}", expected)
+        log.info("\t{}", result)
+        expected = expandFragments(clean(expected))
+        result = expandFragments(clean(result))
+        log.info("Cleaned: ")
         log.info("\t{}", expected)
         log.info("\t{}", result)
         def a = split(expected)
         def b = split(result)
+
         assertEquals("Type is incorrect", a[0], b[0])
         assertArgs(a[1], b[1])
         assertEquals("Fields are incorrect", a[2], b[2])
