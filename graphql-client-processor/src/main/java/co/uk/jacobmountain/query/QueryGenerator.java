@@ -39,9 +39,8 @@ public class QueryGenerator {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
-        FragmentHandler fragments = new SpreadFragmentHandler(schema, this);
 
-        String inner = generateQueryRec(field, definition, params, new HashSet<>(), 1, args, fragments).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, definition, params, new HashSet<>(), 1, args).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -49,7 +48,7 @@ public class QueryGenerator {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(request, type, field) + collect + " { " + inner + " } " + fragments.getFragments();
+        return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
     }
 
     private String generateQueryName(String request, String type, String field) {
@@ -74,8 +73,7 @@ public class QueryGenerator {
                                       Set<String> params,
                                       Set<String> previouslyVisited,
                                       int depth,
-                                      Set<String> argumentCollector,
-                                      FragmentHandler fragments) {
+                                      Set<String> argumentCollector) {
         String type = unwrap(field.getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
@@ -98,14 +96,19 @@ public class QueryGenerator {
             return Optional.empty();
         }
         Set<String> visited = new HashSet<>();
+
         List<String> children = Stream.of(
                 getChildren(typeDefinition)
                         .peek(it -> visited.add(it.getName())) // add to the list of discovered fields
                         .filter(it -> previouslyVisited.add(it.getName())) // don't add to the list if we've already discovered these fields (used with interfaces)
-                        .map(definition -> generateQueryRec(definition.getName(), definition, params, new HashSet<>(), depth + 1, argumentCollector, fragments))
+                        .map(definition -> generateQueryRec(definition.getName(), definition, params, new HashSet<>(), depth + 1, argumentCollector))
                         .filter(Optional::isPresent)
                         .map(Optional::get),
-                fragments.handle(typeDefinition, params, visited, depth, argumentCollector)
+                schema.getTypesImplementing(typeDefinition)
+                        .map(interfac -> generateQueryRec(interfac, new FieldDefinition(interfac, new TypeName(interfac)), params, visited, depth, argumentCollector))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .map(query -> "... on " + query)
         )
                 .flatMap(Function.identity())
                 .collect(Collectors.toList());
