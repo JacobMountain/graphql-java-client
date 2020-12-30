@@ -1,7 +1,6 @@
 package com.jacobmountain;
 
 
-import com.jacobmountain.dto.Character;
 import com.jacobmountain.dto.Droid;
 import com.jacobmountain.dto.Human;
 
@@ -16,7 +15,7 @@ import java.util.List;
 public interface Client {
 
         @GraphQLQuery("hero")
-        Character getHero();
+        com.jacobmountain.dto.Character getHero();
 
         @GraphQLQuery("droid")
         Droid getDroid(Integer id);

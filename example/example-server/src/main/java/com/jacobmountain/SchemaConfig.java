@@ -16,7 +16,7 @@ public class SchemaConfig {
     @Bean
     public GraphQLSchema graphQLSchema() {
         return new GraphQLSchemaGenerator()
-                .withBasePackages("co.uk.jacobmountain")
+                .withBasePackages("com.jacobmountain")
                 .withOperationsFromSingleton(query, Query.class)
                 .generate();
     }

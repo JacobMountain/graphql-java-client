@@ -22,7 +22,7 @@ public class Assert {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public static void assertEquals(Character expected, Character actual) {
+    public static void assertEquals(Character expected, com.jacobmountain.dto.Character actual) {
         Human result = MAPPER.to((com.jacobmountain.dto.Human) actual);
         Assertions.assertEquals(expected, result);
     }
@@ -32,8 +32,8 @@ public class Assert {
         Assertions.assertEquals(expected, result);
     }
 
-    public static void assertEquals(List<Review> expected, List<Review> actual) {
-        List<Review> result = actual.stream()
+    public static void assertEquals(List<Review> expected, List<com.jacobmountain.dto.Review> actual) {
+        List<com.jacobmountain.resolvers.dto.Review> result = actual.stream()
                 .map(MAPPER::toReview)
                 .collect(Collectors.toList());
         Assertions.assertEquals(expected, result);

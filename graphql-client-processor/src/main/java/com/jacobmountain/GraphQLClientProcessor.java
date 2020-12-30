@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 @Slf4j
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-@SupportedAnnotationTypes("co.uk.jacobmountain.*")
+@SupportedAnnotationTypes("com.jacobmountain.*")
 public class GraphQLClientProcessor extends AbstractProcessor {
 
     private Filer filer;

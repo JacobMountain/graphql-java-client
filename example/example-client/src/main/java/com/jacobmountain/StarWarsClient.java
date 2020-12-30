@@ -1,8 +1,10 @@
 package com.jacobmountain;
 
 
-import com.jacobmountain.dto.Character;
-import com.jacobmountain.dto.*;
+import com.jacobmountain.dto.Episode;
+import com.jacobmountain.dto.LengthUnit;
+import com.jacobmountain.dto.Review;
+import com.jacobmountain.dto.ReviewInput;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,13 +17,13 @@ import java.util.Optional;
 public interface StarWarsClient {
 
     @GraphQLQuery(value = "hero", request = "HeroByEpisode")
-    Character getHero(Episode episode, int first, String after, LengthUnit unit);
+    com.jacobmountain.dto.Character getHero(Episode episode, int first, String after, LengthUnit unit);
 
     @GraphQLQuery(value = "hero", request = "HeroSummary")
-    Character getHero(@GraphQLArgument("hero") String id);
+    com.jacobmountain.dto.Character getHero(@GraphQLArgument("hero") String id);
 
     @GraphQLQuery("hero")
-    Optional<Character> getHeroOptional(Episode episode, int first, String after, LengthUnit unit);
+    Optional<com.jacobmountain.dto.Character> getHeroOptional(Episode episode, int first, String after, LengthUnit unit);
 
     @GraphQLQuery("reviews")
     List<Review> getReviews(Episode episode);

@@ -27,7 +27,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate a class"(){
         when:
-        def build = PojoBuilder.newType("MyPojo", "co.uk").build()
+        def build = PojoBuilder.newType("MyPojo", "com.jacobmountain").build()
 
         then:
         build.typeSpec.name == "MyPojo"
@@ -37,7 +37,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate an interface"(){
         when:
-        def build = PojoBuilder.newInterface("MyInterface", "co.uk").build()
+        def build = PojoBuilder.newInterface("MyInterface", "com.jacobmountain").build()
 
         then:
         build.typeSpec.name == "MyInterface"
@@ -47,7 +47,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate getters and setters for private fields"(){
         when:
-        def build = PojoBuilder.newType("MyPojo", "co.uk")
+        def build = PojoBuilder.newType("MyPojo", "com.jacobmountain")
                 .withField(ClassName.get(String.class), "field")
                 .build()
 
@@ -60,7 +60,7 @@ class POJOBuilderSpec extends Specification {
 
     def "We can generate getters and setters for multiple private fields"(){
         when:
-        def build = PojoBuilder.newType("MyPojo", "co.uk")
+        def build = PojoBuilder.newType("MyPojo", "com.jacobmountain")
                 .withField(ClassName.get(String.class), "string")
                 .withField(INT, "integer")
                 .build()
@@ -76,15 +76,15 @@ class POJOBuilderSpec extends Specification {
 
     def "My Class can implement an interface"() {
         given:
-        PojoBuilder.newInterface("Interface", "co.uk").build()
+        PojoBuilder.newInterface("Interface", "com.jacobmountain").build()
 
         when:
-        def clazz = PojoBuilder.newType("Implements", "co.uk.jacobmountain")
+        def clazz = PojoBuilder.newType("Implements", "com.jacobmountain")
                 .implement("Interface")
                 .build()
 
         then:
-        clazz.typeSpec.superinterfaces.contains(ClassName.get("co.uk.jacobmountain", "Interface"))
+        clazz.typeSpec.superinterfaces.contains(ClassName.get("com.jacobmountain", "Interface"))
     }
 
 }
