@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id "java-library"
     id "groovy"
     id "maven-publish"
 }
@@ -9,24 +9,25 @@ dependencies {
     implementation "com.squareup:javapoet:1.11.1"
     implementation "com.graphql-java:graphql-java:13.0"
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.11.3'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.1'
+    implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.11.3"
+    implementation group: "io.projectreactor", name: "reactor-core", version: "3.4.1"
 
     // annotation processing
     annotationProcessor "com.google.auto.service:auto-service:1.0-rc7"
     compileOnly "com.google.auto.service:auto-service:1.0-rc7"
 
     // logging
-    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation "ch.qos.logback:logback-classic:1.2.3"
 
-    compileOnly 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    compileOnly "org.projectlombok:lombok:1.18.12"
+    annotationProcessor "org.projectlombok:lombok:1.18.12"
 
     testAnnotationProcessor project
 
     testImplementation group: "org.codehaus.groovy", name: "groovy-all", version: "3.0.7"
-    testImplementation group: "org.spockframework", name: "spock-core", version: "1.2-groovy-2.5"
-    testImplementation group: 'net.bytebuddy', name: 'byte-buddy-dep', version: '1.10.19'
+    testImplementation group: "org.spockframework", name: "spock-core", version: "2.0-M4-groovy-3.0"
+    testImplementation group: "org.spockframework", name: "spock-spring", version: "2.0-M4-groovy-3.0"
+    testImplementation group: "net.bytebuddy", name: "byte-buddy-dep", version: "1.10.19"
 }
 
 publishing {
