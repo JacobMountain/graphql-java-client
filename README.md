@@ -2,7 +2,7 @@
 A Java GraphQL client annotation processor, generate a client class from a graphql schema file, and a Java interface.
 
 ## Usage guide
-#### 1. Generate a graphql schema file:
+### 1. Generate a graphql schema file:
 ```GraphQL
 schema {
     query: Query
@@ -62,7 +62,7 @@ type Droid implements Character {
 }
 ```
 
-#### 2. Create a java interface
+### 2. Create a java interface
 ```java
 @GraphQLClient(
     schema = "Schema.gql",
@@ -78,7 +78,7 @@ public interface StarWarsClient {}
 if this is the first time you've created the interface it may be a good idea to run build to generate all the DTO classes 
 and to reduce IDE/compilation errors. 
 
-#### 3. Add corresponding methods to the interface that match up with the schema
+### 3. Add corresponding methods to the interface that match up with the schema
 ```java
 @GraphQLClient(
     schema = "Schema.gql",
@@ -95,12 +95,12 @@ public interface StarWarsClient {
 
 }
 ```
-#### 4. Implement the `Fetcher` interface
+### 4. Implement the `Fetcher` interface
 The Fetcher interface deals with turning queries/mutations into network requests (Usually HTTP, could be websockets, etc.). 
 For a simple example on how to do this please look at [`RestTemplateFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/fetchers/RestTemplateFetcher.java) 
 or [`WebClientFetcher.java`](https://github.com/JacobMountain/graphql-client/blob/develop/example/example-client/src/main/java/co/uk/jacobmountain/fetchers/WebClientFetcher.java).
 
-#### 5. Create an instance of you newly generated interface
+### 5. Create an instance of you newly generated interface
 Run `build` and then create an instance of the newly generated implementation.
 ```java
 StarWarsClient client = new StarWarsClientGraph(new RestTemplateFetcher("http://your.domain.com"));
@@ -108,7 +108,7 @@ StarWarsClient client = new StarWarsClientGraph(new RestTemplateFetcher("http://
 where `HttpFetcher` is an implementation of the `Fetcher` interface. The default suffix for the implementation is `Graph`, 
 and is overridable with the `implSuffix` parameter of the `@GraphQLClient` annotation.
 
-#### 5. Profit?
+### 6. Profit?
 ```java
 Character hero = heroclient.getHero(Episode.NEWHOPE);
 log.info("My favourite Star Wars character is: {}!", hero.getName());
