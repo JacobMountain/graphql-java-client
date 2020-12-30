@@ -16,7 +16,7 @@ repositories {
 Add the dependencies
 ```groovy
 dependencies {
-    compile group: "com.jacobmountain", name: "graphql-client", version: "1.0.0-SNAPSHOT"
+    compile group: "com.jacobmountain", name: "graphql-client", version: "1.0.0-SNAPSHOT" 
     annotationProcessor group: "com.jacobmountain", name: "graphql-client-processor", version: "1.0.0-SNAPSHOT"
 }
 ```
