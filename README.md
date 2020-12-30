@@ -91,7 +91,7 @@ and to reduce IDE/compilation errors.
 public interface StarWarsClient {
 
     @GraphQLQuery("hero")
-    Hero getHero(Episode episode);
+    Character getHero(Episode episode);
 
 }
 ```
@@ -107,3 +107,9 @@ StarWarsClient client = new StarWarsClientGraph(new RestTemplateFetcher("http://
 ```
 where `HttpFetcher` is an implementation of the `Fetcher` interface. The default suffix for the implementation is `Graph`, 
 and is overridable with the `implSuffix` parameter of the `@GraphQLClient` annotation.
+
+#### 5. Profit?
+```java
+Character hero = heroclient.getHero(Episode.NEWHOPE);
+log.info("My favourite Star Wars character is: {}!", hero.getName());
+```
