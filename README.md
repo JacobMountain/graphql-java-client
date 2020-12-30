@@ -5,60 +5,60 @@ A Java GraphQL client annotation processor, generate a client class from a graph
 #### 1. Generate a graphql schema file:
 ```GraphQL
 schema {
-    query: Query
+  query: Query
 }
 # The query type, represents all of the entry points into our object graph
 type Query {
-    hero(episode: Episode): Character
+  hero(episode: Episode): Character
 }
 # The episodes in the Star Wars trilogy
 enum Episode {
-    # Star Wars Episode IV: A New Hope, released in 1977.
-    NEWHOPE
-    # Star Wars Episode V: The Empire Strikes Back, released in 1980.
-    EMPIRE
-    # Star Wars Episode VI: Return of the Jedi, released in 1983.
-    JEDI
+  # Star Wars Episode IV: A New Hope, released in 1977.
+  NEWHOPE
+  # Star Wars Episode V: The Empire Strikes Back, released in 1980.
+  EMPIRE
+  # Star Wars Episode VI: Return of the Jedi, released in 1983.
+  JEDI
 }
 # A character from the Star Wars universe
 interface Character {
-    # The ID of the character
-    id: ID!
-    # The name of the character
-    name: String!
-    # The friends of the character, or an empty list if they have none
-    friends: [Character]
+  # The ID of the character
+  id: ID!
+  # The name of the character
+  name: String!
+  # The friends of the character, or an empty list if they have none
+  friends: [Character]
 }
 # Units of height
 enum LengthUnit {
-    # The standard unit around the world
-    METER
-    # Primarily used in the United States
-    FOOT
+  # The standard unit around the world
+  METER
+  # Primarily used in the United States
+  FOOT
 }
 # A humanoid creature from the Star Wars universe
 type Human implements Character {
-    # The ID of the human
-    id: ID!
-    # What this human calls themselves
-    name: String!
-    # The home planet of the human, or null if unknown
-    homePlanet: String
-    # Height in the preferred unit, default is meters
-    height(unit: LengthUnit = METER): Float
-    # The friends of the character, or an empty list if they have none
-    friends: [Character]
+  # The ID of the human
+  id: ID!
+  # What this human calls themselves
+  name: String!
+  # The home planet of the human, or null if unknown
+  homePlanet: String
+  # Height in the preferred unit, default is meters
+  height(unit: LengthUnit = METER): Float
+  # The friends of the character, or an empty list if they have none
+  friends: [Character]
 }
 # An autonomous mechanical character in the Star Wars universe
 type Droid implements Character {
-    # The ID of the droid
-    id: ID!
-    # What others call this droid
-    name: String!
-    # This droid's friends, or an empty list if they have none
-    friends: [Character]
-    # This droid's primary function
-    primaryFunction: String
+  # The ID of the droid
+  id: ID!
+  # What others call this droid
+  name: String!
+  # This droid's friends, or an empty list if they have none
+  friends: [Character]
+  # This droid's primary function
+  primaryFunction: String
 }
 ```
 
@@ -81,12 +81,12 @@ and to reduce IDE/compilation errors.
 #### 3. Add corresponding methods to the interface that match up with the schema
 ```java
 @GraphQLClient(
-    schema = "Schema.gql",
-    mapping = {
-            @GraphQLClient.Scalar(from = "ID", to = String.class)
-    },
-    maxDepth = 5, // the max depth to use for graphql queries
-    nullChecking = true // whether we should add client side null checks
+        schema = "Schema.gql",
+        mapping = {
+                @GraphQLClient.Scalar(from = "ID", to = String.class)
+        },
+        maxDepth = 5, // the max depth to use for graphql queries
+        nullChecking = true // whether we should add client side null checks
 )
 public interface StarWarsClient {
 
