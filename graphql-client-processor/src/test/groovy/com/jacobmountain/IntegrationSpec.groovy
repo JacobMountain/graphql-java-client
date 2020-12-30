@@ -1,7 +1,8 @@
 package com.jacobmountain
 
-import co.uk.jacobmountain.dto.*
 import com.jacobmountain.dto.*
+import com.jacobmountain.graphql.client.Fetcher
+import com.jacobmountain.graphql.client.dto.Response
 import spock.lang.Specification
 import spock.lang.Unroll
 

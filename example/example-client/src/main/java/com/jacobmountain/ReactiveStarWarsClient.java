@@ -3,6 +3,10 @@ package com.jacobmountain;
 
 import com.jacobmountain.dto.Episode;
 import com.jacobmountain.dto.Review;
+import com.jacobmountain.graphql.client.annotations.GraphQLArgument;
+import com.jacobmountain.graphql.client.annotations.GraphQLClient;
+import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
+import com.jacobmountain.graphql.client.annotations.GraphQLSubscription;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

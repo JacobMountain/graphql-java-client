@@ -1,8 +1,11 @@
 package com.jacobmountain.fetchers;
 
-import com.jacobmountain.ReactiveFetcher;
 import com.jacobmountain.dto.Error;
-import com.jacobmountain.dto.*;
+import com.jacobmountain.dto.Mutation;
+import com.jacobmountain.dto.Query;
+import com.jacobmountain.graphql.client.ReactiveFetcher;
+import com.jacobmountain.graphql.client.dto.Request;
+import com.jacobmountain.graphql.client.dto.Response;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.core.ParameterizedTypeReference;

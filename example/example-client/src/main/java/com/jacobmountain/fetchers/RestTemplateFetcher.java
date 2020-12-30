@@ -1,8 +1,11 @@
 package com.jacobmountain.fetchers;
 
-import com.jacobmountain.Fetcher;
 import com.jacobmountain.dto.Error;
-import com.jacobmountain.dto.*;
+import com.jacobmountain.dto.Mutation;
+import com.jacobmountain.dto.Query;
+import com.jacobmountain.graphql.client.Fetcher;
+import com.jacobmountain.graphql.client.dto.Request;
+import com.jacobmountain.graphql.client.dto.Response;
 import com.jacobmountain.logging.LoggingRequestInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;

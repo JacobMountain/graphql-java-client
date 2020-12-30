@@ -1,5 +1,6 @@
 package com.jacobmountain
 
+import com.jacobmountain.graphql.client.PojoBuilder
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeName

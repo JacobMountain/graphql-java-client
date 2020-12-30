@@ -1,7 +1,7 @@
 package com.jacobmountain.fetchers;
 
-import com.jacobmountain.Fetcher;
-import com.jacobmountain.dto.Response;
+import com.jacobmountain.graphql.client.Fetcher;
+import com.jacobmountain.graphql.client.dto.Response;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

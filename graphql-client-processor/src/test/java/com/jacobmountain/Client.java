@@ -3,6 +3,8 @@ package com.jacobmountain;
 
 import com.jacobmountain.dto.Droid;
 import com.jacobmountain.dto.Human;
+import com.jacobmountain.graphql.client.annotations.GraphQLClient;
+import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
 
 import java.util.List;
 

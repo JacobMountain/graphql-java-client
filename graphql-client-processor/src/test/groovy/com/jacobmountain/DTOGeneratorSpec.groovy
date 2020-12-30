@@ -1,6 +1,9 @@
 package com.jacobmountain
 
-
+import com.jacobmountain.graphql.client.DTOGenerator
+import com.jacobmountain.graphql.client.FileWriter
+import com.jacobmountain.graphql.client.PojoBuilder
+import com.jacobmountain.graphql.client.TypeMapper
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import spock.lang.Specification
