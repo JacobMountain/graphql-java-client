@@ -1,8 +1,8 @@
 plugins {
     id 'java-library'
     id 'groovy'
-    id 'org.springframework.boot' version '2.3.2.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'org.springframework.boot' version '2.4.1'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
 }
 
 dependencies {
@@ -19,7 +19,7 @@ dependencies {
     testCompile project(":example:example-server")
     testImplementation group: "org.codehaus.groovy", name: "groovy-all", version: "2.5.7"
     testImplementation group: "org.spockframework", name: "spock-core", version: "1.2-groovy-2.5"
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.3.4.RELEASE'
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.1'
     testImplementation group: 'org.spockframework', name: 'spock-spring', version: '2.0-M3-groovy-2.5'
     testImplementation 'org.awaitility:awaitility-groovy:4.0.3'
 
