@@ -9,3 +9,6 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    ignore:
+      # Spock and groovy are tightly coupled
+      - dependency-name: "*groovy*"
