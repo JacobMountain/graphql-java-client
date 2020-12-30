@@ -1,6 +1,6 @@
 allprojects {
-    group 'co.uk.jacobmountain'
-    version '1.0-SNAPSHOT'
+    group "com.jacobmountain"
+    version "1.0-SNAPSHOT"
     repositories {
         mavenCentral()
         mavenLocal()
