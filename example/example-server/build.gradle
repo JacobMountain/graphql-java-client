@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation group: 'com.graphql-java', name: 'graphql-java', version: '16.1'
+    implementation group: 'com.graphql-java', name: 'graphql-java', version: '13.0'
     implementation 'io.leangen.graphql:spqr:0.10.1'
     implementation('com.graphql-java-kickstart:graphql-spring-boot-starter:7.1.0') {
         exclude group: 'com.graphql-java', module: 'graphql-java'
