@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation group: 'com.graphql-java', name: 'graphql-java', version: '13.0'
     implementation 'io.leangen.graphql:spqr:0.10.1'
-    implementation('com.graphql-java-kickstart:graphql-spring-boot-starter:7.1.0') {
+    implementation('com.graphql-java-kickstart:graphql-spring-boot-starter:8.1.1') {
         exclude group: 'com.graphql-java', module: 'graphql-java'
     }
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.1'
@@ -13,5 +13,5 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.16'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'junit', name: 'junit', version: '4.13.1'
 }
