@@ -28,10 +28,6 @@ interface Character {
   name: String!
   # The friends of the character, or an empty list if they have none
   friends: [Character]
-  # The friends of the character exposed as a connection with edges
-  friendsConnection(first: Int, after: ID): FriendsConnection!
-  # The movies this character appears in
-  appearsIn: [Episode]!
 }
 # Units of height
 enum LengthUnit {
@@ -50,16 +46,8 @@ type Human implements Character {
   homePlanet: String
   # Height in the preferred unit, default is meters
   height(unit: LengthUnit = METER): Float
-  # Mass in kilograms, or null if unknown
-  mass: Float
-  # This human's friends, or an empty list if they have none
+  # The friends of the character, or an empty list if they have none
   friends: [Character]
-  # The friends of the human exposed as a connection with edges
-  friendsConnection(first: Int, after: ID): FriendsConnection!
-  # The movies this human appears in
-  appearsIn: [Episode]!
-  # A list of starships this person has piloted, or an empty list if none
-  starships: [Starship]
 }
 # An autonomous mechanical character in the Star Wars universe
 type Droid implements Character {
@@ -69,54 +57,8 @@ type Droid implements Character {
   name: String!
   # This droid's friends, or an empty list if they have none
   friends: [Character]
-  # The friends of the droid exposed as a connection with edges
-  friendsConnection(first: Int, after: ID): FriendsConnection!
-  # The movies this droid appears in
-  appearsIn: [Episode]!
   # This droid's primary function
   primaryFunction: String
-}
-# A connection object for a character's friends
-type FriendsConnection {
-  # The total number of friends
-  totalCount: Int
-  # The edges for each of the character's friends.
-  edges: [FriendsEdge]
-  # A list of the friends, as a convenience when edges are not needed.
-  friends: [Character]
-  # Information for paginating this connection
-  pageInfo: PageInfo!
-}
-# An edge object for a character's friends
-type FriendsEdge {
-  # A cursor used for pagination
-  cursor: ID!
-  # The character represented by this friendship edge
-  node: Character
-}
-# Information for paginating this connection
-type PageInfo {
-  startCursor: ID
-  endCursor: ID
-  hasNextPage: Boolean!
-}
-# Represents a review for a movie
-type Review {
-  # The movie
-  episode: Episode
-  # The number of stars this review gave, 1-5
-  stars: Int!
-  # Comment about the movie
-  commentary: String
-}
-type Starship {
-  # The ID of the starship
-  id: ID!
-  # The name of the starship
-  name: String!
-  # Length of the starship, along the longest axis
-  length(unit: LengthUnit = METER): Float
-  coordinates: [[Float!]!]
 }
 ```
 
