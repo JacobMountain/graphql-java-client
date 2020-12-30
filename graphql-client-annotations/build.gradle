@@ -5,7 +5,7 @@ plugins {
 
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.12'
+    compileOnly 'org.projectlombok:lombok:1.18.16'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.11.3'
     api group: 'org.reactivestreams', name: 'reactive-streams', version: '1.0.3'
