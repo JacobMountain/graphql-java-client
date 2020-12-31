@@ -1,11 +1,13 @@
 package com.jacobmountain.graphql.client;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jacobmountain.graphql.client.utils.AnnotationUtils;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.squareup.javapoet.*;
 import graphql.language.EnumValueDefinition;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,16 +86,28 @@ public class PojoBuilder {
     }
 
     public PojoBuilder withField(TypeName clazz, String name) {
+        boolean keyword = SourceVersion.isKeyword(name);
+        String finalName = name;
+        if (keyword) {
+            finalName = "_" + name;
+        }
         if (clazz instanceof ClassName) {
             log.info("\t" + name + ": " + ((ClassName) clazz).simpleName());
         } else {
             log.info("\t" + name + ": " + clazz);
         }
-        fields.add(name);
+        fields.add(finalName);
         if (!isInterface()) {
-            builder.addField(clazz, name, Modifier.PRIVATE);
+            builder.addField(
+                    FieldSpec.builder(clazz, finalName, Modifier.PRIVATE)
+                            .addAnnotation(
+                                    AnnotationSpec.builder(JsonProperty.class)
+                                            .addMember("value", "\"$L\"", name)
+                                            .build()
+                            ).build()
+            );
         }
-        withAccessors(clazz, name);
+        withAccessors(clazz, finalName);
         return this;
     }
 
@@ -163,18 +177,33 @@ public class PojoBuilder {
         this.builder.addMethod(toString);
     }
 
+    private String createGetterName(String variable) {
+        return StringUtils.camelCase("get",
+                variable.replaceFirst("_", "")
+        );
+    }
+
     private void withGetter(TypeName clazz, String name) {
+        String methodName = createGetterName(name);
         builder.addMethod(
-                accessorBuilder(StringUtils.camelCase("get", name), "return this.$L", name)
+                accessorBuilder(methodName, "return this.$L", name)
                         .returns(clazz)
                         .build()
         );
     }
 
+    private String createSetterName(String variable) {
+        return StringUtils.camelCase(
+                "set",
+                variable.replaceFirst("_", "")
+        );
+    }
+
     private void withSetter(TypeName clazz, String name) {
+        String methodName = createSetterName(name);
         builder.addMethod(
-                accessorBuilder(StringUtils.camelCase("set", name), "this.$L = $L", name, name)
-                        .addParameter(clazz, name)
+                accessorBuilder(methodName, "this.$L = $L", name, "set")
+                        .addParameter(clazz, "set")
                         .returns(void.class)
                         .build()
         );
@@ -184,11 +213,11 @@ public class PojoBuilder {
         if (type == Type.Enum) {
             return;
         }
-        String variable = StringUtils.camelCase(name);
+        String variable = StringUtils.camelCase("other", name);
         CodeBlock.Builder equals = CodeBlock.builder();
         for (int i = 0; i < fields.size(); i++) {
             String field = fields.get(i);
-            equals.add(CodeBlock.of("$T.equals(this.$L, $L.$L())", Objects.class, field, variable, StringUtils.camelCase("get", field)));
+            equals.add(CodeBlock.of("$T.equals(this.$L, $L.$L())", Objects.class, field, variable, createGetterName(field)));
             if (i + 1 != fields.size()) {
                 equals.add(" &&\n\t");
             }
