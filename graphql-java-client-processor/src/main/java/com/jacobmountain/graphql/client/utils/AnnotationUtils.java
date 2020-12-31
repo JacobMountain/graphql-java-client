@@ -12,11 +12,12 @@ import java.time.ZonedDateTime;
 @UtilityClass
 public class AnnotationUtils {
 
-
     public static final String JACKSON_ANNOTATIONS_PACKAGE = "com.fasterxml.jackson.annotation";
 
     public static final ClassName JSON_SUB_TYPES_ANNOTATION = ClassName.get(JACKSON_ANNOTATIONS_PACKAGE, "JsonSubTypes");
+
     public static final ClassName TYPE_ANNOTATION = ClassName.get(JACKSON_ANNOTATIONS_PACKAGE, "JsonSubTypes", "Type");
+
     public static final ClassName JSON_TYPE_NAME_ANNOTATION = ClassName.get("com.fasterxml.jackson.annotation", "JsonTypeName");
 
     public static final AnnotationSpec JSON_TYPE_INFO = AnnotationSpec.builder(ClassName.get("com.fasterxml.jackson.annotation", "JsonTypeInfo"))
