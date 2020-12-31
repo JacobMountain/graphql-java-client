@@ -177,9 +177,14 @@ public class PojoBuilder {
         this.builder.addMethod(toString);
     }
 
+    private String createGetterName(String variable) {
+        return StringUtils.camelCase("get",
+                variable.replaceFirst("_", "")
+        );
+    }
+
     private void withGetter(TypeName clazz, String name) {
-        String clean = name.replaceFirst("_", "");
-        String methodName = StringUtils.camelCase("get", clean);
+        String methodName = createGetterName(name);
         builder.addMethod(
                 accessorBuilder(methodName, "return this.$L", name)
                         .returns(clazz)
@@ -187,9 +192,15 @@ public class PojoBuilder {
         );
     }
 
+    private String createSetterName(String variable) {
+        return StringUtils.camelCase(
+                "set",
+                variable.replaceFirst("_", "")
+        );
+    }
+
     private void withSetter(TypeName clazz, String name) {
-        String clean = name.replaceFirst("_", "");
-        String methodName = StringUtils.camelCase("set", clean);
+        String methodName = createSetterName(name);
         builder.addMethod(
                 accessorBuilder(methodName, "this.$L = $L", name, "set")
                         .addParameter(clazz, "set")
@@ -206,7 +217,7 @@ public class PojoBuilder {
         CodeBlock.Builder equals = CodeBlock.builder();
         for (int i = 0; i < fields.size(); i++) {
             String field = fields.get(i);
-            equals.add(CodeBlock.of("$T.equals(this.$L, $L.$L())", Objects.class, field, variable, StringUtils.camelCase("get", field)));
+            equals.add(CodeBlock.of("$T.equals(this.$L, $L.$L())", Objects.class, field, variable, createGetterName(field)));
             if (i + 1 != fields.size()) {
                 equals.add(" &&\n\t");
             }

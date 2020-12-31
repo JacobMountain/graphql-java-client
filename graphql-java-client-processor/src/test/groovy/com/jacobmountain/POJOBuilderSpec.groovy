@@ -54,7 +54,7 @@ class POJOBuilderSpec extends Specification {
 
         then:
         hasMethod(build.typeSpec, "setField")
-        methodMatchesType(build.typeSpec, "setField", VOID, ParameterSpec.builder(ClassName.get(String.class), "field").build())
+        methodMatchesType(build.typeSpec, "setField", VOID, ParameterSpec.builder(ClassName.get(String.class), "set").build())
         hasMethod(build.typeSpec, "getField")
         methodMatchesType(build.typeSpec, "getField", ClassName.get(String.class))
     }
@@ -67,12 +67,11 @@ class POJOBuilderSpec extends Specification {
                 .build()
 
         then:
-        methodMatchesType(build.typeSpec, "setString", VOID, ParameterSpec.builder(ClassName.get(String.class), "string").build())
+        methodMatchesType(build.typeSpec, "setString", VOID, ParameterSpec.builder(ClassName.get(String.class), "set").build())
         methodMatchesType(build.typeSpec, "getString", ClassName.get(String.class))
 
-        methodMatchesType(build.typeSpec, "setInteger", VOID, ParameterSpec.builder(INT, "integer").build())
+        methodMatchesType(build.typeSpec, "setInteger", VOID, ParameterSpec.builder(INT, "set").build())
         methodMatchesType(build.typeSpec, "getInteger", INT)
-
     }
 
     def "My Class can implement an interface"() {
