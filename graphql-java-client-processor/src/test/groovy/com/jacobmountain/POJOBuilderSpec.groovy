@@ -87,4 +87,15 @@ class POJOBuilderSpec extends Specification {
         clazz.typeSpec.superinterfaces.contains(ClassName.get("com.jacobmountain", "Interface"))
     }
 
+    def "I can generate a class with a field prefixed with an _"() {
+        when:
+        def build = PojoBuilder.newType("MyPojo", "com.jacobmountain")
+                .withField(ClassName.get(String.class), "_public")
+                .build()
+
+        then:
+        methodMatchesType(build.typeSpec, "setPublic", VOID, ParameterSpec.builder(ClassName.get(String.class), "set").build())
+        methodMatchesType(build.typeSpec, "getPublic", ClassName.get(String.class))
+    }
+
 }
