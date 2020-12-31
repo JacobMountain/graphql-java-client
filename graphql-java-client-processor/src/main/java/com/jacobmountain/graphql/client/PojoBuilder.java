@@ -61,20 +61,26 @@ public class PojoBuilder {
     private PojoBuilder clazz(String name, boolean input) {
         log.info("{} {} {", input ? "input" : "type", name);
         type = Type.Class;
-        builder = TypeSpec.classBuilder(name).addModifiers(Modifier.PUBLIC);
+        builder = TypeSpec.classBuilder(name)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(AnnotationUtils.generated());
         return this;
     }
 
     private PojoBuilder interfac(String name) {
         log.info("interface {} {", name);
         type = Type.Interface;
-        builder = TypeSpec.interfaceBuilder(name).addModifiers(Modifier.PUBLIC);
+        builder = TypeSpec.interfaceBuilder(name)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(AnnotationUtils.generated());
         return this;
     }
 
     private PojoBuilder union(String name) {
         type = Type.Union;
-        builder = TypeSpec.interfaceBuilder(name).addModifiers(Modifier.PUBLIC);
+        builder = TypeSpec.interfaceBuilder(name)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(AnnotationUtils.generated());
         return this;
     }
 

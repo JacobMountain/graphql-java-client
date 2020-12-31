@@ -1,6 +1,7 @@
 package com.jacobmountain.graphql.client;
 
 import com.jacobmountain.graphql.client.modules.*;
+import com.jacobmountain.graphql.client.utils.AnnotationUtils;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
@@ -70,7 +71,8 @@ public class ClientGenerator {
         // Generate the class
         TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
                 .addSuperinterface(ClassName.get((TypeElement) element))
-                .addModifiers(Modifier.PUBLIC);
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(AnnotationUtils.generated());
         // Add type argument to the client
         Stream.of(arguments, query, returnResults)
                 .flatMap(it -> it.getTypeArguments().stream())
