@@ -6,8 +6,10 @@ plugins {
 }
 
 dependencies {
-    implementation project(":graphql-client-annotations")
-    annotationProcessor project(":graphql-client-processor")
+//    implementation project(":graphql-client-annotations")
+    implementation 'com.jacobmountain:graphql-java-client:0.1.0-SNAPSHOT'
+    annotationProcessor 'com.jacobmountain:graphql-java-client-processor:0.1.0-SNAPSHOT'
+//    annotationProcessor project(":graphql-client-processor")
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.1'

@@ -4,4 +4,3 @@ include "graphql-client-annotations"
 include "graphql-client-processor"
 include ':example:example-client'
 include ':example:example-server'
-

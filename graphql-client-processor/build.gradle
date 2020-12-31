@@ -1,7 +1,13 @@
 plugins {
-    id 'java-library'
+    id "java-library"
     id "groovy"
     id "maven-publish"
+    id "signing"
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 dependencies {
@@ -9,34 +15,75 @@ dependencies {
     implementation "com.squareup:javapoet:1.13.0"
     implementation "com.graphql-java:graphql-java:13.0"
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.12.0'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.1'
+    implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.12.0"
+    implementation group: "io.projectreactor", name: "reactor-core", version: "3.4.1"
 
     // annotation processing
     annotationProcessor "com.google.auto.service:auto-service:1.0-rc7"
     compileOnly "com.google.auto.service:auto-service:1.0-rc7"
 
     // logging
-    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation "ch.qos.logback:logback-classic:1.2.3"
 
-    compileOnly 'org.projectlombok:lombok:1.18.16'
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    compileOnly "org.projectlombok:lombok:1.18.16"
+    annotationProcessor "org.projectlombok:lombok:1.18.12"
 
     testAnnotationProcessor project
 
     testImplementation group: "org.codehaus.groovy", name: "groovy-all", version: "2.5.7"
     testImplementation group: "org.spockframework", name: "spock-core", version: "1.2-groovy-2.5"
-    testImplementation group: 'net.bytebuddy', name: 'byte-buddy-dep', version: '1.10.19'
+    testImplementation group: "net.bytebuddy", name: "byte-buddy-dep", version: "1.10.19"
 }
 
 publishing {
     publications {
         processor(MavenPublication) {
             groupId = project.group
-            artifactId = "graphql-client-processor"
+            artifactId = "graphql-java-client-processor"
             version = project.version
 
             from components.java
+            pom {
+                name = "graphql-java-client-PROCESSOR"
+                description = "GraphqL Java Client"
+                url = "https://github.com/JacobMountain/graphql-java-client"
+                scm {
+                    url = "https://github.com/JacobMountain/graphql-java-client"
+                    connection = "https://github.com/JacobMountain/graphql-java-client"
+                    developerConnection = "https://github.com/JacobMountain/graphql-java-client"
+                }
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://github.com/JacobMountain/graphql-java-client/blob/develop/LICENSE"
+                        distribution = "repo"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "JacobMountain"
+                        name = "Jacob Mountain"
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = System.env.NEXUS_USERNAME
+                password = System.env.NEXUS_PASSWORD
+            }
         }
     }
 }
+signing {
+    useGpgCmd()
+    sign publishing.publications.processor
+}
+// all publish tasks depend on the build task
+tasks.withType(MavenPublication) {
+    dependsOn build
+}
+
