@@ -115,16 +115,16 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
         Schema getSchema() {
             String value = getAnnotation().schema();
+            File file = getSchemaFile();
             try {
                 if (StringUtils.hasLength(value)) {
-                    File file = getSchemaFile();
                     log.info("Reading schema {}", file);
                     return new Schema(getSchemaFile());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            throw new SchemaNotFoundException();
+            throw new SchemaNotFoundException(file.getPath());
         }
 
         File getSchemaFile() {
