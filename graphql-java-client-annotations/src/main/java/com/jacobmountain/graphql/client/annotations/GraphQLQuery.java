@@ -9,10 +9,14 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface GraphQLQuery {
 
+    /**
+     * The query field to generate the query on
+     */
     String value();
 
-    String request() default "";
-
-    boolean mutation() default false;
+    /**
+     * The name of the request
+     */
+    String name() default "";
 
 }

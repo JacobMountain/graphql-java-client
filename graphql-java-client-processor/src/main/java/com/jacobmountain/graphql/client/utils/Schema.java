@@ -10,9 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -61,23 +59,11 @@ public class Schema {
     }
 
     public Optional<FieldDefinition> findField(String field) {
-        return optionals(
+        return OptionalUtils.first(
                 findField(query, field),
                 () -> findField(mutation, field),
                 () -> findField(subscription, field)
         );
-    }
-
-    @SafeVarargs
-    private final <T> Optional<T> optionals(Optional<T> first, Supplier<Optional<T>>... later) {
-        if (first.isPresent()) {
-            return first;
-        }
-        if (later.length == 0) {
-            return Optional.empty();
-        }
-        Optional<T> head = later[0].get();
-        return optionals(head, Arrays.copyOfRange(later, 1, later.length));
     }
 
     public Optional<FieldDefinition> findField(ObjectTypeDefinition parent, String field) {
