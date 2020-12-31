@@ -7,6 +7,7 @@ import com.jacobmountain.dto.Review;
 import com.jacobmountain.dto.ReviewInput;
 import com.jacobmountain.graphql.client.annotations.GraphQLArgument;
 import com.jacobmountain.graphql.client.annotations.GraphQLClient;
+import com.jacobmountain.graphql.client.annotations.GraphQLMutation;
 import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
 
 import java.util.List;
@@ -19,10 +20,10 @@ import java.util.Optional;
 )
 public interface StarWarsClient {
 
-    @GraphQLQuery(value = "hero", request = "HeroByEpisode")
+    @GraphQLQuery(value = "hero", name = "HeroByEpisode")
     com.jacobmountain.dto.Character getHero(Episode episode, int first, String after, LengthUnit unit);
 
-    @GraphQLQuery(value = "hero", request = "HeroSummary")
+    @GraphQLQuery(value = "hero", name = "HeroSummary")
     com.jacobmountain.dto.Character getHero(@GraphQLArgument("hero") String id);
 
     @GraphQLQuery("hero")
@@ -31,7 +32,7 @@ public interface StarWarsClient {
     @GraphQLQuery("reviews")
     List<Review> getReviews(Episode episode);
 
-    @GraphQLQuery(value = "createReview", mutation = true)
+    @GraphQLMutation(value = "createReview")
     Review createReview(Episode episode, @GraphQLArgument("review") ReviewInput input);
 
 }

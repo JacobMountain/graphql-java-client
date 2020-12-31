@@ -24,10 +24,10 @@ public interface ReactiveStarWarsClient {
     @GraphQLQuery(value = "hero")
     com.jacobmountain.dto.Character getHero(@GraphQLArgument("hero") String id);
 
-    @GraphQLQuery(value = "hero", request = "ReactiveHeroOptional")
+    @GraphQLQuery(value = "hero", name = "ReactiveHeroOptional")
     Optional<com.jacobmountain.dto.Character> getHeroOptional(@GraphQLArgument("hero") String id);
 
-    @GraphQLQuery(value = "hero", request = "ReactiveHeroOptional")
+    @GraphQLQuery(value = "hero", name = "ReactiveHeroOptional")
     Mono<com.jacobmountain.dto.Character> getHeroPublisher(@GraphQLArgument("hero") String hero);
 
     @GraphQLQuery("reviews")

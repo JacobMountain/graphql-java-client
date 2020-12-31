@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
-public @interface GraphQLSubscription {
+public @interface GraphQLMutation {
 
     /**
      * The query field to generate the query on
