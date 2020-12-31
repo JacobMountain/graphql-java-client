@@ -104,6 +104,10 @@ public class PojoBuilder {
         }
     }
 
+    public boolean hasSubType(String type) {
+        return this.subTypes.contains(type);
+    }
+
     public PojoBuilder withSubType(String type) {
         this.subTypes.add(type);
         return this;

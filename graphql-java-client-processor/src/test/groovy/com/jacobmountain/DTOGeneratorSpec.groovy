@@ -115,4 +115,33 @@ class DTOGeneratorSpec extends Specification {
         actual.fields.containsAll(["number"])
     }
 
+    def types(String schema) {
+        new SchemaParser().parse(schema).types().values()
+    }
+
+
+    def "You can define types before interfaces"() {
+        given:
+        PojoBuilder type
+        PojoBuilder interfac
+
+        def types = types("""
+        type Type implements Interface {
+            name: String
+        }
+        interface Interface {
+            name: String
+        }
+        """)
+
+        when:
+        generator.generate(types)
+
+        then:
+        1 * writer.write({ arg -> arg.name == "Type" }) >> { type = it[0] }
+        and:
+        1 * writer.write({ arg -> arg.name == "Interface" }) >> { interfac = it[0] }
+        interfac.hasSubType("Type")
+    }
+
 }
