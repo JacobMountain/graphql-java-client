@@ -6,8 +6,8 @@ plugins {
 }
 
 dependencies {
-    implementation project(":graphql-client-annotations")
-    annotationProcessor project(":graphql-client-processor")
+    implementation 'com.jacobmountain:graphql-java-client:0.1.0'
+    annotationProcessor 'com.jacobmountain:graphql-java-client-processor:0.1.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.1'
@@ -22,7 +22,6 @@ dependencies {
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.1'
     testImplementation group: 'org.spockframework', name: 'spock-spring', version: '2.0-M3-groovy-2.5'
     testImplementation 'org.awaitility:awaitility-groovy:4.0.3'
-
 
     testImplementation 'org.mapstruct:mapstruct:1.4.1.Final'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.4.1.Final'
