@@ -1,4 +1,4 @@
-# graphql-client ![Build + Test](https://github.com/JacobMountain/graphql-client/workflows/Build%20+%20Test/badge.svg) [![Documentation](https://img.shields.io/badge/read%20the-docs-blue)](https://jacobmountain.github.io/graphql-client/#/) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/cz.jirutka.rsql/rsql-parser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.jacobmountain/graphql-java-client)
+# graphql-client ![Build + Test](https://github.com/JacobMountain/graphql-client/workflows/Build%20+%20Test/badge.svg) [![Documentation](https://img.shields.io/badge/read%20the-docs-blue)](https://jacobmountain.github.io/graphql-client/#/) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.jacobmountain/graphql-java-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.jacobmountain/graphql-java-client)
 
 A Java GraphQL client annotation processor, generate a client class from a graphql schema file, and a Java interface.
 
