@@ -1,6 +1,8 @@
-rootProject.name = 'graphql-client'
+rootProject.name = 'graphql-java-client'
 
-include "graphql-client-annotations"
-include "graphql-client-processor"
+include "graphql-java-client-annotations"
+include "graphql-java-client-processor"
 include ':example:example-client'
 include ':example:example-server'
+
+project(":graphql-java-client-annotations").name = "graphql-java-client"
