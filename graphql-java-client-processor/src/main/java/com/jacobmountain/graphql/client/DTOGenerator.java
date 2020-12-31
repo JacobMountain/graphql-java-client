@@ -3,6 +3,8 @@ package com.jacobmountain.graphql.client;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.jacobmountain.graphql.client.visitor.MethodDetailsVisitor;
 import graphql.language.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Element;
@@ -18,6 +20,8 @@ public class DTOGenerator {
 
     private final Map<String, PojoBuilder> types = new HashMap<>();
 
+    private final List<Implements> toImplement = new ArrayList<>();
+
     private final String packageName;
 
     public DTOGenerator(String packageName, FileWriter filer, TypeMapper typeMapper) {
@@ -26,7 +30,6 @@ public class DTOGenerator {
         this.typeMapper = typeMapper;
     }
 
-
     /**
      * Generates the types according to the GraphQL schema
      *
@@ -34,6 +37,10 @@ public class DTOGenerator {
      */
     public void generate(Collection<TypeDefinition> types) {
         types.forEach(this::generateDTO);
+        toImplement.forEach(impl -> {
+            this.types.get(impl.subtype).implement(impl.superType);
+            this.types.get(impl.superType).withSubType(impl.subtype);
+        });
         this.types.values().forEach(filer::write);
     }
 
@@ -113,11 +120,7 @@ public class DTOGenerator {
             PojoBuilder builder = PojoBuilder.newType(td.getName(), packageName);
             ObjectTypeDefinition otd = ((ObjectTypeDefinition) td);
             otd.getImplements().forEach(supertype -> {
-                // POJO implements interface
-                builder.implement(((graphql.language.TypeName) supertype).getName());
-                // interface has POJO as subtype
-                // TODO interface has to be defined before impl, improve?
-                types.get(((NamedNode) supertype).getName()).withSubType(td.getName());
+                toImplement.add(new Implements(((NamedNode<?>) supertype).getName(), td.getName()));
             });
             return builder;
         } else if (td instanceof InputObjectTypeDefinition) {
@@ -130,10 +133,8 @@ public class DTOGenerator {
             utd.getMemberTypes().forEach(supertype -> {
                 // POJO implements interface
                 String member = ((graphql.language.TypeName) supertype).getName();
-                builder.withSubType(member);
                 // interface has POJO as subtype
-                // TODO interface has to be defined before impl, improve?
-                types.get(member).implement(td.getName());
+                toImplement.add(new Implements(td.getName(), member));
             });
             return builder;
         }
@@ -141,5 +142,16 @@ public class DTOGenerator {
         log.info("Unexpected type definition {}", td.getClass());
         return null;
     }
+
+    @Data
+    @AllArgsConstructor
+    static class Implements {
+
+        private String superType;
+
+        private String subtype;
+
+    }
+
 }
 
