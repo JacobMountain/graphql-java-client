@@ -2,7 +2,6 @@ allprojects {
     group "com.jacobmountain"
     version "0.1.0-SNAPSHOT"
     repositories {
-        maven { url snapshotsRepoUrl }
         mavenCentral()
         mavenLocal()
     }
