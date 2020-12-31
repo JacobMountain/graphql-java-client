@@ -1,28 +1,48 @@
 # Installation
 
-!> graphql-client is currently in development and as such only SNAPSHOT builds are available
+!> graphql-java-client is pre version 1, and as such breaking changes may occur between releases
 
-!> graphql-client is currently not published to Maven Central, so (for now) you'll have to add our GitHub package repository
 ### Gradle
-Add our GitHub package repository
-```groovy
-repositories {
-    maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/JacobMountain/graphql-client/")
-    }
-}
-```
-Add the dependencies
 ```groovy
 dependencies {
-    compile group: "com.jacobmountain", name: "graphql-client", version: "1.0.0-SNAPSHOT" 
-    annotationProcessor group: "com.jacobmountain", name: "graphql-client-processor", version: "1.0.0-SNAPSHOT"
+    compile group: "com.jacobmountain", name: "graphql-java-client", version: "0.1.0" 
+    annotationProcessor group: "com.jacobmountain", name: "graphql-java-client-processor", version: "0.1.0"
 }
 ```
 
 ### Maven
-?> TODO add maven installation process
+```xml
+...
+<dependencies>
+    <dependency>
+        <groupId>com.jacobmountain</groupId>
+        <artifactId>graphql-java-client</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+</dependencies>
+...
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
+            <configuration>
+                <source>1.8</source> <!-- depending on your project -->
+                <target>1.8</target> <!-- depending on your project -->
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>com.jacobmountain</groupId>
+                        <artifactId>graphql-java-client-processor</artifactId>
+                        <version>0.1.0</version>
+                    </path>
+                    <!-- other annotation processors -->
+                </annotationProcessorPaths>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
 
 ### Development Environment
 If you delegate building your project to your IDE, you may have to set up your IDE to process annotations too. In IntelliJ,

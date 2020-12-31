@@ -13,6 +13,9 @@
     reactive = false,
     dtoPackage = "dto"
 )
+public interface MyClient {
+
+}
 ```
 #### Fields:
 <table>
@@ -197,6 +200,7 @@
 @GraphQLQuery(
     value = "field"
 )
+public Field getField();
 ```
 #### Fields:
 <table>

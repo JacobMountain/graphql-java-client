@@ -1,4 +1,4 @@
-# GraphQL Annotations
+# Client Interfaces
 ## Fetcher
 The `Fetcher` is the class responsible for taking the GraphQL requests (queries and mutations) and turning them into web 
 requests (usually HTTP or WebSocket). 
