@@ -113,4 +113,23 @@ public class Schema {
                 .map((ObjectTypeDefinition impl) -> ((NamedNode<?>) impl).getName());
     }
 
+    public Stream<FieldDefinition> getChildren(TypeDefinition<?> typeDefinition) {
+        return typeDefinition.getChildren()
+                .stream()
+                .map(it -> {
+                    String name = ((NamedNode<?>) it).getName();
+                    Optional<FieldDefinition> childDefinition;
+                    if (typeDefinition instanceof ObjectTypeDefinition) {
+                        childDefinition = findField((ObjectTypeDefinition) typeDefinition, name);
+                    } else if (typeDefinition instanceof InterfaceTypeDefinition) {
+                        childDefinition = findField((InterfaceTypeDefinition) typeDefinition, name);
+                    } else {
+                        childDefinition = Optional.empty();
+                    }
+                    return childDefinition;
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get);
+    }
+
 }
