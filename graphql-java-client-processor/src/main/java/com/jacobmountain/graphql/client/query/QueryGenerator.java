@@ -39,7 +39,7 @@ public class QueryGenerator {
     }
 
     private final List<FieldFilter> filters = Arrays.asList(
-            new DepthIm(),
+            new MaxDepthFieldFilter(),
             new AllNonNullArgs()
     );
 
@@ -65,7 +65,7 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
-        String inner = generateQueryRec(field, new QueryContext(1, definition, params), new HashSet<>(), args).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, new QueryContext(1, definition, params, new HashSet<>()), args).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -78,18 +78,16 @@ public class QueryGenerator {
 
     Optional<String> generateQueryRec(String alias,
                                       QueryContext context,
-                                      Set<String> previouslyVisited,
                                       Set<String> argumentCollector) {
         String type = unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
-        // if the depth is too high, don't go deeper
         if (!filters.stream().allMatch(fi -> fi.shouldAddField(context))) {
             return Optional.empty();
         }
 
         String args = generateFieldArgs(context.getFieldDefinition(), context.getParams(), argumentCollector);
-        // if there's no children just return that field
+
         if (Objects.isNull(typeDefinition) || typeDefinition.getChildren().isEmpty() || typeDefinition instanceof EnumTypeDefinition) {
             return Optional.of(alias + args);
         }
@@ -98,12 +96,12 @@ public class QueryGenerator {
         List<String> children = Stream.of(
                 getChildren(typeDefinition)
                         .peek(it -> visited.add(it.getName())) // add to the list of discovered fields
-                        .filter(it -> previouslyVisited.add(it.getName())) // don't add to the list if we've already discovered these fields (used with interfaces)
-                        .map(definition -> generateQueryRec(definition.getName(), context.withType(definition).increment(), new HashSet<>(), argumentCollector))
+                        .filter(it -> context.getVisited().add(it.getName())) // don't add to the list if we've already discovered these fields (used with interfaces)
+                        .map(definition -> generateQueryRec(definition.getName(), context.withType(definition).increment(), argumentCollector))
                         .filter(Optional::isPresent)
                         .map(Optional::get),
                 schema.getTypesImplementing(typeDefinition)
-                        .map(interfac -> generateQueryRec(interfac, context.withType(new FieldDefinition(interfac, new TypeName(interfac))), visited, argumentCollector))
+                        .map(interfac -> generateQueryRec(interfac, context.withType(new FieldDefinition(interfac, new TypeName(interfac))).withVisited(visited), argumentCollector))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .map(query -> "... on " + query)
@@ -149,8 +147,6 @@ public class QueryGenerator {
 
     }
 
-//    static class
-
     @Data
     @Builder
     @AllArgsConstructor
@@ -162,13 +158,18 @@ public class QueryGenerator {
 
         Set<String> params;
 
+        Set<String> visited;
+
         QueryContext increment() {
-            depth++;
-            return this;
+            return new QueryContext(depth + 1, fieldDefinition, params, new HashSet<>());
         }
 
         QueryContext withType(FieldDefinition fieldDefinition) {
-            return new QueryContext(depth, fieldDefinition, params);
+            return new QueryContext(depth, fieldDefinition, params, visited);
+        }
+
+        QueryContext withVisited(Set<String> visited) {
+            return new QueryContext(depth, fieldDefinition, params, visited);
         }
 
     }
@@ -182,20 +183,6 @@ public class QueryGenerator {
                     .filter(input -> input.getType() instanceof NonNullType)
                     .allMatch(nonNull -> context.getParams().contains(nonNull.getName()));
         }
-    }
-
-    /**
-     * whether the client method contains all arguments defined in the graphql schema
-     *
-     * @param field  the graphql field definition
-     * @param params the clients method parameters
-     * @return true if the client method contains all arguments defined in the graphql schema
-     */
-    private boolean methodArgsContainAllNonNullArgs(FieldDefinition field, Collection<String> params) {
-        return field.getInputValueDefinitions()
-                .stream()
-                .filter(input -> input.getType() instanceof NonNullType)
-                .allMatch(nonNull -> params.contains(nonNull.getName()));
     }
 
     private Stream<FieldDefinition> getChildren(TypeDefinition<?> typeDefinition) {
@@ -217,7 +204,7 @@ public class QueryGenerator {
                 .map(Optional::get);
     }
 
-    class DepthIm implements FieldFilter {
+    class MaxDepthFieldFilter implements FieldFilter {
         @Override
         public boolean shouldAddField(QueryContext context) {
             return context.getDepth() <= maxDepth;
