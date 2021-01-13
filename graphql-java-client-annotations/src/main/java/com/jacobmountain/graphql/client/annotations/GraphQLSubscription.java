@@ -19,4 +19,6 @@ public @interface GraphQLSubscription {
      */
     String name() default "";
 
+    int maxDepth() default 5;
+
 }

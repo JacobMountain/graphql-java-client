@@ -24,11 +24,13 @@ public class MethodDetails {
     @Getter
     private final String requestName;
 
+    @Getter
     private final TypeName returnType;
 
     @Getter
     private final String field;
 
+    @Getter
     @Singular
     private final List<Parameter> parameters;
 
@@ -36,16 +38,12 @@ public class MethodDetails {
 
     private final boolean subscription;
 
-    public TypeName getReturnType() {
-        return returnType;
-    }
+    @Getter
+    private final int maxDepth;
+
 
     public boolean hasParameters() {
         return !parameters.isEmpty();
-    }
-
-    public List<Parameter> getParameters() {
-        return parameters;
     }
 
     public List<ParameterSpec> getParameterSpec() {
