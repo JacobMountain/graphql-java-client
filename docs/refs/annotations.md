@@ -7,7 +7,6 @@
     mapping = {
         @GraphQLClient.Scalar(from = "ID", to = String.class)
     },
-    maxDepth = 3,
     nullChecking = true,
     implSuffix = "Graph",
     reactive = false,
@@ -77,33 +76,6 @@ public interface MyClient {
             </td>
             <td>
                 empty list
-            </td>
-        </tr>
-        <tr>
-            <td rowspan="3">
-                <code>maxDepth</code>
-            </td>
-            <td>
-                Description
-            </td>
-            <td>
-                Used for the query generation, will only select children of object types up until this depth
-            </td>
-        </tr>
-        <tr>
-            <td>
-                required
-            </td>
-            <td>
-                false
-            </td>
-        </tr>
-        <tr>
-            <td>
-                default
-            </td>
-            <td>
-                3
             </td>
         </tr>
         <tr>
@@ -198,7 +170,8 @@ public interface MyClient {
 ## @GraphQLQuery
 ```java
 @GraphQLQuery(
-    value = "field"
+    value = "field",
+    maxDepth = 5
 )
 public Field getField();
 ```
@@ -237,13 +210,41 @@ public Field getField();
                 false
             </td>
         </tr>
+        <tr>
+            <td rowspan="3">
+                <code>maxDepth</code>
+            </td>
+            <td>
+                Description
+            </td>
+            <td>
+                Used for the query generation, will only select children of object types up until this depth
+            </td>
+        </tr>
+        <tr>
+            <td>
+                required
+            </td>
+            <td>
+                false
+            </td>
+        </tr>
+        <tr>
+            <td>
+                default
+            </td>
+            <td>
+                3
+            </td>
+        </tr>
     </tbody>
 </table>
 
 ## @GraphQLMutation
 ```java
 @GraphQLMutation(
-    value = "field"
+    value = "field",
+    maxDepth = 5
 )
 ```
 #### Fields:
@@ -281,13 +282,41 @@ public Field getField();
                 false
             </td>
         </tr>
+        <tr>
+            <td rowspan="3">
+                <code>maxDepth</code>
+            </td>
+            <td>
+                Description
+            </td>
+            <td>
+                Used for the query generation, will only select children of object types up until this depth
+            </td>
+        </tr>
+        <tr>
+            <td>
+                required
+            </td>
+            <td>
+                false
+            </td>
+        </tr>
+        <tr>
+            <td>
+                default
+            </td>
+            <td>
+                5
+            </td>
+        </tr>
     </tbody>
 </table>
 
 ## @GraphQLSubscription
 ```java
 @GraphQLSubscription(
-    value = "field"
+    value = "field",
+    maxDepth = 5
 )
 ```
 !> requires `@GraphQLClient(reactive = true)`
@@ -324,6 +353,33 @@ public Field getField();
             </td>
             <td>
                 false
+            </td>
+        </tr>
+        <tr>
+            <td rowspan="3">
+                <code>maxDepth</code>
+            </td>
+            <td>
+                Description
+            </td>
+            <td>
+                Used for the query generation, will only select children of object types up until this depth
+            </td>
+        </tr>
+        <tr>
+            <td>
+                required
+            </td>
+            <td>
+                false
+            </td>
+        </tr>
+        <tr>
+            <td>
+                default
+            </td>
+            <td>
+                5
             </td>
         </tr>
     </tbody>
