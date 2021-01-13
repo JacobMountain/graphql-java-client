@@ -88,13 +88,13 @@ class QueryAssertion {
 
     static void assertQueriesAreEqual(String expected, String result) {
         log.info("Asserting equal: ")
-        log.info("\t{}", expected)
-        log.info("\t{}", result)
+        log.info("\texpected: {}", expected)
+        log.info("\tactual:   {}", result)
         expected = expandFragments(clean(expected))
         result = expandFragments(clean(result))
         log.info("Cleaned: ")
-        log.info("\t{}", expected)
-        log.info("\t{}", result)
+        log.info("\texpected: {}", expected)
+        log.info("\tactual:   {}", result)
         def a = split(expected)
         def b = split(result)
 
