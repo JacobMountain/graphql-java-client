@@ -4,6 +4,7 @@ import com.jacobmountain.graphql.client.modules.*;
 import com.jacobmountain.graphql.client.utils.AnnotationUtils;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
+import com.jacobmountain.graphql.client.visitor.ClientDetailsVisitor;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.jacobmountain.graphql.client.visitor.MethodDetailsVisitor;
 import com.squareup.javapoet.*;

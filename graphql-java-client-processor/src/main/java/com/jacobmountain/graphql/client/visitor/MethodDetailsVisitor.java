@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.util.ElementKindVisitor8;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,6 +52,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .subscription(false)
                         .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
+                        .selection(Arrays.asList(annotation.select()))
                         .build());
     }
 
@@ -65,6 +67,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .subscription(false)
                         .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
+                        .selection(Arrays.asList(annotation.select()))
                         .build());
     }
 
@@ -79,6 +82,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .subscription(true)
                         .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
+                        .selection(Arrays.asList(annotation.select()))
                         .build()
                 );
     }

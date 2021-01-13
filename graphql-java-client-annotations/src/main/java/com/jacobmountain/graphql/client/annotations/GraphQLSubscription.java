@@ -21,4 +21,6 @@ public @interface GraphQLSubscription {
 
     int maxDepth() default 5;
 
+    GraphQLField[] select() default {};
+
 }

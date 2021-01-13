@@ -1,5 +1,6 @@
 package com.jacobmountain.graphql.client.visitor;
 
+import com.jacobmountain.graphql.client.annotations.GraphQLField;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterSpec;
@@ -33,6 +34,9 @@ public class MethodDetails {
     @Getter
     @Singular
     private final List<Parameter> parameters;
+
+    @Getter
+    private final List<GraphQLField> selection;
 
     private final boolean mutation;
 
