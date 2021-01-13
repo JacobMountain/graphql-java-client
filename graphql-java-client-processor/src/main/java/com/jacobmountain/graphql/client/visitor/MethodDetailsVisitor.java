@@ -49,6 +49,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .field(annotation.value())
                         .mutation(false)
                         .subscription(false)
+                        .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
                         .build());
     }
@@ -62,6 +63,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .field(annotation.value())
                         .mutation(true)
                         .subscription(false)
+                        .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
                         .build());
     }
@@ -75,6 +77,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .field(annotation.value())
                         .mutation(false)
                         .subscription(true)
+                        .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
                         .build()
                 );

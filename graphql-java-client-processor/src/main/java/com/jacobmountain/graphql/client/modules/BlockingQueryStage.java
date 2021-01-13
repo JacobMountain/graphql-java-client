@@ -18,8 +18,8 @@ import java.util.stream.Stream;
 
 public class BlockingQueryStage extends AbstractQueryStage {
 
-    public BlockingQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName, int maxDepth) {
-        super(schema, typeMapper, dtoPackageName, maxDepth);
+    public BlockingQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName) {
+        super(schema, typeMapper, dtoPackageName);
     }
 
     private ParameterizedTypeName generateTypeName() {

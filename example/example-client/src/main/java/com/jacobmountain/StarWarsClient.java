@@ -15,7 +15,6 @@ import java.util.Optional;
 
 @GraphQLClient(
         schema = "Schema.gql",
-        maxDepth = 5,
         nullChecking = true
 )
 public interface StarWarsClient {

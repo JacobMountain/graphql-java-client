@@ -16,17 +16,14 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractQueryStage extends AbstractStage {
 
-    private final int maxDepth;
-
     protected final TypeName query;
 
     protected final TypeName mutation;
 
     protected final TypeName subscription;
 
-    public AbstractQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName, int maxDepth) {
+    public AbstractQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName) {
         super(schema, typeMapper);
-        this.maxDepth = maxDepth;
         this.query = ClassName.get(dtoPackageName, schema.getQueryTypeName());
         this.mutation = schema.getMutationTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
         this.subscription = schema.getSubscriptionTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
@@ -57,7 +54,7 @@ public abstract class AbstractQueryStage extends AbstractStage {
                 .stream()
                 .map(Parameter::getField)
                 .collect(Collectors.toSet());
-        QueryGenerator queryGenerator = new QueryGenerator(schema, maxDepth);
+        QueryGenerator queryGenerator = new QueryGenerator(schema, details.getMaxDepth());
         String query;
         if (details.isQuery()) {
             query = queryGenerator.generateQuery(request, details.getField(), params);

@@ -74,7 +74,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
     private void generateClientImplementation(Input client) {
         GraphQLClient annotation = client.getAnnotation();
         log.info("Generating java implementation of {}", client.element.getSimpleName());
-        new ClientGenerator(this.filer, annotation.maxDepth(), client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema(), annotation.reactive())
+        new ClientGenerator(this.filer, client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema(), annotation.reactive())
                 .generate(client.element, annotation.implSuffix());
     }
 

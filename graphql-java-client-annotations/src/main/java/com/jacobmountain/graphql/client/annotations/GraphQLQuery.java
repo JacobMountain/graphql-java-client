@@ -19,4 +19,6 @@ public @interface GraphQLQuery {
      */
     String name() default "";
 
+    int maxDepth() default 5;
+
 }

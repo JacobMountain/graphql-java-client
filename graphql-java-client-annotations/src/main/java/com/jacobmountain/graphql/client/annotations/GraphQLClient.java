@@ -13,8 +13,6 @@ public @interface GraphQLClient {
 
     Scalar[] mapping() default {};
 
-    int maxDepth() default 3;
-
     boolean nullChecking() default false;
 
     String implSuffix() default "Graph";
