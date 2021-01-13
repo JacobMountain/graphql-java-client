@@ -21,4 +21,6 @@ public @interface GraphQLQuery {
 
     int maxDepth() default 5;
 
+    GraphQLField[] select() default {};
+
 }
