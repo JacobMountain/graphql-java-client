@@ -4,6 +4,7 @@ import com.jacobmountain.graphql.client.TypeMapper;
 import com.jacobmountain.graphql.client.dto.Response;
 import com.jacobmountain.graphql.client.query.QueryGenerator;
 import com.jacobmountain.graphql.client.utils.Schema;
+import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.jacobmountain.graphql.client.visitor.Parameter;
 import com.squareup.javapoet.*;
@@ -69,7 +70,12 @@ public abstract class AbstractQueryStage extends AbstractStage {
             throw new RuntimeException("");
         }
         String query = builder
-                .select(details.getSelection())
+                .select(
+                        details.getSelection()
+                                .stream()
+                                .map(GraphQLFieldSelection::new)
+                                .collect(Collectors.toList())
+                )
                 .maxDepth(details.getMaxDepth())
                 .build(request, details.getField(), params);
         return CodeBlock.of(
