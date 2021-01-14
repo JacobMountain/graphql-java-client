@@ -40,7 +40,7 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
-        String inner = generateQueryRec(field, new QueryContext(1, definition, params, new HashSet<>()), args, filters).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, new QueryContext(0, definition, params, new HashSet<>()), args, filters).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
