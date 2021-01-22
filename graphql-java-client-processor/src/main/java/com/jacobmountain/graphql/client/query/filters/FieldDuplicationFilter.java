@@ -17,7 +17,6 @@ public class FieldDuplicationFilter implements FieldFilter {
     @Override
     public boolean shouldAddField(QueryContext context) {
         final String path = generatePath(context);
-        log.info("{} {}", path, context.getDepth());
         final Set<String> strings = visited.computeIfAbsent(path, key -> new HashSet<>());
         return strings.add(context.getFieldDefinition().getName());
     }
