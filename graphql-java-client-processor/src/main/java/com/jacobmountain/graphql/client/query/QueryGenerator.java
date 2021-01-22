@@ -1,6 +1,5 @@
 package com.jacobmountain.graphql.client.query;
 
-import com.jacobmountain.graphql.client.annotations.GraphQLField;
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.AllNonNullArgsFieldFilter;
 import com.jacobmountain.graphql.client.query.filters.FieldDuplicationFilter;
@@ -8,6 +7,7 @@ import com.jacobmountain.graphql.client.query.filters.MaxDepthFieldFilter;
 import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
+import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
 import graphql.com.google.common.collect.Streams;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
@@ -54,16 +54,6 @@ public class QueryGenerator {
         return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
     }
 
-    private String unwrap(Type<?> type) {
-        if (type instanceof ListType) {
-            return unwrap(((ListType) type).getType());
-        } else if (type instanceof NonNullType) {
-            return unwrap(((NonNullType) type).getType());
-        } else {
-            return ((graphql.language.TypeName) type).getName();
-        }
-    }
-
     private String generateQueryName(String request, String type, String field) {
         if (StringUtils.isEmpty(request)) {
             request = StringUtils.capitalize(field);
@@ -75,7 +65,7 @@ public class QueryGenerator {
                                                    QueryContext context,
                                                    Set<String> argumentCollector,
                                                    List<FieldFilter> filters) {
-        String type = unwrap(context.getFieldDefinition().getType());
+        String type = Schema.unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
         if (!filters.stream().allMatch(fi -> fi.shouldAddField(context))) {
@@ -128,7 +118,7 @@ public class QueryGenerator {
             return this;
         }
 
-        public QueryBuilder select(List<GraphQLField> selections) {
+        public QueryBuilder select(List<GraphQLFieldSelection> selections) {
             this.filters.add(new SelectionFieldFilter(selections));
             return this;
         }
@@ -148,7 +138,7 @@ public class QueryGenerator {
                 .filter(o -> finalParams.remove(o.getName()))
                 .peek(arg -> {
                     boolean nonNull = arg.getType() instanceof NonNullType;
-                    String type = unwrap(arg.getType());
+                    String type = Schema.unwrap(arg.getType());
                     argsCollector.add(
                             "$" + arg.getName() + ": " + type + (nonNull ? "!" : "")
                     );
