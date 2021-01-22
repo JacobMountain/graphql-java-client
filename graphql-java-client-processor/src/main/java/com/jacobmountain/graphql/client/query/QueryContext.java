@@ -11,24 +11,20 @@ import java.util.Set;
 @AllArgsConstructor
 public class QueryContext {
 
+    QueryContext parent;
+
     int depth;
 
     FieldDefinition fieldDefinition;
 
     Set<String> params;
 
-    Set<String> visited;
-
     QueryContext increment() {
-        return new QueryContext(depth + 1, fieldDefinition, params, new HashSet<>());
+        return new QueryContext(this, depth + 1, fieldDefinition, params);
     }
 
     QueryContext withType(FieldDefinition fieldDefinition) {
-        return new QueryContext(depth, fieldDefinition, params, visited);
-    }
-
-    QueryContext withVisited(Set<String> visited) {
-        return new QueryContext(depth, fieldDefinition, params, visited);
+        return new QueryContext(parent, depth, fieldDefinition, params);
     }
 
 }

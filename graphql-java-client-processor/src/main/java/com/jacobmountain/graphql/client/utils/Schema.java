@@ -132,4 +132,14 @@ public class Schema {
                 .map(Optional::get);
     }
 
+    public static String unwrap(Type<?> type) {
+        if (type instanceof ListType) {
+            return unwrap(((ListType) type).getType());
+        } else if (type instanceof NonNullType) {
+            return unwrap(((NonNullType) type).getType());
+        } else {
+            return ((graphql.language.TypeName) type).getName();
+        }
+    }
+
 }
