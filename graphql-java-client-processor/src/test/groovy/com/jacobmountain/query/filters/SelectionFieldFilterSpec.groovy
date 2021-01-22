@@ -21,7 +21,7 @@ class SelectionFieldFilterSpec extends Specification {
         }
         """).findField(field)
                 .orElse(null)
-        new QueryContext(1, fieldDef, emptySet(), emptySet())
+        new QueryContext(null, 1, fieldDef, emptySet())
     }
 
     def "We can select which fields are selected"() {

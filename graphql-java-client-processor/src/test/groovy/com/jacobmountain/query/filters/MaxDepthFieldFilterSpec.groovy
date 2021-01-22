@@ -10,7 +10,7 @@ import static java.util.Collections.emptySet
 class MaxDepthFieldFilterSpec extends Specification {
 
     static QueryContext newContextWithDepth(int depth) {
-        new QueryContext(depth, null, emptySet(), emptySet())
+        new QueryContext(null, depth, null, emptySet())
     }
 
     def "Max depth filter doesn't filter out fields under it's max depth"() {

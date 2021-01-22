@@ -19,7 +19,7 @@ class AllNonNullArgsFieldFilterSpec extends Specification {
         }
         """).findField("field")
                 .orElse(null)
-        new QueryContext(0, fieldDef, new HashSet<String>(params), emptySet())
+        new QueryContext(null, 0, fieldDef, new HashSet<String>(params))
     }
 
     def "We can filter fields based upon whether or not we can supply all of their non-null arguments"() {

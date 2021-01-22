@@ -2,6 +2,7 @@ package com.jacobmountain.graphql.client.query;
 
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.AllNonNullArgsFieldFilter;
+import com.jacobmountain.graphql.client.query.filters.FieldDuplicationFilter;
 import com.jacobmountain.graphql.client.query.filters.MaxDepthFieldFilter;
 import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter;
 import com.jacobmountain.graphql.client.utils.Schema;
@@ -40,7 +41,7 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
-        String inner = generateQueryRec(field, new QueryContext(0, definition, params, new HashSet<>()), args, filters).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, new QueryContext(null, 0, definition, params), args, filters).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -84,11 +85,8 @@ public class QueryGenerator {
             return Optional.of(alias + args);
         }
 
-        Set<String> visited = new HashSet<>();
         List<String> children = Streams.concat(
                 schema.getChildren(typeDefinition)
-                        .peek(it -> visited.add(it.getName())) // add to the list of discovered fields
-                        .filter(it -> context.getVisited().add(it.getName())) // don't add to the list if we've already discovered these fields (used with interfaces)
                         .map(definition -> generateQueryRec(
                                 definition.getName(),
                                 context.withType(definition).increment(),
@@ -100,7 +98,7 @@ public class QueryGenerator {
                 schema.getTypesImplementing(typeDefinition)
                         .map(interfac -> generateQueryRec(
                                 interfac,
-                                context.withType(new FieldDefinition(interfac, new TypeName(interfac))).withVisited(visited),
+                                context.withType(new FieldDefinition(interfac, new TypeName(interfac))),
                                 argumentCollector,
                                 filters
                         ))
@@ -142,6 +140,7 @@ public class QueryGenerator {
 
         public String build(String request, String field, Set<String> params) {
             this.filters.add(new AllNonNullArgsFieldFilter());
+            this.filters.add(new FieldDuplicationFilter());
             return doGenerateQuery(request, field, type, params, filters);
         }
 
