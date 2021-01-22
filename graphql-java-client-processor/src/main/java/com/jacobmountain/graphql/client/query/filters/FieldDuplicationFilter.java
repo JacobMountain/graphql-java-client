@@ -2,6 +2,7 @@ package com.jacobmountain.graphql.client.query.filters;
 
 import com.jacobmountain.graphql.client.query.FieldFilter;
 import com.jacobmountain.graphql.client.query.QueryContext;
+import com.jacobmountain.graphql.client.utils.Schema;
 import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.Type;
@@ -28,18 +29,8 @@ public class FieldDuplicationFilter implements FieldFilter {
             path.add(0, parent.getFieldDefinition().getName());
             parent = parent.getParent();
         }
-        path.set(path.size() - 1, unwrap(context.getFieldDefinition().getType()));
+        path.set(path.size() - 1, Schema.unwrap(context.getFieldDefinition().getType()));
         return String.join(".", path);
-    }
-
-    private String unwrap(Type<?> type) {
-        if (type instanceof ListType) {
-            return unwrap(((ListType) type).getType());
-        } else if (type instanceof NonNullType) {
-            return unwrap(((NonNullType) type).getType());
-        } else {
-            return ((graphql.language.TypeName) type).getName();
-        }
     }
 
 }

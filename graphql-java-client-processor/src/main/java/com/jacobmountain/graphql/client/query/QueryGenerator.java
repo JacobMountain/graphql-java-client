@@ -52,16 +52,6 @@ public class QueryGenerator {
         return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
     }
 
-    private String unwrap(Type<?> type) {
-        if (type instanceof ListType) {
-            return unwrap(((ListType) type).getType());
-        } else if (type instanceof NonNullType) {
-            return unwrap(((NonNullType) type).getType());
-        } else {
-            return ((graphql.language.TypeName) type).getName();
-        }
-    }
-
     private String generateQueryName(String request, String type, String field) {
         if (StringUtils.isEmpty(request)) {
             request = StringUtils.capitalize(field);
@@ -73,7 +63,7 @@ public class QueryGenerator {
                                               QueryContext context,
                                               Set<String> argumentCollector,
                                               List<FieldFilter> filters) {
-        String type = unwrap(context.getFieldDefinition().getType());
+        String type = Schema.unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
         if (!filters.stream().allMatch(fi -> fi.shouldAddField(context))) {
@@ -153,7 +143,7 @@ public class QueryGenerator {
                 .filter(o -> finalParams.remove(o.getName()))
                 .peek(arg -> {
                     boolean nonNull = arg.getType() instanceof NonNullType;
-                    String type = unwrap(arg.getType());
+                    String type = Schema.unwrap(arg.getType());
                     argsCollector.add(
                             "$" + arg.getName() + ": " + type + (nonNull ? "!" : "")
                     );
