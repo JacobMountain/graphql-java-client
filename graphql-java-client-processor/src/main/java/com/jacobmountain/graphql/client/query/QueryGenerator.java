@@ -1,12 +1,12 @@
 package com.jacobmountain.graphql.client.query;
 
-import com.jacobmountain.graphql.client.annotations.GraphQLField;
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.AllNonNullArgsFieldFilter;
 import com.jacobmountain.graphql.client.query.filters.MaxDepthFieldFilter;
 import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
+import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
 import graphql.com.google.common.collect.Streams;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
-        String inner = generateQueryRec(field, new QueryContext(1, definition, params, new HashSet<>()), args, filters).orElseThrow(RuntimeException::new);
+        String inner = generateQueryRec(field, new QueryContext(0, definition, params, new HashSet<>()), args, filters).orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -135,7 +135,7 @@ public class QueryGenerator {
             return this;
         }
 
-        public QueryBuilder select(List<GraphQLField> selections) {
+        public QueryBuilder select(List<GraphQLFieldSelection> selections) {
             this.filters.add(new SelectionFieldFilter(selections));
             return this;
         }
