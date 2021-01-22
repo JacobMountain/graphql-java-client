@@ -1,5 +1,6 @@
 package com.jacobmountain.graphql.client.visitor;
 
+import com.jacobmountain.graphql.client.annotations.GraphQLField;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterSpec;
@@ -24,28 +25,29 @@ public class MethodDetails {
     @Getter
     private final String requestName;
 
+    @Getter
     private final TypeName returnType;
 
     @Getter
     private final String field;
 
+    @Getter
     @Singular
     private final List<Parameter> parameters;
+
+    @Getter
+    private final List<GraphQLField> selection;
 
     private final boolean mutation;
 
     private final boolean subscription;
 
-    public TypeName getReturnType() {
-        return returnType;
-    }
+    @Getter
+    private final int maxDepth;
+
 
     public boolean hasParameters() {
         return !parameters.isEmpty();
-    }
-
-    public List<Parameter> getParameters() {
-        return parameters;
     }
 
     public List<ParameterSpec> getParameterSpec() {

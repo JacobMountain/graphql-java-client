@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'groovy'
     id 'org.springframework.boot' version '2.4.1'
-    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
 dependencies {
@@ -10,7 +10,7 @@ dependencies {
     annotationProcessor project(":graphql-java-client-processor")
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.1'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.2'
     implementation 'org.java-websocket:Java-WebSocket:1.5.1'
 
     compileOnly 'org.projectlombok:lombok:1.18.16'

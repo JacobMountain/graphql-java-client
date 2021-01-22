@@ -5,17 +5,13 @@ import com.jacobmountain.dto.Episode;
 import com.jacobmountain.dto.LengthUnit;
 import com.jacobmountain.dto.Review;
 import com.jacobmountain.dto.ReviewInput;
-import com.jacobmountain.graphql.client.annotations.GraphQLArgument;
-import com.jacobmountain.graphql.client.annotations.GraphQLClient;
-import com.jacobmountain.graphql.client.annotations.GraphQLMutation;
-import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
+import com.jacobmountain.graphql.client.annotations.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @GraphQLClient(
         schema = "Schema.gql",
-        maxDepth = 5,
         nullChecking = true
 )
 public interface StarWarsClient {
@@ -25,6 +21,12 @@ public interface StarWarsClient {
 
     @GraphQLQuery(value = "hero", name = "HeroSummary")
     com.jacobmountain.dto.Character getHero(@GraphQLArgument("hero") String id);
+
+    @GraphQLQuery(value = "hero", select = {
+            @GraphQLField("id"),
+            @GraphQLField("name")
+    })
+    com.jacobmountain.dto.Character getHeroSummary(String id);
 
     @GraphQLQuery("hero")
     Optional<com.jacobmountain.dto.Character> getHeroOptional(Episode episode, int first, String after, LengthUnit unit);

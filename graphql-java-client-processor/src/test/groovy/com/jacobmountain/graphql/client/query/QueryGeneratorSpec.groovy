@@ -14,12 +14,12 @@ class QueryGeneratorSpec extends Specification {
     @Subject
     QueryGenerator generator
 
-    def givenSchema(String schema, int depth = 2) {
+    def givenSchema(String schema) {
         println schema.stripIndent()
-        generator = new QueryGenerator(new Schema(schema.stripIndent()), depth)
+        generator = new QueryGenerator(new Schema(schema.stripIndent()))
     }
 
-    def givenQuery(String query, String types = "", int depth = 2) {
+    def givenQuery(String query, String types = "") {
         givenSchema("""
         schema {
             query: Query
@@ -28,7 +28,7 @@ class QueryGeneratorSpec extends Specification {
             ${query}
         }
         ${types}
-        """, depth)
+        """)
     }
 
     def "I can query structured type fields"() {
@@ -40,7 +40,7 @@ class QueryGeneratorSpec extends Specification {
         }
         """)
         when:
-        def result = generator.generateQuery(null, "field", [] as Set)
+        def result = generator.query().build(null, "field", [] as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -58,7 +58,7 @@ class QueryGeneratorSpec extends Specification {
         given:
         givenQuery("number: Int")
         when:
-        def result = generator.generateQuery(null, "number", [] as Set)
+        def result = generator.query().build(null, "number", [] as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -78,7 +78,7 @@ class QueryGeneratorSpec extends Specification {
         }
         """)
         when:
-        def result = generator.generateQuery(null, "ep", [] as Set)
+        def result = generator.query().build(null, "ep", [] as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -103,7 +103,7 @@ class QueryGeneratorSpec extends Specification {
         }
         """)
         when:
-        def result = generator.generateQuery(null, "field", [] as Set)
+        def result = generator.query().build(null, "field", [] as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -127,7 +127,7 @@ class QueryGeneratorSpec extends Specification {
         }
         """)
         when:
-        def result = generator.generateQuery(null, "field", params as Set)
+        def result = generator.query().build(null, "field", params as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -154,9 +154,9 @@ class QueryGeneratorSpec extends Specification {
             name: String
             friends: [Person]
         }
-        """, 4)
+        """)
         when:
-        def result = generator.generateQuery(null, "friend", [] as Set)
+        def result = generator.query().maxDepth(4).build(null, "friend", [] as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -194,7 +194,7 @@ class QueryGeneratorSpec extends Specification {
         """)
 
         when:
-        def result = generator.generateMutation(null, "doAction", [] as Set)
+        def result = generator.mutation().build(null, "doAction", [] as Set)
         then:
         assertQueriesAreEqual("""
         mutation Friend {
@@ -217,7 +217,7 @@ class QueryGeneratorSpec extends Specification {
         """)
 
         when:
-        def result = generator.generateSubscription(null, "doSubscribe", [] as Set)
+        def result = generator.subscription().build(null, "doSubscribe", [] as Set)
         then:
         assertQueriesAreEqual("""
         subscription Friend {
@@ -238,7 +238,7 @@ class QueryGeneratorSpec extends Specification {
         }
         """)
         when:
-        def result = generator.generateQuery(null, "named", [] as Set)
+        def result = generator.query().build(null, "named", [] as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -266,9 +266,9 @@ class QueryGeneratorSpec extends Specification {
         type Nested {
             nested: String
         }
-        """, 5)
+        """)
         when:
-        def result = generator.generateQuery(null, "field", [] as Set)
+        def result = generator.query().maxDepth(5).build(null, "field", [] as Set)
 
         then:
         assertQueriesAreEqual("""

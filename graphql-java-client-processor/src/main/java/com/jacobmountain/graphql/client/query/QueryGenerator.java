@@ -1,8 +1,10 @@
 package com.jacobmountain.graphql.client.query;
 
+import com.jacobmountain.graphql.client.annotations.GraphQLField;
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.AllNonNullArgsFieldFilter;
 import com.jacobmountain.graphql.client.query.filters.MaxDepthFieldFilter;
+import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import graphql.com.google.common.collect.Streams;
@@ -17,33 +19,36 @@ public class QueryGenerator {
 
     private final Schema schema;
 
-    private final List<FieldFilter> filters;
-
-    public QueryGenerator(Schema registry, int maxDepth) {
+    public QueryGenerator(Schema registry) {
         this.schema = registry;
-        this.filters = Arrays.asList(
-                new MaxDepthFieldFilter(maxDepth),
-                new AllNonNullArgsFieldFilter()
-        );
     }
 
-    public String generateQuery(String request, String field, Set<String> params) {
-        return doGenerateQuery(request, field, "query", params);
+    public QueryBuilder query() {
+        return new QueryBuilder("query");
     }
 
-    public String generateMutation(String request, String field, Set<String> params) {
-        return doGenerateQuery(request, field, "mutation", params);
+    public QueryBuilder mutation() {
+        return new QueryBuilder("mutation");
     }
 
-    public String generateSubscription(String request, String field, Set<String> params) {
-        return doGenerateQuery(request, field, "subscription", params);
+    public QueryBuilder subscription() {
+        return new QueryBuilder("subscription");
     }
 
-    private String generateQueryName(String request, String type, String field) {
-        if (StringUtils.isEmpty(request)) {
-            request = StringUtils.capitalize(field);
+    private String doGenerateQuery(String request, String field, String type, Set<String> params, List<FieldFilter> filters) {
+        FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
+
+        Set<String> args = new HashSet<>();
+
+        String inner = generateQueryRec(field, new QueryContext(1, definition, params, new HashSet<>()), args, filters).orElseThrow(RuntimeException::new);
+
+        String collect = String.join(", ", args);
+
+        if (!args.isEmpty()) {
+            collect = "(" + collect + ")";
         }
-        return type + " " + request;
+
+        return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
     }
 
     private String unwrap(Type<?> type) {
@@ -56,25 +61,17 @@ public class QueryGenerator {
         }
     }
 
-    private String doGenerateQuery(String request, String field, String type, Set<String> params) {
-        FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
-
-        Set<String> args = new HashSet<>();
-
-        String inner = generateQueryRec(field, new QueryContext(1, definition, params, new HashSet<>()), args).orElseThrow(RuntimeException::new);
-
-        String collect = String.join(", ", args);
-
-        if (!args.isEmpty()) {
-            collect = "(" + collect + ")";
+    private String generateQueryName(String request, String type, String field) {
+        if (StringUtils.isEmpty(request)) {
+            request = StringUtils.capitalize(field);
         }
-
-        return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
+        return type + " " + request;
     }
 
-    Optional<String> generateQueryRec(String alias,
-                                      QueryContext context,
-                                      Set<String> argumentCollector) {
+    private Optional<String> generateQueryRec(String alias,
+                                              QueryContext context,
+                                              Set<String> argumentCollector,
+                                              List<FieldFilter> filters) {
         String type = unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
@@ -95,7 +92,8 @@ public class QueryGenerator {
                         .map(definition -> generateQueryRec(
                                 definition.getName(),
                                 context.withType(definition).increment(),
-                                argumentCollector
+                                argumentCollector,
+                                filters
                         ))
                         .filter(Optional::isPresent)
                         .map(Optional::get),
@@ -103,8 +101,9 @@ public class QueryGenerator {
                         .map(interfac -> generateQueryRec(
                                 interfac,
                                 context.withType(new FieldDefinition(interfac, new TypeName(interfac))).withVisited(visited),
-                                argumentCollector)
-                        )
+                                argumentCollector,
+                                filters
+                        ))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .map(query -> "... on " + query)
@@ -119,6 +118,33 @@ public class QueryGenerator {
                         " __typename" +
                         " }"
         );
+    }
+
+    public class QueryBuilder {
+
+        private final String type;
+
+        private final List<FieldFilter> filters = new ArrayList<>();
+
+        QueryBuilder(String type) {
+            this.type = type;
+        }
+
+        public QueryBuilder maxDepth(int maxDepth) {
+            this.filters.add(new MaxDepthFieldFilter(maxDepth));
+            return this;
+        }
+
+        public QueryBuilder select(List<GraphQLField> selections) {
+            this.filters.add(new SelectionFieldFilter(selections));
+            return this;
+        }
+
+        public String build(String request, String field, Set<String> params) {
+            this.filters.add(new AllNonNullArgsFieldFilter());
+            return doGenerateQuery(request, field, type, params, filters);
+        }
+
     }
 
     private String generateFieldArgs(FieldDefinition field, Set<String> params, Set<String> argsCollector) {

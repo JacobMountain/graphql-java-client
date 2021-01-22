@@ -4,6 +4,7 @@ import com.jacobmountain.graphql.client.modules.*;
 import com.jacobmountain.graphql.client.utils.AnnotationUtils;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
+import com.jacobmountain.graphql.client.visitor.ClientDetailsVisitor;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.jacobmountain.graphql.client.visitor.MethodDetailsVisitor;
 import com.squareup.javapoet.*;
@@ -41,17 +42,17 @@ public class ClientGenerator {
 
     private final AbstractStage returnResults;
 
-    public ClientGenerator(Filer filer, int maxDepth, TypeMapper typeMapper, String packageName, String dtoPackageName, Schema schema, boolean reactive) {
+    public ClientGenerator(Filer filer, TypeMapper typeMapper, String packageName, String dtoPackageName, Schema schema, boolean reactive) {
         this.filer = filer;
         this.typeMapper = typeMapper;
         this.packageName = packageName;
         this.schema = schema;
         this.arguments = new ArgumentAssemblyStage(dtoPackageName);
         if (reactive) {
-            this.query = new ReactiveQueryStage(schema, typeMapper, dtoPackageName, maxDepth);
+            this.query = new ReactiveQueryStage(schema, typeMapper, dtoPackageName);
             this.returnResults = new ReactiveReturnStage(schema, typeMapper);
         } else {
-            this.query = new BlockingQueryStage(schema, typeMapper, dtoPackageName, maxDepth);
+            this.query = new BlockingQueryStage(schema, typeMapper, dtoPackageName);
             this.returnResults = new OptionalReturnStage(schema, typeMapper);
         }
     }

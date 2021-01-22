@@ -1,4 +1,4 @@
-package com.jacobmountain.graphql.client;
+package com.jacobmountain.graphql.client.visitor;
 
 import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
 import com.jacobmountain.graphql.client.annotations.GraphQLSubscription;

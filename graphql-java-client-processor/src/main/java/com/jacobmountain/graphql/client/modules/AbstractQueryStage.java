@@ -16,20 +16,20 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractQueryStage extends AbstractStage {
 
-    private final int maxDepth;
-
     protected final TypeName query;
 
     protected final TypeName mutation;
 
     protected final TypeName subscription;
 
-    public AbstractQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName, int maxDepth) {
+    private final QueryGenerator queryGenerator;
+
+    public AbstractQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName) {
         super(schema, typeMapper);
-        this.maxDepth = maxDepth;
         this.query = ClassName.get(dtoPackageName, schema.getQueryTypeName());
         this.mutation = schema.getMutationTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
         this.subscription = schema.getSubscriptionTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
+        this.queryGenerator = new QueryGenerator(schema);
     }
 
     @Override
@@ -57,20 +57,23 @@ public abstract class AbstractQueryStage extends AbstractStage {
                 .stream()
                 .map(Parameter::getField)
                 .collect(Collectors.toSet());
-        QueryGenerator queryGenerator = new QueryGenerator(schema, maxDepth);
-        String query;
+        queryGenerator.query();
+        QueryGenerator.QueryBuilder builder;
         if (details.isQuery()) {
-            query = queryGenerator.generateQuery(request, details.getField(), params);
+            builder = queryGenerator.query();
         } else if (details.isMutation()) {
-            query = queryGenerator.generateMutation(request, details.getField(), params);
+            builder = queryGenerator.mutation();
         } else if (details.isSubscription()) {
-            query = queryGenerator.generateSubscription(request, details.getField(), params);
+            builder = queryGenerator.subscription();
         } else {
             throw new RuntimeException("");
         }
-        boolean hasArgs = details.hasParameters();
+        String query = builder
+                .select(details.getSelection())
+                .maxDepth(details.getMaxDepth())
+                .build(request, details.getField(), params);
         return CodeBlock.of(
-                "(\"$L\", $L)", query, hasArgs ? "args" : "null"
+                "(\"$L\", $L)", query, details.hasParameters() ? "args" : "null"
         );
     }
 
