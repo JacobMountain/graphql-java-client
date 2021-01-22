@@ -26,7 +26,7 @@ jobs:
       run: ./gradlew build test
 
     - name: Publish JUnit results
-      uses: mikepenz/action-junit-report@v1.1.1
+      uses: mikepenz/action-junit-report@v2.1.1
       with:
         report_paths: '**/build/test-results/test/TEST-*.xml'
         github_token: ${{ secrets.GITHUB_TOKEN }}
