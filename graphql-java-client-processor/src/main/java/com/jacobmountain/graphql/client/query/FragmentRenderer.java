@@ -32,7 +32,7 @@ public class FragmentRenderer implements FieldSelector {
     }
 
     @Override
-    public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, FragmentRenderer fragmentRenderer, Set<String> argumentCollector, List<FieldFilter> filters) {
+    public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, Set<String> argumentCollector, List<FieldFilter> filters) {
         final String type = Schema.unwrap(context.getFieldDefinition().getType());
         final GraphQLFragment graphQLFragment = fragments.get(type);
         if (graphQLFragment == null || !type.equals(graphQLFragment.type())) {
@@ -46,7 +46,6 @@ public class FragmentRenderer implements FieldSelector {
                 .map(definition -> queryGenerator.generateFieldSelection(
                         definition.getName(),
                         context.withType(definition).increment(),
-                        this,
                         argumentCollector,
                         filters
                 ))

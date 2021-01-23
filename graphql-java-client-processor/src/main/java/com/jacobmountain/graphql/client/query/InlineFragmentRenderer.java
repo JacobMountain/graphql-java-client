@@ -19,12 +19,11 @@ public class InlineFragmentRenderer implements FieldSelector {
     private final QueryGenerator queryGenerator;
 
     @Override
-    public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, FragmentRenderer fragmentRenderer, Set<String> argumentCollector, List<FieldFilter> filters) {
+    public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, Set<String> argumentCollector, List<FieldFilter> filters) {
         return schema.getTypesImplementing(typeDefinition)
                 .map(interfac -> queryGenerator.generateFieldSelection(
                         interfac,
                         context.withType(new FieldDefinition(interfac, new TypeName(interfac))),
-                        fragmentRenderer,
                         argumentCollector,
                         filters
                 ))

@@ -10,7 +10,6 @@ public interface FieldSelector {
 
     Stream<String> selectFields(TypeDefinition<?> typeDefinition,
                                 QueryContext context,
-                                FragmentRenderer fragmentRenderer,
                                 Set<String> argumentCollector,
                                 List<FieldFilter> filters);
 

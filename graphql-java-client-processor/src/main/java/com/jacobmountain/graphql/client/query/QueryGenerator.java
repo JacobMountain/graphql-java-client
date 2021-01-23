@@ -23,6 +23,8 @@ public class QueryGenerator {
 
     private final Schema schema;
 
+    private FragmentRenderer fragmentRenderer;
+
     public QueryGenerator(Schema registry) {
         this.schema = registry;
     }
@@ -44,9 +46,9 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
-        final FragmentRenderer fr = new FragmentRenderer(schema, this, fragments);
+        fragmentRenderer = new FragmentRenderer(schema, this, fragments);
         final QueryContext root = new QueryContext(null, 0, definition, params);
-        String inner = generateFieldSelection(field, root, fr, args, filters)
+        String inner = generateFieldSelection(field, root, args, filters)
                 .orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
@@ -55,7 +57,7 @@ public class QueryGenerator {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(request, type, field) + collect + " { " + inner + " } " + fr.render();
+        return generateQueryName(request, type, field) + collect + " { " + inner + " } " + fragmentRenderer.render();
     }
 
     private String generateQueryName(String request, String type, String field) {
@@ -67,7 +69,6 @@ public class QueryGenerator {
 
     public Optional<String> generateFieldSelection(String alias,
                                                    QueryContext context,
-                                                   FragmentRenderer fr,
                                                    Set<String> argumentCollector,
                                                    List<FieldFilter> filters) {
         String type = Schema.unwrap(context.getFieldDefinition().getType());
@@ -82,32 +83,10 @@ public class QueryGenerator {
             return Optional.of(alias + args);
         }
 
-        return selectChildren(typeDefinition, context, fr, argumentCollector, filters)
-                .map(children -> alias + args + " " + children);
-    }
-
-    private Optional<String> selectChildren(TypeDefinition<?> typeDefinition,
-                                            QueryContext context,
-                                            FragmentRenderer fr,
-                                            Set<String> argumentCollector,
-                                            List<FieldFilter> filters) {
-        List<FieldSelector> selectors = Arrays.asList(
-                fr,
-                new DefaultFieldSelector(schema, this),
-                new InlineFragmentRenderer(schema, this)
-        );
-        final List<String> children = selectors.stream()
-                .flatMap(selector -> selector.selectFields(typeDefinition, context, fr, argumentCollector, filters))
-                .collect(Collectors.toList());
-        if (children.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(
-                "{ " +
-                        String.join(" ", children) +
-                        " __typename" +
-                        " }"
-        );
+        return new DelegatingFieldSelector(fragmentRenderer, schema, this)
+                .selectFields(typeDefinition, context, argumentCollector, filters)
+                .map(children -> alias + args + " " + children)
+                .findFirst();
     }
 
     public class QueryBuilder {

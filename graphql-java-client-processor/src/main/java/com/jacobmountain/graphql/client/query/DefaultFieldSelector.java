@@ -18,12 +18,11 @@ public class DefaultFieldSelector implements FieldSelector {
     private final QueryGenerator queryGenerator;
 
     @Override
-    public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, FragmentRenderer fragmentRenderer, Set<String> argumentCollector, List<FieldFilter> filters) {
+    public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, Set<String> argumentCollector, List<FieldFilter> filters) {
         return schema.getChildren(typeDefinition)
                 .map(definition -> queryGenerator.generateFieldSelection(
                         definition.getName(),
                         context.withType(definition).increment(),
-                        fragmentRenderer,
                         argumentCollector,
                         filters
                 ))
