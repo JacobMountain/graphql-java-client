@@ -23,7 +23,7 @@ class MaxDepthFieldFilterSpec extends Specification {
         where:
         maxDepth | depth
         2        | 1
-        3        | 2
+        2        | 2
         5        | 4
     }
 

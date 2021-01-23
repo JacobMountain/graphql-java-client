@@ -170,6 +170,11 @@ class QueryGeneratorSpec extends Specification {
                     friends {
                         id
                         name
+                        friends {
+                            id
+                            name
+                            __typename
+                        }
                         __typename
                     }
                     __typename

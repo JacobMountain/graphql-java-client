@@ -11,7 +11,7 @@ public class MaxDepthFieldFilter implements FieldFilter {
 
     @Override
     public boolean shouldAddField(QueryContext context) {
-        return context.getDepth() < maxDepth;
+        return context.getDepth() <= maxDepth;
     }
 
 }

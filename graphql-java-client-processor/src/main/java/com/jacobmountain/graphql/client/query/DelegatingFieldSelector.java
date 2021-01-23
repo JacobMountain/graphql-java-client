@@ -12,9 +12,9 @@ public class DelegatingFieldSelector implements FieldSelector {
 
     private final List<FieldSelector> selectors;
 
-    public DelegatingFieldSelector(FragmentRenderer fr, Schema schema, QueryGenerator queryGenerator) {
+    public DelegatingFieldSelector(FragmentRenderer fragmentRenderer, Schema schema, QueryGenerator queryGenerator) {
         this.selectors = Arrays.asList(
-                fr,
+                fragmentRenderer,
                 new DefaultFieldSelector(schema, queryGenerator),
                 new InlineFragmentRenderer(schema, queryGenerator)
         );
@@ -27,7 +27,7 @@ public class DelegatingFieldSelector implements FieldSelector {
                                        List<FieldFilter> filters) {
         return selectors.stream()
                 .flatMap(selector -> selector.selectFields(typeDefinition, context, argumentCollector, filters))
-                .reduce((a, b) -> a + " " + b)
+                .reduce((a, b) -> String.join(" ", a, b))
                 .map(children -> "{ " +
                         children +
                         " __typename" +
