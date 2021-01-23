@@ -20,6 +20,7 @@ public class DefaultFieldSelector implements FieldSelector {
     @Override
     public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, Set<String> argumentCollector, List<FieldFilter> filters) {
         return schema.getChildren(typeDefinition)
+                .filter(this::filter)
                 .map(definition -> queryGenerator.generateFieldSelection(
                         definition.getName(),
                         context.withType(definition).increment(),
@@ -30,5 +31,8 @@ public class DefaultFieldSelector implements FieldSelector {
                 .map(Optional::get);
     }
 
+    protected boolean filter(FieldDefinition fieldDefinition) {
+        return true;
+    }
 
 }
