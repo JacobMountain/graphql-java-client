@@ -77,6 +77,7 @@ public abstract class AbstractQueryStage extends AbstractStage {
                                 .collect(Collectors.toList())
                 )
                 .maxDepth(details.getMaxDepth())
+                .fragments(details.getFragments())
                 .build(request, details.getField(), params);
         return CodeBlock.of(
                 "(\"$L\", $L)", query, details.hasParameters() ? "args" : "null"

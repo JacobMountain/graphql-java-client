@@ -26,7 +26,10 @@ public interface StarWarsClient {
             @GraphQLField("id"),
             @GraphQLField("name")
     })
-    @GraphQLQuery(value = "hero")
+    @GraphQLQuery(value = "hero", select = {
+            @GraphQLField("id"),
+            @GraphQLField("name")
+    })
     com.jacobmountain.dto.Character getHeroSummary(String id);
 
     @GraphQLQuery("hero")
