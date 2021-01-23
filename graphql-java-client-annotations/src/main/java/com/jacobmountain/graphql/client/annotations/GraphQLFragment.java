@@ -1,7 +1,9 @@
 package com.jacobmountain.graphql.client.annotations;
 
-import java.lang.annotation.Repeatable;
+import java.lang.annotation.*;
 
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.SOURCE)
 @Repeatable(GraphQLFragments.class)
 public @interface GraphQLFragment {
 
