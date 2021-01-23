@@ -91,16 +91,8 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
     }
 
     private List<GraphQLFragment> getFragments(ExecutableElement e) {
-        final GraphQLFragments fragments = e.getAnnotation(GraphQLFragments.class);
-        if (fragments == null) {
-            final GraphQLFragment single = e.getAnnotation(GraphQLFragment.class);
-            if (single == null) {
-                return Collections.emptyList();
-            }
-            return singletonList(single);
-        } else {
-            return Arrays.asList(fragments.value());
-        }
+        final GraphQLFragment[] fragments = e.getAnnotationsByType(GraphQLFragment.class);
+        return Arrays.asList(fragments);
     }
 
     private List<Parameter> getParameters(ExecutableElement e, TypeMapper typeMapper, String root) {
