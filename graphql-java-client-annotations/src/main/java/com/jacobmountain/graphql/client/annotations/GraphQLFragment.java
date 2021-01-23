@@ -7,6 +7,8 @@ import java.lang.annotation.*;
 @Repeatable(GraphQLFragments.class)
 public @interface GraphQLFragment {
 
+    String name() default "";
+
     String type();
 
     GraphQLField[] select() default {};

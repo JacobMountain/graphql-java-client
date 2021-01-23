@@ -22,7 +22,7 @@ public interface StarWarsClient {
     @GraphQLQuery(value = "hero", name = "HeroSummary")
     com.jacobmountain.dto.Character getHero(@GraphQLArgument("hero") String id);
 
-    @GraphQLFragment(type = "Character", select = {
+    @GraphQLFragment(type = "Character", name = "HeroSummary", select = {
             @GraphQLField("id"),
             @GraphQLField("name")
     })

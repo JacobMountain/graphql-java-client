@@ -1,18 +1,13 @@
 package com.jacobmountain.graphql.client.query;
 
-import com.jacobmountain.graphql.client.annotations.GraphQLField;
 import com.jacobmountain.graphql.client.annotations.GraphQLFragment;
-import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
-import graphql.com.google.common.collect.Sets;
 import graphql.language.FieldDefinition;
-import graphql.language.Selection;
 import graphql.language.TypeDefinition;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,8 +29,12 @@ public class FragmentRenderer implements FieldSelector {
 
         public Fragment(GraphQLFragment annotation) {
             this.type = annotation.type();
-            this.name = StringUtils.camelCase(annotation.type());
-            this.selection = Stream.of(annotation.select()).map(GraphQLFieldSelection::new).collect(Collectors.toSet());
+            this.name = Optional.of(annotation.name())
+                    .filter(StringUtils::hasLength)
+                    .orElseGet(() -> StringUtils.camelCase(annotation.type()));
+            this.selection = Stream.of(annotation.select())
+                    .map(GraphQLFieldSelection::new)
+                    .collect(Collectors.toSet());
         }
     }
 
