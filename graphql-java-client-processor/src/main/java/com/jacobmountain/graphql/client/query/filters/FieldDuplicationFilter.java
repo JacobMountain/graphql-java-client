@@ -1,6 +1,5 @@
 package com.jacobmountain.graphql.client.query.filters;
 
-import com.jacobmountain.graphql.client.query.FieldFilter;
 import com.jacobmountain.graphql.client.query.QueryContext;
 import com.jacobmountain.graphql.client.utils.Schema;
 import lombok.extern.slf4j.Slf4j;

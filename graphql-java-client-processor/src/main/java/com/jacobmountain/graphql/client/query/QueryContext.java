@@ -19,11 +19,11 @@ public class QueryContext {
 
     Set<String> params;
 
-    QueryContext increment() {
+    public QueryContext increment() {
         return new QueryContext(this, depth + 1, fieldDefinition, params);
     }
 
-    QueryContext withType(FieldDefinition fieldDefinition) {
+    public QueryContext withType(FieldDefinition fieldDefinition) {
         return new QueryContext(parent, depth, fieldDefinition, params);
     }
 

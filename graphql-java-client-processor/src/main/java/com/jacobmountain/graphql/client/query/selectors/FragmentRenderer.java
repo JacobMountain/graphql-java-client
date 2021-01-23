@@ -1,6 +1,9 @@
-package com.jacobmountain.graphql.client.query;
+package com.jacobmountain.graphql.client.query.selectors;
 
 import com.jacobmountain.graphql.client.annotations.GraphQLFragment;
+import com.jacobmountain.graphql.client.query.filters.FieldFilter;
+import com.jacobmountain.graphql.client.query.QueryContext;
+import com.jacobmountain.graphql.client.query.QueryGenerator;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;

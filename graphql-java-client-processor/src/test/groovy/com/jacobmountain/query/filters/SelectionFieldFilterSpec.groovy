@@ -1,6 +1,6 @@
 package com.jacobmountain.query.filters
 
-import com.jacobmountain.graphql.client.query.FieldFilter
+import com.jacobmountain.graphql.client.query.filters.FieldFilter
 import com.jacobmountain.graphql.client.query.QueryContext
 import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter
 import com.jacobmountain.graphql.client.utils.Schema
