@@ -58,12 +58,12 @@ public class ReactiveQueryStage extends AbstractQueryStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(MethodDetails details) {
-        String member = details.isSubscription() ? "subscriber" : "fetcher";
+    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+        String member = method.isSubscription() ? "subscriber" : "fetcher";
         return Collections.singletonList(
                 CodeBlock.builder()
-                        .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Publisher.class), getReturnTypeName(details)))
-                        .add("$L.$L", member, getMethod(details)).add(generateQueryCode(details.getRequestName(), details))
+                        .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Publisher.class), getReturnTypeName(method)))
+                        .add("$L.$L", member, getMethod(method)).add(generateQueryCode(method.getRequestName(), client, method))
                         .build()
         );
     }
