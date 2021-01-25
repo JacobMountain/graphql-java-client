@@ -60,8 +60,8 @@ public class FragmentRenderer implements FieldSelector {
         final Optional<String> children = new DelegatingFieldSelector(schema, queryGenerator)
                 .selectFields(typeDefinition, context, argumentCollector, filters)
                 .findFirst();
-        generated.computeIfAbsent(fragment.type, a -> "fragment " + fragment.name + " on " + fragment.type + " " + children.orElse(""));
         if (children.isPresent()) {
+            generated.computeIfAbsent(fragment.type, a -> "fragment " + fragment.name + " on " + fragment.type + " " + children.get());
             return Stream.of("..." + fragment.name);
         }
         return Stream.empty();
