@@ -50,21 +50,6 @@ public class FragmentRenderer implements FieldSelector {
                 .collect(Collectors.toMap(GraphQLFragment::type, Fragment::new));
     }
 
-    static class DelegateFieldSelector extends DefaultFieldSelector {
-
-        private final Set<GraphQLFieldSelection> selection;
-
-        public DelegateFieldSelector(Schema schema, QueryGenerator queryGenerator, Set<GraphQLFieldSelection> selection) {
-            super(schema, queryGenerator);
-            this.selection = selection;
-        }
-
-        @Override
-        protected boolean filter(FieldDefinition fieldDefinition) {
-            return selection.contains(new GraphQLFieldSelection(fieldDefinition.getName()));
-        }
-    }
-
     @Override
     public Stream<String> selectFields(TypeDefinition<?> typeDefinition, QueryContext context, Set<String> argumentCollector, List<FieldFilter> filters) {
         final String type = Schema.unwrap(context.getFieldDefinition().getType());
@@ -72,11 +57,11 @@ public class FragmentRenderer implements FieldSelector {
         if (fragment == null) {
             return Stream.empty();
         }
-        final List<String> children = new DelegateFieldSelector(schema, queryGenerator, fragment.selection)
+        final Optional<String> children = new DelegatingFieldSelector(schema, queryGenerator)
                 .selectFields(typeDefinition, context, argumentCollector, filters)
-                .collect(Collectors.toList());
-        generated.computeIfAbsent(fragment.type, a -> "fragment " + fragment.name + " on " + fragment.type + " { " + String.join(" ", children) + " }");
-        if (children.size() > 0) {
+                .findFirst();
+        generated.computeIfAbsent(fragment.type, a -> "fragment " + fragment.name + " on " + fragment.type + " " + children.orElse(""));
+        if (children.isPresent()) {
             return Stream.of("..." + fragment.name);
         }
         return Stream.empty();
