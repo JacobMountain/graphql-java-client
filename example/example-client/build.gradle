@@ -22,8 +22,7 @@ dependencies {
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.4.2'
     testImplementation group: 'org.spockframework', name: 'spock-spring', version: '2.0-M3-groovy-2.5'
     testImplementation 'org.awaitility:awaitility-groovy:4.0.3'
-
-    testImplementation 'org.mapstruct:mapstruct:1.4.1.Final'
+    testImplementation 'org.mapstruct:mapstruct:1.4.2.Final'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
 }
 
