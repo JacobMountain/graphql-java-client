@@ -24,7 +24,7 @@ dependencies {
     testImplementation 'org.awaitility:awaitility-groovy:4.0.3'
 
     testImplementation 'org.mapstruct:mapstruct:1.4.1.Final'
-    testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.4.1.Final'
+    testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
 }
 
 bootJar {
