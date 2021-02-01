@@ -10,23 +10,19 @@ import com.jacobmountain.graphql.client.annotations.*;
 import java.util.List;
 import java.util.Optional;
 
-
 @GraphQLClient(
         schema = "Schema.gql",
         nullChecking = true
 )
 public interface StarWarsClient {
 
+    @GraphQLFragment(type = "Character", name = "Hero")
     @GraphQLQuery(value = "hero", name = "HeroByEpisode")
     com.jacobmountain.dto.Character getHero(Episode episode, int first, String after, LengthUnit unit);
 
-    @GraphQLQuery(value = "hero", name = "HeroSummary")
+    @GraphQLQuery(value = "hero", name = "HeroSummary", maxDepth = 6)
     com.jacobmountain.dto.Character getHero(@GraphQLArgument("hero") String id);
 
-    @GraphQLFragment(type = "Character", name = "HeroSummary", select = {
-            @GraphQLField("id"),
-            @GraphQLField("name")
-    })
     @GraphQLQuery(value = "hero", select = {
             @GraphQLField("id"),
             @GraphQLField("name")

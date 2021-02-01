@@ -1,9 +1,9 @@
 package com.jacobmountain.graphql.client.query;
 
-import com.jacobmountain.graphql.client.annotations.GraphQLFragment;
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.*;
 import com.jacobmountain.graphql.client.query.selectors.DelegatingFieldSelector;
+import com.jacobmountain.graphql.client.query.selectors.Fragment;
 import com.jacobmountain.graphql.client.query.selectors.FragmentRenderer;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
@@ -37,13 +37,13 @@ public class QueryGenerator {
         return new QueryBuilder("subscription");
     }
 
-    private String doGenerateQuery(String request, String field, String type, List<GraphQLFragment> fragments, Set<String> params, List<FieldFilter> filters) {
+    private String doGenerateQuery(String request, String field, String type, List<Fragment> fragments, Set<String> params, List<FieldFilter> filters) {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
 
         fragmentRenderer = new FragmentRenderer(schema, this, fragments);
-        final QueryContext root = new QueryContext(null, 0, definition, params);
+        final QueryContext root = new QueryContext(null, definition.getType(), 0, definition, params);
         String inner = generateFieldSelection(field, root, args, filters)
                 .orElseThrow(RuntimeException::new);
 
@@ -91,7 +91,7 @@ public class QueryGenerator {
 
         private final List<FieldFilter> filters = new ArrayList<>();
 
-        private List<GraphQLFragment> fragments = new ArrayList<>();
+        private List<Fragment> fragments = new ArrayList<>();
 
         QueryBuilder(String type) {
             this.type = type;
@@ -107,7 +107,7 @@ public class QueryGenerator {
             return this;
         }
 
-        public QueryBuilder fragments(List<GraphQLFragment> fragments) {
+        public QueryBuilder fragments(List<Fragment> fragments) {
             this.fragments = fragments;
             return this;
         }

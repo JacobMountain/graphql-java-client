@@ -25,7 +25,7 @@ public class FieldDuplicationFilter implements FieldFilter {
             path.add(0, parent.getFieldDefinition().getName());
             parent = parent.getParent();
         }
-        path.set(path.size() - 1, Schema.unwrap(context.getFieldDefinition().getType()));
+        path.set(path.size() - 1, Schema.unwrap(context.getType()));
         return String.join(".", path);
     }
 

@@ -4,6 +4,7 @@ import com.jacobmountain.graphql.client.TypeMapper;
 import com.jacobmountain.graphql.client.annotations.GraphQLFragment;
 import com.jacobmountain.graphql.client.dto.Response;
 import com.jacobmountain.graphql.client.query.QueryGenerator;
+import com.jacobmountain.graphql.client.query.selectors.Fragment;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
@@ -70,8 +71,7 @@ public abstract class AbstractQueryStage extends AbstractStage {
         } else {
             throw new RuntimeException("");
         }
-        List<GraphQLFragment> fragments = new ArrayList<>(client.getFragments());
-        fragments.addAll(details.getFragments());
+
         String query = builder
                 .select(
                         details.getSelection()
@@ -80,11 +80,22 @@ public abstract class AbstractQueryStage extends AbstractStage {
                                 .collect(Collectors.toList())
                 )
                 .maxDepth(details.getMaxDepth())
-                .fragments(fragments)
+                .fragments(getFragments(client, details))
                 .build(request, details.getField(), params);
         return CodeBlock.of(
                 "(\"$L\", $L)", query, details.hasParameters() ? "args" : "null"
         );
+    }
+
+    private List<Fragment> getFragments(ClientDetails client, MethodDetails details) {
+        List<Fragment> fragments = new ArrayList<>();
+        for (GraphQLFragment f : client.getFragments()) {
+            fragments.add(new Fragment(f));
+        }
+        for (GraphQLFragment f : details.getFragments()) {
+            fragments.add(new Fragment(f));
+        }
+        return fragments;
     }
 
 }
