@@ -22,8 +22,12 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @AutoService(Processor.class)
@@ -54,21 +58,32 @@ public class GraphQLClientProcessor extends AbstractProcessor {
                 return true;
             }
         }
-        return elements.stream()
+        final List<Input> interfaces = elements.stream()
                 .map(el -> (TypeElement) el)
                 .map(Input::new)
-                .peek(this.generateJavaDataClasses())
+                .collect(toList());
+        interfaces.stream()
+                .filter(new OncePerSchemaPredicate())
+                .forEach(this::generateJavaDataClasses);
+        return interfaces.stream()
                 .peek(this::generateClientImplementation)
                 .count() > 0;
     }
 
-    private Consumer<Input> generateJavaDataClasses() {
-        return input -> {
-            log.info("Generating java classes from GraphQL schema");
-            DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
-            dtoGenerator.generate(input.getSchema().types().values());
-            dtoGenerator.generateArgumentDTOs(input.element);
-        };
+    private static class OncePerSchemaPredicate implements Predicate<Input> {
+        private final Set<String> schemas = new HashSet<>();
+
+        @Override
+        public boolean test(Input input) {
+            return schemas.add(input.getAnnotation().schema());
+        }
+    }
+
+    private void generateJavaDataClasses(Input client) {
+        log.info("Generating java classes from GraphQL schema");
+        new DTOGenerator(client.getDtoPackage(), new FileWriter(this.filer), client.getTypeMapper())
+                .generate(client.getSchema().types().values());
+        ;
     }
 
     private void generateClientImplementation(Input client) {
