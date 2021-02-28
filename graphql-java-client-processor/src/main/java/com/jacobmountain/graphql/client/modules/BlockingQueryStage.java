@@ -49,12 +49,12 @@ public class BlockingQueryStage extends AbstractQueryStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(MethodDetails details) {
-        ObjectTypeDefinition query = getTypeDefinition(details);
+    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+        ObjectTypeDefinition query = getTypeDefinition(method);
         return Collections.singletonList(
                 CodeBlock.builder()
                         .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Response.class), typeMapper.getType(query.getName()), TypeVariableName.get("Error")))
-                        .add("fetcher.$L", getMethod(details)).add(generateQueryCode(details.getRequestName(), details))
+                        .add("fetcher.$L", getMethod(method)).add(generateQueryCode(method.getRequestName(), client, method))
                         .build()
         );
     }

@@ -156,7 +156,7 @@ class QueryGeneratorSpec extends Specification {
         }
         """)
         when:
-        def result = generator.query().maxDepth(3).build(null, "friend", [] as Set)
+        def result = generator.query().maxDepth(4).build(null, "friend", [] as Set)
 
         then:
         assertQueriesAreEqual("""
@@ -170,6 +170,11 @@ class QueryGeneratorSpec extends Specification {
                     friends {
                         id
                         name
+                        friends {
+                            id
+                            name
+                            __typename
+                        }
                         __typename
                     }
                     __typename

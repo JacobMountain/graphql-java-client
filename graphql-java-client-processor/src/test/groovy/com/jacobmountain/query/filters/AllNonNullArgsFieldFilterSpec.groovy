@@ -5,8 +5,6 @@ import com.jacobmountain.graphql.client.query.filters.AllNonNullArgsFieldFilter
 import com.jacobmountain.graphql.client.utils.Schema
 import spock.lang.Specification
 
-import static java.util.Collections.emptySet
-
 class AllNonNullArgsFieldFilterSpec extends Specification {
 
     QueryContext contextWithField(String field, Collection<String> params) {
@@ -19,7 +17,7 @@ class AllNonNullArgsFieldFilterSpec extends Specification {
         }
         """).findField("field")
                 .orElse(null)
-        new QueryContext(null, 0, fieldDef, new HashSet<String>(params))
+        new QueryContext(null, 0, fieldDef, new HashSet<String>(params), new HashSet<String>())
     }
 
     def "We can filter fields based upon whether or not we can supply all of their non-null arguments"() {

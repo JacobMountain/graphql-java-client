@@ -22,21 +22,21 @@ public class ReactiveReturnStage extends AbstractStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(MethodDetails details) {
-        ObjectTypeDefinition typeDefinition = getTypeDefinition(details);
+    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+        ObjectTypeDefinition typeDefinition = getTypeDefinition(method);
         List<CodeBlock> ret = new ArrayList<>(
                 Arrays.asList(
-                        CodeBlock.of("return $T.from(thing)", details.isSubscription() ? Flux.class : Mono.class),
+                        CodeBlock.of("return $T.from(thing)", method.isSubscription() ? Flux.class : Mono.class),
                         CodeBlock.of("map($T::getData)", ClassName.get(Response.class)),
-                        CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", details.getField()))
+                        CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", method.getField()))
                 )
         );
-        if (!returnsPublisher(details)) {
+        if (!returnsPublisher(method)) {
             ret.add(CodeBlock.of("blockOptional()"));
-            if (!returnsOptional(details)) {
+            if (!returnsOptional(method)) {
                 ret.add(CodeBlock.of("orElse(null)"));
             }
-        } else if (returnsClass(details, Flux.class) && !details.isSubscription()) {
+        } else if (returnsClass(method, Flux.class) && !method.isSubscription()) {
             ret.add(CodeBlock.of("flatMapIterable($T.identity())", Function.class));
         }
         return Collections.singletonList(CodeBlock.join(ret, "\n\t."));

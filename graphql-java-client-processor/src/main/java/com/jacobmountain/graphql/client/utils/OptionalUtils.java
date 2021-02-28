@@ -5,6 +5,7 @@ import lombok.experimental.UtilityClass;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @UtilityClass
 public class OptionalUtils {
@@ -19,6 +20,11 @@ public class OptionalUtils {
         }
         Optional<T> head = later[0].get();
         return first(head, Arrays.copyOfRange(later, 1, later.length));
+    }
+
+    public <T> Stream<T> toStream(Optional<T> optional) {
+        return optional.map(Stream::of)
+                .orElseGet(Stream::empty);
     }
 
 }

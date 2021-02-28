@@ -79,11 +79,10 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         }
     }
 
-    private void generateJavaDataClasses(Input client) {
+    private void generateJavaDataClasses(Input input) {
         log.info("Generating java classes from GraphQL schema");
-        new DTOGenerator(client.getDtoPackage(), new FileWriter(this.filer), client.getTypeMapper())
-                .generate(client.getSchema().types().values());
-        ;
+        DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
+        dtoGenerator.generate(input.getSchema().types().values());
     }
 
     private void generateClientImplementation(Input client) {

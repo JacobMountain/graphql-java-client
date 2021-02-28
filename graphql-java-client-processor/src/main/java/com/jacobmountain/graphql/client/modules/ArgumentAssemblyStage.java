@@ -23,15 +23,15 @@ public class ArgumentAssemblyStage extends AbstractStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(MethodDetails details) {
-        List<Parameter> parameters = details.getParameters();
+    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+        List<Parameter> parameters = method.getParameters();
         if (parameters.isEmpty()) {
             return Collections.emptyList();
         }
         List<CodeBlock> ret = new ArrayList<>();
-        TypeName type = ClassName.bestGuess(details.getArgumentClassname());
+        TypeName type = ClassName.bestGuess(method.getArgumentClassname());
         ret.add(CodeBlock.of("$T args = new $T()", type, type));
-        details.getParameters()
+        method.getParameters()
                 .stream()
                 .map(this::setArgumentField)
                 .forEach(ret::add);
