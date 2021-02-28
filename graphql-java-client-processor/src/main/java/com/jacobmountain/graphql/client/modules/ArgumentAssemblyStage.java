@@ -15,11 +15,8 @@ import java.util.Objects;
 
 public class ArgumentAssemblyStage extends AbstractStage {
 
-    private final String dtoPackageName;
-
-    public ArgumentAssemblyStage(String dtoPackageName) {
+    public ArgumentAssemblyStage() {
         super(null, null);
-        this.dtoPackageName = dtoPackageName;
     }
 
     @Override
@@ -29,7 +26,7 @@ public class ArgumentAssemblyStage extends AbstractStage {
             return Collections.emptyList();
         }
         List<CodeBlock> ret = new ArrayList<>();
-        TypeName type = ClassName.get(dtoPackageName, method.getArgumentClassname());
+        TypeName type = ClassName.bestGuess(method.getArgumentClassname());
         ret.add(CodeBlock.of("$T args = new $T()", type, type));
         method.getParameters()
                 .stream()

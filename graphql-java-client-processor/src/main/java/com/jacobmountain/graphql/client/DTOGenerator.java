@@ -1,15 +1,11 @@
 package com.jacobmountain.graphql.client;
 
-import com.jacobmountain.graphql.client.visitor.MethodDetails;
-import com.jacobmountain.graphql.client.visitor.MethodDetailsVisitor;
 import graphql.language.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.lang.model.element.Element;
 import java.util.*;
-import java.util.function.Predicate;
 
 @Slf4j
 public class DTOGenerator {
@@ -42,41 +38,6 @@ public class DTOGenerator {
             this.types.get(impl.superType).withSubType(impl.subtype);
         });
         this.types.values().forEach(filer::write);
-    }
-
-    public void generateArgumentDTOs(Element client) {
-        client.getEnclosedElements()
-                .stream()
-                .map(method -> method.accept(new MethodDetailsVisitor(null), typeMapper))
-                .filter(MethodDetails::hasParameters) // don't generate argument classes for methods without args
-                .map(details -> {
-                    String name = details.getArgumentClassname();
-                    PojoBuilder builder = PojoBuilder.newType(name, packageName);
-                    details.getParameters()
-                            .forEach(variable -> {
-                                String field = variable.getName();
-                                if (variable.getAnnotation() != null) {
-                                    field = variable.getAnnotation().value();
-                                }
-                                builder.withField(variable.getType(), field);
-                            });
-                    return builder;
-                })
-                .filter(detectArgumentNameCollisions())
-                .peek(PojoBuilder::finalise)
-                .forEach(filer::write);
-    }
-
-    private Predicate<PojoBuilder> detectArgumentNameCollisions() {
-        Set<String> names = new HashSet<>();
-        return builder -> {
-            String fqdn = builder.getFQDN();
-            boolean collision = !names.add(fqdn);
-            if (collision) {
-                log.error("Argument class name collision detected: {}", fqdn);
-            }
-            return !collision;
-        };
     }
 
     private void generateDTO(TypeDefinition<?> td) {

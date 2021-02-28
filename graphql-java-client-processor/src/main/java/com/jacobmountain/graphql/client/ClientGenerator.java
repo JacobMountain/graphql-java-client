@@ -18,6 +18,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,7 +48,7 @@ public class ClientGenerator {
         this.typeMapper = typeMapper;
         this.packageName = packageName;
         this.schema = schema;
-        this.arguments = new ArgumentAssemblyStage(dtoPackageName);
+        this.arguments = new ArgumentAssemblyStage();
         if (reactive) {
             this.query = new ReactiveQueryStage(schema, typeMapper, dtoPackageName);
             this.returnResults = new ReactiveReturnStage(schema, typeMapper);
@@ -90,9 +91,7 @@ public class ClientGenerator {
 
         // for each method on the interface, generate its implementation
         element.getEnclosedElements()
-                .stream()
-                .map(el -> generateImpl(el, details))
-                .forEach(builder::addMethod);
+                .forEach(el -> generateImpl(builder, el, details));
 
         writeToFile(builder.build());
     }
@@ -113,12 +112,14 @@ public class ClientGenerator {
      * Generates the client implementation of one method of the interface
      *
      * @param method the method of the @GraphQLClient annotated interface
-     * @return a method spec to add to the implementation
      */
-    private MethodSpec generateImpl(Element method, ClientDetails client) {
+    private void generateImpl(TypeSpec.Builder clazz, Element method, ClientDetails client) {
         log.info("");
         MethodDetails details = method.accept(new MethodDetailsVisitor(schema), typeMapper);
         log.info("{}", details);
+
+        generateArgumentDTO(details)
+                .ifPresent(clazz::addType);
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .returns(details.getReturnType())
@@ -129,7 +130,25 @@ public class ClientGenerator {
         this.query.assemble(client, details).forEach(builder::addStatement);
         this.returnResults.assemble(client, details).forEach(builder::addStatement);
 
-        return builder.build();
+        clazz.addMethod(builder.build());
+    }
+
+    public Optional<TypeSpec> generateArgumentDTO(MethodDetails details) {
+        return Optional.of(details)
+                .filter(MethodDetails::hasParameters)
+                .map(it -> {
+                    String name = details.getArgumentClassname();
+                    PojoBuilder builder = PojoBuilder.newType(name, packageName).staTic();
+                    details.getParameters()
+                            .forEach(variable -> {
+                                String field = variable.getName();
+                                if (variable.getAnnotation() != null) {
+                                    field = variable.getAnnotation().value();
+                                }
+                                builder.withField(variable.getType(), field);
+                            });
+                    return builder.buildClass();
+                });
     }
 
     private void writeToFile(TypeSpec spec) throws Exception {
