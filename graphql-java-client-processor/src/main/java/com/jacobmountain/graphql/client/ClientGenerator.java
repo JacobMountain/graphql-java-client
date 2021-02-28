@@ -91,7 +91,7 @@ public class ClientGenerator {
         // for each method on the interface, generate its implementation
         element.getEnclosedElements()
                 .stream()
-                .map(this::generateImpl)
+                .map(el -> generateImpl(el, details))
                 .forEach(builder::addMethod);
 
         writeToFile(builder.build());
@@ -115,7 +115,7 @@ public class ClientGenerator {
      * @param method the method of the @GraphQLClient annotated interface
      * @return a method spec to add to the implementation
      */
-    private MethodSpec generateImpl(Element method) {
+    private MethodSpec generateImpl(Element method, ClientDetails client) {
         log.info("");
         MethodDetails details = method.accept(new MethodDetailsVisitor(schema), typeMapper);
         log.info("{}", details);
@@ -125,9 +125,9 @@ public class ClientGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .addParameters(details.getParameterSpec());
 
-        this.arguments.assemble(details).forEach(builder::addStatement);
-        this.query.assemble(details).forEach(builder::addStatement);
-        this.returnResults.assemble(details).forEach(builder::addStatement);
+        this.arguments.assemble(client, details).forEach(builder::addStatement);
+        this.query.assemble(client, details).forEach(builder::addStatement);
+        this.returnResults.assemble(client, details).forEach(builder::addStatement);
 
         return builder.build();
     }

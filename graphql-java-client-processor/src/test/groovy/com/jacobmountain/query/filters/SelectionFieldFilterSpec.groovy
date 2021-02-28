@@ -1,7 +1,7 @@
 package com.jacobmountain.query.filters
 
-import com.jacobmountain.graphql.client.query.FieldFilter
 import com.jacobmountain.graphql.client.query.QueryContext
+import com.jacobmountain.graphql.client.query.filters.FieldFilter
 import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter
 import com.jacobmountain.graphql.client.utils.Schema
 import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection
@@ -21,7 +21,7 @@ class SelectionFieldFilterSpec extends Specification {
         }
         """).findField(field)
                 .orElse(null)
-        new QueryContext(null, 1, fieldDef, emptySet())
+        new QueryContext(null, 1, fieldDef, emptySet(), emptySet())
     }
 
     def "We can select which fields are selected"() {

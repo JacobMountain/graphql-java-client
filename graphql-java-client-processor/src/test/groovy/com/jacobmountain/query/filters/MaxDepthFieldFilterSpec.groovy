@@ -1,7 +1,7 @@
 package com.jacobmountain.query.filters
 
-import com.jacobmountain.graphql.client.query.FieldFilter
 import com.jacobmountain.graphql.client.query.QueryContext
+import com.jacobmountain.graphql.client.query.filters.FieldFilter
 import com.jacobmountain.graphql.client.query.filters.MaxDepthFieldFilter
 import spock.lang.Specification
 
@@ -10,7 +10,7 @@ import static java.util.Collections.emptySet
 class MaxDepthFieldFilterSpec extends Specification {
 
     static QueryContext newContextWithDepth(int depth) {
-        new QueryContext(null, depth, null, emptySet())
+        new QueryContext(null, depth, null, emptySet(), emptySet())
     }
 
     def "Max depth filter doesn't filter out fields under it's max depth"() {

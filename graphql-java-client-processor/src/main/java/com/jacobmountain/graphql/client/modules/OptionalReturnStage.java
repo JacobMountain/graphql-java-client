@@ -19,17 +19,17 @@ public class OptionalReturnStage extends AbstractStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(MethodDetails details) {
-        ObjectTypeDefinition typeDefinition = getTypeDefinition(details);
+    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+        ObjectTypeDefinition typeDefinition = getTypeDefinition(method);
         List<CodeBlock> ret = new ArrayList<>(
                 Arrays.asList(
                         CodeBlock.of("return $T.ofNullable(thing)", Optional.class),
                         CodeBlock.of("map($T::getData)", ClassName.get(Response.class)),
-                        CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", details.getField()))
+                        CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", method.getField()))
                 )
         );
 
-        if (!returnsOptional(details)) {
+        if (!returnsOptional(method)) {
             ret.add(CodeBlock.of("orElse(null)"));
         }
         return Collections.singletonList(CodeBlock.join(ret, "\n\t."));
