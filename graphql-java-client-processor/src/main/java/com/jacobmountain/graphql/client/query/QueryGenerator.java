@@ -1,14 +1,14 @@
 package com.jacobmountain.graphql.client.query;
 
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
-import com.jacobmountain.graphql.client.query.filters.AllNonNullArgsFieldFilter;
-import com.jacobmountain.graphql.client.query.filters.FieldDuplicationFilter;
-import com.jacobmountain.graphql.client.query.filters.MaxDepthFieldFilter;
-import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter;
+import com.jacobmountain.graphql.client.query.filters.*;
+import com.jacobmountain.graphql.client.query.selectors.DefaultFieldSelector;
+import com.jacobmountain.graphql.client.query.selectors.DelegatingFieldSelector;
+import com.jacobmountain.graphql.client.query.selectors.Fragment;
+import com.jacobmountain.graphql.client.query.selectors.InlineFragmentRenderer;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
-import graphql.com.google.common.collect.Streams;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,12 +36,14 @@ public class QueryGenerator {
         return new QueryBuilder("subscription");
     }
 
-    private String doGenerateQuery(String request, String field, String type, Set<String> params, List<FieldFilter> filters) {
+    private String doGenerateQuery(String request, String field, String type, List<Fragment> fragments, Set<String> params, List<FieldFilter> filters) {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
 
-        String inner = generateQueryRec(field, new QueryContext(null, 0, definition, params), args, filters).orElseThrow(RuntimeException::new);
+        final QueryContext root = new QueryContext(null, definition.getType(), 0, definition, params);
+        String inner = generateFieldSelection(field, root, args, filters)
+                .orElseThrow(RuntimeException::new);
 
         String collect = String.join(", ", args);
 
@@ -59,10 +61,10 @@ public class QueryGenerator {
         return type + " " + request;
     }
 
-    private Optional<String> generateQueryRec(String alias,
-                                              QueryContext context,
-                                              Set<String> argumentCollector,
-                                              List<FieldFilter> filters) {
+    public Optional<String> generateFieldSelection(String alias,
+                                                   QueryContext context,
+                                                   Set<String> argumentCollector,
+                                                   List<FieldFilter> filters) {
         String type = Schema.unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
@@ -75,37 +77,13 @@ public class QueryGenerator {
             return Optional.of(alias + args);
         }
 
-        List<String> children = Streams.concat(
-                schema.getChildren(typeDefinition)
-                        .map(definition -> generateQueryRec(
-                                definition.getName(),
-                                context.withType(definition).increment(),
-                                argumentCollector,
-                                filters
-                        ))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get),
-                schema.getTypesImplementing(typeDefinition)
-                        .map(interfac -> generateQueryRec(
-                                interfac,
-                                context.withType(new FieldDefinition(interfac, new TypeName(interfac))),
-                                argumentCollector,
-                                filters
-                        ))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .map(query -> "... on " + query)
-        ).collect(Collectors.toList());
-
-        if (children.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(
-                alias + args + " { " +
-                        String.join(" ", children) +
-                        " __typename" +
-                        " }"
-        );
+        return new DelegatingFieldSelector(
+                new DefaultFieldSelector(schema, this),
+                new InlineFragmentRenderer(schema, this)
+        )
+                .selectFields(typeDefinition, context, argumentCollector, filters)
+                .map(children -> alias + args + " " + children)
+                .findFirst();
     }
 
     public class QueryBuilder {
@@ -113,6 +91,8 @@ public class QueryGenerator {
         private final String type;
 
         private final List<FieldFilter> filters = new ArrayList<>();
+
+        private List<Fragment> fragments = new ArrayList<>();
 
         QueryBuilder(String type) {
             this.type = type;
@@ -128,12 +108,16 @@ public class QueryGenerator {
             return this;
         }
 
+        public QueryBuilder fragments(List<Fragment> fragments) {
+            this.fragments = fragments;
+            return this;
+        }
+
         public String build(String request, String field, Set<String> params) {
             this.filters.add(new AllNonNullArgsFieldFilter());
             this.filters.add(new FieldDuplicationFilter());
-            return doGenerateQuery(request, field, type, params, filters);
+            return doGenerateQuery(request, field, type, fragments, params, filters);
         }
-
     }
 
     private String generateFieldArgs(FieldDefinition field, Set<String> params, Set<String> argsCollector) {

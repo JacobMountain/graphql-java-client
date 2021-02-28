@@ -28,7 +28,7 @@ public abstract class AbstractStage {
         return Collections.emptyList();
     }
 
-    public List<CodeBlock> assemble(MethodDetails details) {
+    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
         return Collections.emptyList();
     }
 

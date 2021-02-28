@@ -1,6 +1,7 @@
 package com.jacobmountain.graphql.client.visitor;
 
 import com.jacobmountain.graphql.client.annotations.GraphQLField;
+import com.jacobmountain.graphql.client.annotations.GraphQLFragment;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterSpec;
@@ -45,6 +46,8 @@ public class MethodDetails {
     @Getter
     private final int maxDepth;
 
+    @Getter
+    private final List<GraphQLFragment> fragments;
 
     public boolean hasParameters() {
         return !parameters.isEmpty();

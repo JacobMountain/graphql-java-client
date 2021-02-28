@@ -1,6 +1,7 @@
 package com.jacobmountain.graphql.client.query;
 
 import graphql.language.FieldDefinition;
+import graphql.language.Type;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
@@ -13,18 +14,20 @@ public class QueryContext {
 
     QueryContext parent;
 
+    Type<?> type;
+
     int depth;
 
     FieldDefinition fieldDefinition;
 
     Set<String> params;
 
-    QueryContext increment() {
-        return new QueryContext(this, depth + 1, fieldDefinition, params);
+    public QueryContext increment() {
+        return new QueryContext(this, type, depth + 1, fieldDefinition, params);
     }
 
-    QueryContext withType(FieldDefinition fieldDefinition) {
-        return new QueryContext(parent, depth, fieldDefinition, params);
+    public QueryContext withType(FieldDefinition fieldDefinition) {
+        return new QueryContext(parent, this.fieldDefinition.getType(), depth, fieldDefinition, params);
     }
 
 }
