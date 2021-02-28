@@ -38,7 +38,7 @@ public class QueryGenerator {
     private String doGenerateQuery(String request, String field, String type, Set<String> params, List<FieldFilter> filters) {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
-        final QueryContext root = new QueryContext(null, 0, definition, params);
+        final QueryContext root = new QueryContext(null, 0, definition, params, new HashSet<>());
         String inner = generateFieldSelection(field, root, filters)
                 .orElseThrow(RuntimeException::new);
 

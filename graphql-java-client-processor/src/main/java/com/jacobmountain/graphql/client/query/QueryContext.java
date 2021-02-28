@@ -5,7 +5,6 @@ import graphql.language.Type;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Value
@@ -20,14 +19,14 @@ public class QueryContext {
 
     Set<String> params;
 
-    Set<String> args = new HashSet<>();
+    Set<String> args;
 
     public QueryContext increment() {
-        return new QueryContext(this, depth + 1, fieldDefinition, params);
+        return new QueryContext(this, depth + 1, fieldDefinition, params, args);
     }
 
     public QueryContext withType(FieldDefinition fieldDefinition) {
-        return new QueryContext(parent, depth, fieldDefinition, params);
+        return new QueryContext(parent, depth, fieldDefinition, params, args);
     }
 
     public Type<?> getType() {
