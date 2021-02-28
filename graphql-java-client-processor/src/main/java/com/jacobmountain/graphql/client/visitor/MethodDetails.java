@@ -45,7 +45,6 @@ public class MethodDetails {
     @Getter
     private final int maxDepth;
 
-
     public boolean hasParameters() {
         return !parameters.isEmpty();
     }

@@ -53,12 +53,11 @@ public abstract class AbstractQueryStage extends AbstractStage {
         return method;
     }
 
-    protected CodeBlock generateQueryCode(String request, MethodDetails details) {
+    protected CodeBlock generateQueryCode(String request, ClientDetails client, MethodDetails details) {
         Set<String> params = details.getParameters()
                 .stream()
                 .map(Parameter::getField)
                 .collect(Collectors.toSet());
-        queryGenerator.query();
         QueryGenerator.QueryBuilder builder;
         if (details.isQuery()) {
             builder = queryGenerator.query();
@@ -69,6 +68,7 @@ public abstract class AbstractQueryStage extends AbstractStage {
         } else {
             throw new RuntimeException("");
         }
+
         String query = builder
                 .select(
                         details.getSelection()

@@ -19,13 +19,13 @@ public interface StarWarsClient {
     @GraphQLQuery(value = "hero", name = "HeroByEpisode")
     com.jacobmountain.dto.Character getHero(Episode episode, int first, String after, LengthUnit unit);
 
-    @GraphQLQuery(value = "hero", name = "HeroSummary")
+    @GraphQLQuery(value = "hero", name = "HeroSummary", maxDepth = 6)
     com.jacobmountain.dto.Character getHero(@GraphQLArgument("hero") String id);
 
     @GraphQLQuery(value = "hero", select = {
             @GraphQLField("id"),
             @GraphQLField("name")
-    }, maxDepth = 1)
+    })
     com.jacobmountain.dto.Character getHeroSummary(String id);
 
     @GraphQLQuery("hero")

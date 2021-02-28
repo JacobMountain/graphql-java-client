@@ -1,14 +1,13 @@
 package com.jacobmountain.graphql.client.query;
 
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
-import com.jacobmountain.graphql.client.query.filters.AllNonNullArgsFieldFilter;
-import com.jacobmountain.graphql.client.query.filters.FieldDuplicationFilter;
-import com.jacobmountain.graphql.client.query.filters.MaxDepthFieldFilter;
-import com.jacobmountain.graphql.client.query.filters.SelectionFieldFilter;
+import com.jacobmountain.graphql.client.query.filters.*;
+import com.jacobmountain.graphql.client.query.selectors.DefaultFieldSelector;
+import com.jacobmountain.graphql.client.query.selectors.DelegatingFieldSelector;
+import com.jacobmountain.graphql.client.query.selectors.InlineFragmentRenderer;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
-import graphql.com.google.common.collect.Streams;
 import graphql.language.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,17 +38,17 @@ public class QueryGenerator {
     private String doGenerateQuery(String request, String field, String type, Set<String> params, List<FieldFilter> filters) {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
-        Set<String> args = new HashSet<>();
+        final QueryContext root = new QueryContext(null, 0, definition, params, new HashSet<>());
+        String inner = generateFieldSelection(field, root, filters)
+                .orElseThrow(RuntimeException::new);
 
-        String inner = generateQueryRec(field, new QueryContext(null, 0, definition, params), args, filters).orElseThrow(RuntimeException::new);
+        String collect = String.join(", ", root.getArgs());
 
-        String collect = String.join(", ", args);
-
-        if (!args.isEmpty()) {
+        if (!root.getArgs().isEmpty()) {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
+        return generateQueryName(request, type, field) + collect + " { " + inner + " }";
     }
 
     private String generateQueryName(String request, String type, String field) {
@@ -59,10 +58,9 @@ public class QueryGenerator {
         return type + " " + request;
     }
 
-    private Optional<String> generateQueryRec(String alias,
-                                              QueryContext context,
-                                              Set<String> argumentCollector,
-                                              List<FieldFilter> filters) {
+    public Optional<String> generateFieldSelection(String alias,
+                                                   QueryContext context,
+                                                   List<FieldFilter> filters) {
         String type = Schema.unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
@@ -70,42 +68,18 @@ public class QueryGenerator {
             return Optional.empty();
         }
 
-        String args = generateFieldArgs(context.getFieldDefinition(), context.getParams(), argumentCollector);
+        String args = generateFieldArgs(context);
         if (Objects.isNull(typeDefinition) || typeDefinition.getChildren().isEmpty() || typeDefinition instanceof EnumTypeDefinition) {
             return Optional.of(alias + args);
         }
 
-        List<String> children = Streams.concat(
-                schema.getChildren(typeDefinition)
-                        .map(definition -> generateQueryRec(
-                                definition.getName(),
-                                context.withType(definition).increment(),
-                                argumentCollector,
-                                filters
-                        ))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get),
-                schema.getTypesImplementing(typeDefinition)
-                        .map(interfac -> generateQueryRec(
-                                interfac,
-                                context.withType(new FieldDefinition(interfac, new TypeName(interfac))),
-                                argumentCollector,
-                                filters
-                        ))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .map(query -> "... on " + query)
-        ).collect(Collectors.toList());
-
-        if (children.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(
-                alias + args + " { " +
-                        String.join(" ", children) +
-                        " __typename" +
-                        " }"
-        );
+        return new DelegatingFieldSelector(
+                new DefaultFieldSelector(schema, this),
+                new InlineFragmentRenderer(schema, this)
+        )
+                .selectFields(typeDefinition, context, filters)
+                .map(children -> alias + args + " " + children)
+                .findFirst();
     }
 
     public class QueryBuilder {
@@ -133,18 +107,17 @@ public class QueryGenerator {
             this.filters.add(new FieldDuplicationFilter());
             return doGenerateQuery(request, field, type, params, filters);
         }
-
     }
 
-    private String generateFieldArgs(FieldDefinition field, Set<String> params, Set<String> argsCollector) {
-        List<InputValueDefinition> args = field.getInputValueDefinitions();
-        Set<String> finalParams = new HashSet<>(params);
+    private String generateFieldArgs(QueryContext context) {
+        List<InputValueDefinition> args = context.getFieldDefinition().getInputValueDefinitions();
+        Set<String> finalParams = new HashSet<>(context.getParams());
         String collect = args.stream()
                 .filter(o -> finalParams.remove(o.getName()))
                 .peek(arg -> {
                     boolean nonNull = arg.getType() instanceof NonNullType;
                     String type = Schema.unwrap(arg.getType());
-                    argsCollector.add(
+                    context.newArg(
                             "$" + arg.getName() + ": " + type + (nonNull ? "!" : "")
                     );
                 })
