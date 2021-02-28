@@ -6,7 +6,6 @@ import graphql.language.TypeDefinition;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public class DelegatingFieldSelector implements FieldSelector {
@@ -20,10 +19,9 @@ public class DelegatingFieldSelector implements FieldSelector {
     @Override
     public Stream<String> selectFields(TypeDefinition<?> typeDefinition,
                                        QueryContext context,
-                                       Set<String> argumentCollector,
                                        List<FieldFilter> filters) {
         return selectors.stream()
-                .flatMap(selector -> selector.selectFields(typeDefinition, context, argumentCollector, filters))
+                .flatMap(selector -> selector.selectFields(typeDefinition, context, filters))
                 .reduce((a, b) -> String.join(" ", a, b))
                 .map(children -> "{ " +
                         children +

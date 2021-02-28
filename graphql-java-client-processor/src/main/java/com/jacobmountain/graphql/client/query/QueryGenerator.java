@@ -38,15 +38,13 @@ public class QueryGenerator {
     private String doGenerateQuery(String request, String field, String type, Set<String> params, List<FieldFilter> filters) {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
-        Set<String> args = new HashSet<>();
-
         final QueryContext root = new QueryContext(null, 0, definition, params);
-        String inner = generateFieldSelection(field, root, args, filters)
+        String inner = generateFieldSelection(field, root, filters)
                 .orElseThrow(RuntimeException::new);
 
-        String collect = String.join(", ", args);
+        String collect = String.join(", ", root.getArgs());
 
-        if (!args.isEmpty()) {
+        if (!root.getArgs().isEmpty()) {
             collect = "(" + collect + ")";
         }
 
@@ -62,7 +60,6 @@ public class QueryGenerator {
 
     public Optional<String> generateFieldSelection(String alias,
                                                    QueryContext context,
-                                                   Set<String> argumentCollector,
                                                    List<FieldFilter> filters) {
         String type = Schema.unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
@@ -71,7 +68,7 @@ public class QueryGenerator {
             return Optional.empty();
         }
 
-        String args = generateFieldArgs(context.getFieldDefinition(), context.getParams(), argumentCollector);
+        String args = generateFieldArgs(context);
         if (Objects.isNull(typeDefinition) || typeDefinition.getChildren().isEmpty() || typeDefinition instanceof EnumTypeDefinition) {
             return Optional.of(alias + args);
         }
@@ -80,7 +77,7 @@ public class QueryGenerator {
                 new DefaultFieldSelector(schema, this),
                 new InlineFragmentRenderer(schema, this)
         )
-                .selectFields(typeDefinition, context, argumentCollector, filters)
+                .selectFields(typeDefinition, context, filters)
                 .map(children -> alias + args + " " + children)
                 .findFirst();
     }
@@ -112,15 +109,15 @@ public class QueryGenerator {
         }
     }
 
-    private String generateFieldArgs(FieldDefinition field, Set<String> params, Set<String> argsCollector) {
-        List<InputValueDefinition> args = field.getInputValueDefinitions();
-        Set<String> finalParams = new HashSet<>(params);
+    private String generateFieldArgs(QueryContext context) {
+        List<InputValueDefinition> args = context.getFieldDefinition().getInputValueDefinitions();
+        Set<String> finalParams = new HashSet<>(context.getParams());
         String collect = args.stream()
                 .filter(o -> finalParams.remove(o.getName()))
                 .peek(arg -> {
                     boolean nonNull = arg.getType() instanceof NonNullType;
                     String type = Schema.unwrap(arg.getType());
-                    argsCollector.add(
+                    context.newArg(
                             "$" + arg.getName() + ": " + type + (nonNull ? "!" : "")
                     );
                 })
