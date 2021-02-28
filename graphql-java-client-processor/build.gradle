@@ -13,7 +13,7 @@ java {
 dependencies {
     implementation project(":graphql-java-client")
     implementation "com.squareup:javapoet:1.13.0"
-    implementation "com.graphql-java:graphql-java:16.1"
+    implementation "com.graphql-java:graphql-java:16.2"
 
     implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: "2.12.1"
     implementation group: "io.projectreactor", name: "reactor-core", version: "3.4.2"
