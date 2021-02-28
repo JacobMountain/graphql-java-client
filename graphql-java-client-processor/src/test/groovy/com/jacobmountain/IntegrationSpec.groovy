@@ -1,10 +1,16 @@
 package com.jacobmountain
 
-import com.jacobmountain.dto.*
+
+import com.jacobmountain.dto.Character
+import com.jacobmountain.dto.Droid
+import com.jacobmountain.dto.Human
+import com.jacobmountain.dto.Query
 import com.jacobmountain.graphql.client.Fetcher
 import com.jacobmountain.graphql.client.dto.Response
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static com.jacobmountain.ClientGraph.GetDroidById
 
 class IntegrationSpec extends Specification {
 

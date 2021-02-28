@@ -46,6 +46,11 @@ public class PojoBuilder {
         return new PojoBuilder(name, packageName).clazz(name, false);
     }
 
+    public PojoBuilder staTic() {
+        builder.addModifiers(Modifier.STATIC);
+        return this;
+    }
+
     public static PojoBuilder newInput(String name, String packageName) {
         return new PojoBuilder(name, packageName).clazz(name, true);
     }
@@ -250,7 +255,7 @@ public class PojoBuilder {
         return type == Type.Interface || type == Type.Union;
     }
 
-    public JavaFile build() {
+    public TypeSpec buildClass() {
         if (!isInterface()) {
             generateToString();
             generateEquals();
@@ -263,7 +268,11 @@ public class PojoBuilder {
                         .addMember("value", StringUtils.enquote(name))
                         .build()
         );
-        return JavaFile.builder(packageName, builder.build())
+        return builder.build();
+    }
+
+    public JavaFile build() {
+        return JavaFile.builder(packageName, buildClass())
                 .indent("\t")
                 .build();
     }
