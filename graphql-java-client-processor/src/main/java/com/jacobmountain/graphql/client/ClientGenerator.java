@@ -48,7 +48,7 @@ public class ClientGenerator {
         this.typeMapper = typeMapper;
         this.packageName = packageName;
         this.schema = schema;
-        this.arguments = new ArgumentAssemblyStage(dtoPackageName);
+        this.arguments = new ArgumentAssemblyStage();
         if (reactive) {
             this.query = new ReactiveQueryStage(schema, typeMapper, dtoPackageName);
             this.returnResults = new ReactiveReturnStage(schema, typeMapper);

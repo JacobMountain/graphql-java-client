@@ -15,11 +15,8 @@ import java.util.Objects;
 
 public class ArgumentAssemblyStage extends AbstractStage {
 
-    private final String dtoPackageName;
-
-    public ArgumentAssemblyStage(String dtoPackageName) {
+    public ArgumentAssemblyStage() {
         super(null, null);
-        this.dtoPackageName = dtoPackageName;
     }
 
     @Override
