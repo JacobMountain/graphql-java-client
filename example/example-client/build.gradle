@@ -10,7 +10,7 @@ dependencies {
     annotationProcessor project(":graphql-java-client-processor")
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.2'
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.3'
     implementation 'org.java-websocket:Java-WebSocket:1.5.1'
 
     compileOnly 'org.projectlombok:lombok:1.18.18'
