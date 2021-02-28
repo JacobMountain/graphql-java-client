@@ -16,7 +16,6 @@ import java.util.Optional;
 )
 public interface StarWarsClient {
 
-    @GraphQLFragment(type = "Character", name = "Hero")
     @GraphQLQuery(value = "hero", name = "HeroByEpisode")
     com.jacobmountain.dto.Character getHero(Episode episode, int first, String after, LengthUnit unit);
 

@@ -4,7 +4,6 @@ import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.*;
 import com.jacobmountain.graphql.client.query.selectors.DefaultFieldSelector;
 import com.jacobmountain.graphql.client.query.selectors.DelegatingFieldSelector;
-import com.jacobmountain.graphql.client.query.selectors.Fragment;
 import com.jacobmountain.graphql.client.query.selectors.InlineFragmentRenderer;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
@@ -36,12 +35,12 @@ public class QueryGenerator {
         return new QueryBuilder("subscription");
     }
 
-    private String doGenerateQuery(String request, String field, String type, List<Fragment> fragments, Set<String> params, List<FieldFilter> filters) {
+    private String doGenerateQuery(String request, String field, String type, Set<String> params, List<FieldFilter> filters) {
         FieldDefinition definition = schema.findField(field).orElseThrow(FieldNotFoundException.create(field));
 
         Set<String> args = new HashSet<>();
 
-        final QueryContext root = new QueryContext(null, definition.getType(), 0, definition, params);
+        final QueryContext root = new QueryContext(null, 0, definition, params);
         String inner = generateFieldSelection(field, root, args, filters)
                 .orElseThrow(RuntimeException::new);
 
@@ -51,7 +50,7 @@ public class QueryGenerator {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
+        return generateQueryName(request, type, field) + collect + " { " + inner + " }";
     }
 
     private String generateQueryName(String request, String type, String field) {
@@ -92,8 +91,6 @@ public class QueryGenerator {
 
         private final List<FieldFilter> filters = new ArrayList<>();
 
-        private List<Fragment> fragments = new ArrayList<>();
-
         QueryBuilder(String type) {
             this.type = type;
         }
@@ -108,15 +105,10 @@ public class QueryGenerator {
             return this;
         }
 
-        public QueryBuilder fragments(List<Fragment> fragments) {
-            this.fragments = fragments;
-            return this;
-        }
-
         public String build(String request, String field, Set<String> params) {
             this.filters.add(new AllNonNullArgsFieldFilter());
             this.filters.add(new FieldDuplicationFilter());
-            return doGenerateQuery(request, field, type, fragments, params, filters);
+            return doGenerateQuery(request, field, type, params, filters);
         }
     }
 

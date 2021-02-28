@@ -1,7 +1,10 @@
 package com.jacobmountain.graphql.client.visitor;
 
 import com.jacobmountain.graphql.client.TypeMapper;
-import com.jacobmountain.graphql.client.annotations.*;
+import com.jacobmountain.graphql.client.annotations.GraphQLArgument;
+import com.jacobmountain.graphql.client.annotations.GraphQLMutation;
+import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
+import com.jacobmountain.graphql.client.annotations.GraphQLSubscription;
 import com.jacobmountain.graphql.client.exceptions.MissingAnnotationException;
 import com.jacobmountain.graphql.client.utils.OptionalUtils;
 import com.jacobmountain.graphql.client.utils.Schema;
@@ -16,12 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.util.ElementKindVisitor8;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.singletonList;
 
 @Slf4j
 public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, TypeMapper> {
@@ -53,7 +53,6 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
                         .selection(Arrays.asList(annotation.select()))
-                        .fragments(getFragments(e))
                         .build());
     }
 
@@ -69,7 +68,6 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
                         .selection(Arrays.asList(annotation.select()))
-                        .fragments(getFragments(e))
                         .build());
     }
 
@@ -85,14 +83,8 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
                         .selection(Arrays.asList(annotation.select()))
-                        .fragments(getFragments(e))
                         .build()
                 );
-    }
-
-    private List<GraphQLFragment> getFragments(ExecutableElement e) {
-        final GraphQLFragment[] fragments = e.getAnnotationsByType(GraphQLFragment.class);
-        return Arrays.asList(fragments);
     }
 
     private List<Parameter> getParameters(ExecutableElement e, TypeMapper typeMapper, String root) {
