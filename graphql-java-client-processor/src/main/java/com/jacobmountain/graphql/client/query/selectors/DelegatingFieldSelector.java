@@ -1,9 +1,7 @@
 package com.jacobmountain.graphql.client.query.selectors;
 
 import com.jacobmountain.graphql.client.query.QueryContext;
-import com.jacobmountain.graphql.client.query.QueryGenerator;
 import com.jacobmountain.graphql.client.query.filters.FieldFilter;
-import com.jacobmountain.graphql.client.utils.Schema;
 import graphql.language.TypeDefinition;
 
 import java.util.Arrays;
@@ -15,22 +13,9 @@ public class DelegatingFieldSelector implements FieldSelector {
 
     private final List<FieldSelector> selectors;
 
-    public DelegatingFieldSelector(FragmentRenderer fragmentRenderer, Schema schema, QueryGenerator queryGenerator) {
-        this.selectors = Arrays.asList(
-                fragmentRenderer,
-                new DefaultFieldSelector(schema, queryGenerator),
-                new InlineFragmentRenderer(schema, queryGenerator)
-        );
+    public DelegatingFieldSelector(FieldSelector... selectors) {
+        this.selectors = Arrays.asList(selectors);
     }
-
-    public DelegatingFieldSelector(Schema schema, QueryGenerator queryGenerator) {
-        this.selectors = Arrays.asList(
-                new DefaultFieldSelector(schema, queryGenerator),
-                new InlineFragmentRenderer(schema, queryGenerator)
-        );
-    }
-
-
 
     @Override
     public Stream<String> selectFields(TypeDefinition<?> typeDefinition,

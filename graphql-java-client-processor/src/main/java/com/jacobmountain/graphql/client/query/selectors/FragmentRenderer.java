@@ -1,9 +1,8 @@
 package com.jacobmountain.graphql.client.query.selectors;
 
-import com.jacobmountain.graphql.client.annotations.GraphQLFragment;
-import com.jacobmountain.graphql.client.query.filters.FieldFilter;
 import com.jacobmountain.graphql.client.query.QueryContext;
 import com.jacobmountain.graphql.client.query.QueryGenerator;
+import com.jacobmountain.graphql.client.query.filters.FieldFilter;
 import com.jacobmountain.graphql.client.utils.Schema;
 import graphql.language.TypeDefinition;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +45,10 @@ public class FragmentRenderer implements FieldSelector {
         if (fragment == null) {
             return Stream.empty();
         }
-        final Optional<String> children = new DelegatingFieldSelector(schema, queryGenerator)
+        final Optional<String> children = new DelegatingFieldSelector(
+                new DefaultFieldSelector(schema, queryGenerator),
+                new InlineFragmentRenderer(schema, queryGenerator)
+        )
                 .selectFields(schema.getTypeDefinition(fragment.getType()).orElseThrow(RuntimeException::new), context, argumentCollector, filters)
                 .findFirst();
         if (children.isPresent()) {

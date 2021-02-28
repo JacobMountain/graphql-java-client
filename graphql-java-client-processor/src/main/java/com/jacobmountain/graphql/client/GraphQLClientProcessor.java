@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.function.Consumer;
 
 @Slf4j
 @AutoService(Processor.class)
@@ -57,18 +56,16 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         return elements.stream()
                 .map(el -> (TypeElement) el)
                 .map(Input::new)
-                .peek(this.generateJavaDataClasses())
+                .peek(this::generateJavaDataClasses)
                 .peek(this::generateClientImplementation)
                 .count() > 0;
     }
 
-    private Consumer<Input> generateJavaDataClasses() {
-        return input -> {
-            log.info("Generating java classes from GraphQL schema");
-            DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
-            dtoGenerator.generate(input.getSchema().types().values());
-            dtoGenerator.generateArgumentDTOs(input.element);
-        };
+    private void generateJavaDataClasses(Input input) {
+        log.info("Generating java classes from GraphQL schema");
+        DTOGenerator dtoGenerator = new DTOGenerator(input.getDtoPackage(), new FileWriter(this.filer), input.getTypeMapper());
+        dtoGenerator.generate(input.getSchema().types().values());
+        dtoGenerator.generateArgumentDTOs(input.element);
     }
 
     private void generateClientImplementation(Input client) {

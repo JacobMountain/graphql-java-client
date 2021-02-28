@@ -2,9 +2,10 @@ package com.jacobmountain.graphql.client.query;
 
 import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.*;
+import com.jacobmountain.graphql.client.query.selectors.DefaultFieldSelector;
 import com.jacobmountain.graphql.client.query.selectors.DelegatingFieldSelector;
 import com.jacobmountain.graphql.client.query.selectors.Fragment;
-import com.jacobmountain.graphql.client.query.selectors.FragmentRenderer;
+import com.jacobmountain.graphql.client.query.selectors.InlineFragmentRenderer;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.GraphQLFieldSelection;
@@ -18,8 +19,6 @@ import java.util.stream.Collectors;
 public class QueryGenerator {
 
     private final Schema schema;
-
-    private FragmentRenderer fragmentRenderer;
 
     public QueryGenerator(Schema registry) {
         this.schema = registry;
@@ -42,7 +41,6 @@ public class QueryGenerator {
 
         Set<String> args = new HashSet<>();
 
-        fragmentRenderer = new FragmentRenderer(schema, this, fragments);
         final QueryContext root = new QueryContext(null, definition.getType(), 0, definition, params);
         String inner = generateFieldSelection(field, root, args, filters)
                 .orElseThrow(RuntimeException::new);
@@ -53,7 +51,7 @@ public class QueryGenerator {
             collect = "(" + collect + ")";
         }
 
-        return generateQueryName(request, type, field) + collect + " { " + inner + " } " + fragmentRenderer.render();
+        return generateQueryName(request, type, field) + collect + " { " + inner + " } ";
     }
 
     private String generateQueryName(String request, String type, String field) {
@@ -79,7 +77,10 @@ public class QueryGenerator {
             return Optional.of(alias + args);
         }
 
-        return new DelegatingFieldSelector(fragmentRenderer, schema, this)
+        return new DelegatingFieldSelector(
+                new DefaultFieldSelector(schema, this),
+                new InlineFragmentRenderer(schema, this)
+        )
                 .selectFields(typeDefinition, context, argumentCollector, filters)
                 .map(children -> alias + args + " " + children)
                 .findFirst();
