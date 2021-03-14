@@ -39,6 +39,8 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
     private Messager messager;
 
+    private Path root;
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
@@ -46,10 +48,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         this.messager = processingEnv.getMessager();
     }
 
-    private Path root;
-
     @Override
-    @SneakyThrows
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(GraphQLClient.class);
         for (Element el : elements) {
@@ -96,7 +95,12 @@ public class GraphQLClientProcessor extends AbstractProcessor {
     private Path getRoot() {
         if (root == null) {
             FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "tmp", (Element[]) null);
-            root = Paths.get(resource.toUri()).getParent().getParent().getParent().getParent().getParent();
+            root = Paths.get(resource.toUri())
+                    .getParent() // main
+                    .getParent() // java
+                    .getParent() // classes
+                    .getParent() // build
+                    .getParent();// project
             resource.delete();
         }
         return root;
