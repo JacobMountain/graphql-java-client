@@ -1,6 +1,7 @@
 package com.jacobmountain.graphql.client;
 
 import com.jacobmountain.graphql.client.modules.*;
+import com.jacobmountain.graphql.client.query.QueryGenerator;
 import com.jacobmountain.graphql.client.utils.AnnotationUtils;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
@@ -49,11 +50,12 @@ public class ClientGenerator {
         this.packageName = packageName;
         this.schema = schema;
         this.arguments = new ArgumentAssemblyStage();
+        QueryGenerator queryGenerator = new QueryGenerator(schema);
         if (reactive) {
-            this.query = new ReactiveQueryStage(schema, typeMapper, dtoPackageName);
+            this.query = new ReactiveQueryStage(queryGenerator, schema, typeMapper, dtoPackageName);
             this.returnResults = new ReactiveReturnStage(schema, typeMapper);
         } else {
-            this.query = new BlockingQueryStage(schema, typeMapper, dtoPackageName);
+            this.query = new BlockingQueryStage(queryGenerator, schema, typeMapper, dtoPackageName);
             this.returnResults = new OptionalReturnStage(schema, typeMapper);
         }
     }

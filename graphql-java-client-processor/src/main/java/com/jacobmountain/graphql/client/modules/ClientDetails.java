@@ -10,7 +10,7 @@ public class ClientDetails {
     private final boolean requiresFetcher;
 
     public boolean requiresSubscriber() {
-        return requiresFetcher;
+        return requiresSubscriber;
     }
 
     public boolean requiresFetcher() {
