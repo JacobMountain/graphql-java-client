@@ -1,8 +1,11 @@
 package com.jacobmountain
 
+import com.jacobmountain.dto.Error
+import com.jacobmountain.dto.Mutation
+import com.jacobmountain.dto.Query
 import com.jacobmountain.dto.ReviewInput
-import com.jacobmountain.fetchers.RestTemplateFetcher
 import com.jacobmountain.fetchers.WebSocketSubscriber
+import com.jacobmountain.graphql.client.web.spring.RestTemplateFetcher
 import com.jacobmountain.resolvers.dto.Episode
 import com.jacobmountain.service.DefaultService
 import com.jacobmountain.service.StarWarsService
@@ -32,7 +35,7 @@ class SubscriptionClientSpec extends Specification {
 
     def setup() {
         client = new StarWarsClientGraph(
-                new RestTemplateFetcher("http://localhost:$port/graph"),
+                new RestTemplateFetcher("http://localhost:$port", Query, Mutation, Error),
                 new WebSocketSubscriber("ws://localhost:$port/subscriptions")
         )
     }

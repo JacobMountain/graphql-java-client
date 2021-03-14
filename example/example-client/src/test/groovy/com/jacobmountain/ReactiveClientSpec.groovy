@@ -1,7 +1,10 @@
 package com.jacobmountain
 
+import com.jacobmountain.dto.Error
+import com.jacobmountain.dto.Mutation
+import com.jacobmountain.dto.Query
 import com.jacobmountain.fetchers.ReactiveWebSocketSubscriber
-import com.jacobmountain.fetchers.WebClientFetcher
+import com.jacobmountain.graphql.client.web.spring.WebClientFetcher
 import com.jacobmountain.resolvers.dto.Episode
 import com.jacobmountain.service.DefaultService
 import com.jacobmountain.service.StarWarsService
@@ -32,7 +35,9 @@ class ReactiveClientSpec extends Specification {
     StarWarsService service = Spy(DefaultService)
 
     def setup() {
-        client = new ReactiveStarWarsClientGraph(new WebClientFetcher("http://localhost:$port/graph"), new ReactiveWebSocketSubscriber("http://localhost:$port/subscriptions"))
+        def fetcher = new WebClientFetcher("http://localhost:$port/graph", Query, Mutation, Error)
+        def subscriber = new ReactiveWebSocketSubscriber("http://localhost:$port/subscriptions")
+        client = new ReactiveStarWarsClientGraph(fetcher, subscriber)
     }
 
     def "The client blocks if the response isn't a publisher"() {
