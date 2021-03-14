@@ -63,7 +63,7 @@ public class ReactiveWebSocketSubscriber implements ReactiveSubscriber<Subscript
 
         @Override
         public void onOpen(ServerHandshake handshakedata) {
-            System.out.println("");
+
         }
 
         @Override
@@ -80,12 +80,12 @@ public class ReactiveWebSocketSubscriber implements ReactiveSubscriber<Subscript
 
         @Override
         public void onClose(int code, String reason, boolean remote) {
-            System.out.println("");
+
         }
 
         @Override
         public void onError(Exception ex) {
-            System.out.println("");
+
         }
     }
 }
