@@ -103,7 +103,7 @@ class ReactiveReturnStageSpec extends Specification {
         given: "a void return type"
         MethodDetails methodDetails = MethodDetails.builder()
                 .returnType(ClassName.VOID)
-                .field("field")
+                .mutation(true)
                 .build()
 
         when:
