@@ -3,6 +3,7 @@ package com.jacobmountain.graphql.client.modules;
 import com.jacobmountain.graphql.client.ReactiveFetcher;
 import com.jacobmountain.graphql.client.ReactiveSubscriber;
 import com.jacobmountain.graphql.client.TypeMapper;
+import com.jacobmountain.graphql.client.query.QueryGenerator;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.squareup.javapoet.*;
@@ -14,8 +15,8 @@ import java.util.List;
 
 public class ReactiveQueryStage extends AbstractQueryStage {
 
-    public ReactiveQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName) {
-        super(schema, typeMapper, dtoPackageName);
+    public ReactiveQueryStage(QueryGenerator queryGenerator, Schema schema, TypeMapper typeMapper, String dtoPackageName) {
+        super(queryGenerator, schema, typeMapper, dtoPackageName);
     }
 
     private TypeName getFetcherTypeName() {
@@ -63,7 +64,7 @@ public class ReactiveQueryStage extends AbstractQueryStage {
         return Collections.singletonList(
                 CodeBlock.builder()
                         .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Publisher.class), getReturnTypeName(method)))
-                        .add("$L.$L", member, getMethod(method)).add(generateQueryCode(method.getRequestName(), client, method))
+                        .add("$L.$L", member, getMethod(method)).add(generateQueryCode(method.getRequestName(), method))
                         .build()
         );
     }

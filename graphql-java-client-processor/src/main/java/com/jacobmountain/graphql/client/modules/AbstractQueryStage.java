@@ -25,12 +25,12 @@ public abstract class AbstractQueryStage extends AbstractStage {
 
     private final QueryGenerator queryGenerator;
 
-    public AbstractQueryStage(Schema schema, TypeMapper typeMapper, String dtoPackageName) {
+    public AbstractQueryStage(QueryGenerator queryGenerator, Schema schema, TypeMapper typeMapper, String dtoPackageName) {
         super(schema, typeMapper);
         this.query = ClassName.get(dtoPackageName, schema.getQueryTypeName());
         this.mutation = schema.getMutationTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
         this.subscription = schema.getSubscriptionTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
-        this.queryGenerator = new QueryGenerator(schema);
+        this.queryGenerator = queryGenerator;
     }
 
     @Override
@@ -40,7 +40,11 @@ public abstract class AbstractQueryStage extends AbstractStage {
 
     protected TypeName getReturnTypeName(MethodDetails details) {
         ObjectTypeDefinition typeDefinition = getTypeDefinition(details);
-        return ParameterizedTypeName.get(ClassName.get(Response.class), typeMapper.getType(typeDefinition.getName()), TypeVariableName.get("Error"));
+        return ParameterizedTypeName.get(
+                ClassName.get(Response.class),
+                typeMapper.getType(typeDefinition.getName()),
+                TypeVariableName.get("Error")
+        );
     }
 
     protected String getMethod(MethodDetails details) {
@@ -53,33 +57,33 @@ public abstract class AbstractQueryStage extends AbstractStage {
         return method;
     }
 
-    protected CodeBlock generateQueryCode(String request, ClientDetails client, MethodDetails details) {
-        Set<String> params = details.getParameters()
+    protected CodeBlock generateQueryCode(String request, MethodDetails method) {
+        Set<String> params = method.getParameters()
                 .stream()
                 .map(Parameter::getField)
                 .collect(Collectors.toSet());
         QueryGenerator.QueryBuilder builder;
-        if (details.isQuery()) {
+        if (method.isQuery()) {
             builder = queryGenerator.query();
-        } else if (details.isMutation()) {
+        } else if (method.isMutation()) {
             builder = queryGenerator.mutation();
-        } else if (details.isSubscription()) {
+        } else if (method.isSubscription()) {
             builder = queryGenerator.subscription();
         } else {
-            throw new RuntimeException("");
+            throw new IllegalStateException();
         }
 
         String query = builder
                 .select(
-                        details.getSelection()
+                        method.getSelection()
                                 .stream()
                                 .map(GraphQLFieldSelection::new)
                                 .collect(Collectors.toList())
                 )
-                .maxDepth(details.getMaxDepth())
-                .build(request, details.getField(), params);
+                .maxDepth(method.getMaxDepth())
+                .build(request, method.getField(), params);
         return CodeBlock.of(
-                "(\"$L\", $L)", query, details.hasParameters() ? "args" : "null"
+                "(\"$L\", $L)", query, method.hasParameters() ? "args" : "null"
         );
     }
 
