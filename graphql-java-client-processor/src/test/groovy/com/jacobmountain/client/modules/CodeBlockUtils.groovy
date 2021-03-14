@@ -11,5 +11,4 @@ class CodeBlockUtils {
         }.join(";") + ";"
     }
 
-
 }

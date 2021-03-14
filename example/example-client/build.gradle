@@ -5,9 +5,15 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
+repositories {
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+
 dependencies {
     implementation project(":graphql-java-client")
     annotationProcessor project(":graphql-java-client-processor")
+    implementation 'com.jacobmountain:graphql-java-client-spring-webflux:+'
+    implementation 'com.jacobmountain:graphql-java-client-spring-web:+'
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.3'

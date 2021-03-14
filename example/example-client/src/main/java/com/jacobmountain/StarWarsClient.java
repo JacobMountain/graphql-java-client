@@ -9,6 +9,7 @@ import com.jacobmountain.graphql.client.annotations.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @GraphQLClient(
         schema = "Schema.gql",
@@ -36,5 +37,8 @@ public interface StarWarsClient {
 
     @GraphQLMutation(value = "createReview")
     Review createReview(Episode episode, @GraphQLArgument("review") ReviewInput input);
+
+    @GraphQLSubscription("reviewAdded")
+    void watchReviews(Episode episode, @GraphQLSubscriptionCallback Consumer<Review> a);
 
 }

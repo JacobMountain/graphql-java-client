@@ -1,9 +1,9 @@
 package com.jacobmountain
 
-import com.jacobmountain.dto.LengthUnit
-import com.jacobmountain.dto.ReviewInput
-import com.jacobmountain.fetchers.RestTemplateFetcher
+import com.jacobmountain.dto.*
 import com.jacobmountain.fetchers.SpyFetcher
+import com.jacobmountain.graphql.client.Subscriber
+import com.jacobmountain.graphql.client.web.spring.RestTemplateFetcher
 import com.jacobmountain.resolvers.dto.Episode
 import com.jacobmountain.resolvers.dto.Review
 import com.jacobmountain.service.DefaultService
@@ -35,8 +35,8 @@ class ClientSpec extends Specification {
     StarWarsService service = Spy(DefaultService)
 
     def setup() {
-        fetcher = new SpyFetcher(new RestTemplateFetcher("http://localhost:$port"))
-        client = new StarWarsClientGraph(fetcher)
+        fetcher = new SpyFetcher(new RestTemplateFetcher("http://localhost:$port/graph", Query, Mutation, Error))
+        client = new StarWarsClientGraph(fetcher, Mock(Subscriber))
     }
 
     def "I can get a query with an argument"() {

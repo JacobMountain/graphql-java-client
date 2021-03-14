@@ -46,6 +46,8 @@ public class MethodDetails {
     @Getter
     private final int maxDepth;
 
+    private final String subscriptionCallback;
+
     public boolean hasParameters() {
         return !parameters.isEmpty();
     }
@@ -113,4 +115,7 @@ public class MethodDetails {
         return returnType.equals(ClassName.get(clazz)) && nested.length == 0;
     }
 
+    public Optional<String> getSubscriptionCallback() {
+        return Optional.ofNullable(subscriptionCallback);
+    }
 }

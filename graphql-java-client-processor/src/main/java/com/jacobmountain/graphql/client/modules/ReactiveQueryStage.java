@@ -6,7 +6,9 @@ import com.jacobmountain.graphql.client.TypeMapper;
 import com.jacobmountain.graphql.client.query.QueryGenerator;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.ParameterizedTypeName;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
@@ -19,23 +21,6 @@ public class ReactiveQueryStage extends AbstractQueryStage {
         super(queryGenerator, schema, typeMapper, dtoPackageName);
     }
 
-    private TypeName getFetcherTypeName() {
-        return ParameterizedTypeName.get(
-                ClassName.get(ReactiveFetcher.class),
-                query,
-                mutation,
-                TypeVariableName.get("Error")
-        );
-    }
-
-    private TypeName getSubscriberTypeName() {
-        return ParameterizedTypeName.get(
-                ClassName.get(ReactiveSubscriber.class),
-                subscription,
-                TypeVariableName.get("Error")
-        );
-    }
-
     @Override
     public List<MemberVariable> getMemberVariables(ClientDetails details) {
         ArrayList<MemberVariable> vars = new ArrayList<>();
@@ -43,7 +28,7 @@ public class ReactiveQueryStage extends AbstractQueryStage {
             vars.add(
                     MemberVariable.builder()
                             .name("fetcher")
-                            .type(getFetcherTypeName())
+                            .type(getFetcherTypeName(ReactiveFetcher.class))
                             .build()
             );
         }
@@ -51,7 +36,7 @@ public class ReactiveQueryStage extends AbstractQueryStage {
             vars.add(
                     MemberVariable.builder()
                             .name("subscriber")
-                            .type(getSubscriberTypeName())
+                            .type(getSubscriberTypeName(ReactiveSubscriber.class))
                             .build()
             );
         }

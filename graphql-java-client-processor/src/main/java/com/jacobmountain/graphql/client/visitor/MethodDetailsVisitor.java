@@ -1,10 +1,7 @@
 package com.jacobmountain.graphql.client.visitor;
 
 import com.jacobmountain.graphql.client.TypeMapper;
-import com.jacobmountain.graphql.client.annotations.GraphQLArgument;
-import com.jacobmountain.graphql.client.annotations.GraphQLMutation;
-import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
-import com.jacobmountain.graphql.client.annotations.GraphQLSubscription;
+import com.jacobmountain.graphql.client.annotations.*;
 import com.jacobmountain.graphql.client.exceptions.MissingAnnotationException;
 import com.jacobmountain.graphql.client.utils.OptionalUtils;
 import com.jacobmountain.graphql.client.utils.Schema;
@@ -17,6 +14,7 @@ import graphql.language.NonNullType;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementKindVisitor8;
 import java.util.Arrays;
 import java.util.List;
@@ -83,6 +81,7 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         .maxDepth(annotation.maxDepth())
                         .parameters(getParameters(e, typeMapper, annotation.value()))
                         .selection(Arrays.asList(annotation.select()))
+                        .subscriptionCallback(getParameterWithAnnotation(e).getName())
                         .build()
                 );
     }
@@ -101,6 +100,19 @@ public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, Typ
                         }
                 )
                 .collect(Collectors.toList());
+    }
+
+    private Parameter getParameterWithAnnotation(ExecutableElement e) {
+        final String name = e.getParameters()
+                .stream()
+                .filter(param -> param.getAnnotation(GraphQLSubscriptionCallback.class) != null)
+                .map(VariableElement::getSimpleName)
+                .findFirst()
+                .map(Object::toString)
+                .orElse(null);
+        return Parameter.builder()
+                .name(name)
+                .build();
     }
 
     private boolean isNullableArg(String field, String arg) {

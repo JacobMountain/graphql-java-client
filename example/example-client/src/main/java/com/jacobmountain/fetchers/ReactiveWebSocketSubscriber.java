@@ -6,44 +6,52 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jacobmountain.dto.Error;
 import com.jacobmountain.dto.Subscription;
-import com.jacobmountain.graphql.client.Subscriber;
+import com.jacobmountain.graphql.client.ReactiveSubscriber;
 import com.jacobmountain.graphql.client.dto.Request;
 import com.jacobmountain.graphql.client.dto.Response;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.reactivestreams.Publisher;
+import reactor.core.publisher.Sinks;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.function.Consumer;
+
+import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
 
 
-public class WebSocketSubscriber implements Subscriber<Subscription, Error> {
+public class ReactiveWebSocketSubscriber implements ReactiveSubscriber<Subscription, Error> {
 
     private final URI subscriptions;
 
-    public WebSocketSubscriber(String url) throws URISyntaxException {
+    public ReactiveWebSocketSubscriber(String url) throws URISyntaxException {
         this.subscriptions = new URI(url);
     }
 
     @Override
-    public <A> void subscribe(String subscription, A args, Consumer<Response<Subscription, Error>> callback) {
-        new SubscriptionClient<>(this.subscriptions, new Request<>(subscription, args), callback);
+    @SneakyThrows
+    public <A> Publisher<Response<Subscription, Error>> subscribe(String query, A args) {
+        Sinks.Many<Response<Subscription, Error>> many = Sinks.many()
+                .multicast()
+                .onBackpressureBuffer();
+        new SubscriptionClient<>(this.subscriptions, new Request<>(query, args), many);
+        return many.asFlux();
     }
 
     @Slf4j
     static class SubscriptionClient<A> extends WebSocketClient {
 
-        private final Consumer<Response<Subscription, Error>> callback;
+        private final Sinks.Many<Response<Subscription, Error>> sink;
 
         private final ObjectMapper objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         @SneakyThrows
-        public SubscriptionClient(URI serverUri, Request<A> request, Consumer<Response<Subscription, Error>> callback) {
+        public SubscriptionClient(URI serverUri, Request<A> request, Sinks.Many<Response<Subscription, Error>> sink) {
             super(serverUri);
-            this.callback = callback;
+            this.sink = sink;
             this.connectBlocking();
             send(request);
         }
@@ -67,7 +75,7 @@ public class WebSocketSubscriber implements Subscriber<Subscription, Error> {
             } catch (JsonProcessingException e) {
                 log.error("Error deserializing websocket message", e);
             }
-            callback.accept(response);
+            sink.emitNext(response, FAIL_FAST);
         }
 
         @Override
