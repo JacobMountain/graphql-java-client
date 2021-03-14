@@ -45,5 +45,4 @@ public class ArgumentAssemblyStage extends AbstractStage {
         return CodeBlock.of("args.set$L($L)", StringUtils.capitalize(field), value);
     }
 
-
 }
