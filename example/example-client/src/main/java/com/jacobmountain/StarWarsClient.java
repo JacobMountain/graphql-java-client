@@ -39,6 +39,6 @@ public interface StarWarsClient {
     Review createReview(Episode episode, @GraphQLArgument("review") ReviewInput input);
 
     @GraphQLSubscription("reviewAdded")
-    void watchReviews(Episode episode, @GraphQLSubscriptionCallback Consumer<Review> callback);
+    void watchReviews(Episode episode, @GraphQLSubscriptionCallback Consumer<Review> a);
 
 }

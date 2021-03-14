@@ -4,6 +4,7 @@ import com.jacobmountain.graphql.client.Fetcher;
 import com.jacobmountain.graphql.client.Subscriber;
 import com.jacobmountain.graphql.client.TypeMapper;
 import com.jacobmountain.graphql.client.dto.Response;
+import com.jacobmountain.graphql.client.exceptions.MissingAnnotationException;
 import com.jacobmountain.graphql.client.query.QueryGenerator;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
@@ -73,7 +74,7 @@ public class BlockingQueryStage extends AbstractQueryStage {
                 .add("$T.ofNullable(subscription)", Optional.class)
                 .add(".map($T::getData)", RESPONSE_CLASS_NAME)
                 .add(".map($T::$L)", typeMapper.getType(query.getName()), StringUtils.camelCase("get", method.getField()))
-                .add(".ifPresent(callback)")
+                .add(".ifPresent($L)", method.getSubscriptionCallback().orElseThrow(() -> new MissingAnnotationException("Expected a callback parameter to marked with @GraphQLSubscriptionCallback")))
                 .build();
     }
 
