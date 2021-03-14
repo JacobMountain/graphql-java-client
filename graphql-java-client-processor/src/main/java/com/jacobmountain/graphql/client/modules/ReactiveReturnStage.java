@@ -12,11 +12,10 @@ import graphql.language.ObjectTypeDefinition;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ReactiveReturnStage extends AbstractStage {
 
@@ -28,10 +27,19 @@ public class ReactiveReturnStage extends AbstractStage {
 
     @Override
     public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+        if (ClassName.VOID.equals(method.getReturnType())) {
+            return Collections.singletonList(
+                    CodeBlock.of("$T.from(thing).block()", method.isSubscription() ? Flux.class : Mono.class)
+            );
+        }
         ObjectTypeDefinition typeDefinition = getTypeDefinition(method);
         List<CodeBlock> ret = new ArrayList<>();
         ret.add(CodeBlock.of("return $T.from(thing)", method.isSubscription() ? Flux.class : Mono.class));
         ret.add(CodeBlock.of("map($T::getData)", RESPONSE_CLASS_NAME));
+        ret.add(CodeBlock.of("filter(data -> $T.nonNull(data.$L()))",
+                Objects.class,
+                StringUtils.camelCase("get", method.getField()))
+        );
         ret.add(CodeBlock.of("map($T::$L)",
                 typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", method.getField()))
         );
@@ -42,6 +50,8 @@ public class ReactiveReturnStage extends AbstractStage {
             }
         } else if (returnsClass(method, Flux.class) && !method.isSubscription()) {
             ret.add(CodeBlock.of("flatMapIterable($T.identity())", Function.class));
+        } else if (returnsClass(method, Mono.class, Void.class)) {
+            ret.add(CodeBlock.of("then()"));
         }
         return Collections.singletonList(CodeBlock.join(ret, "\n\t."));
     }
@@ -53,6 +63,15 @@ public class ReactiveReturnStage extends AbstractStage {
     private boolean returnsClass(MethodDetails details, Class<?> clazz) {
         return details.getReturnType() instanceof ParameterizedTypeName &&
                 ((ParameterizedTypeName) details.getReturnType()).rawType.equals(ClassName.get(clazz));
+    }
+
+    private boolean returnsClass(MethodDetails details, Class<?> clazz, Class<?>... nested) {
+        return returnsClass(details, clazz) &&
+                ((ParameterizedTypeName) details.getReturnType()).typeArguments.equals(
+                        Stream.of(nested)
+                                .map(ClassName::get)
+                                .collect(Collectors.toList())
+                );
     }
 
     private boolean returnsOptional(MethodDetails details) {

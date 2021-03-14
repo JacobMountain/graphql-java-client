@@ -40,11 +40,11 @@ class ReactiveReturnStageSpec extends Specification {
         def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
 
         then:
-        renderBlocks(blocks) == "return ${Mono.class.name}.from(thing).map(${Response.class.name}::getData).map(com.test.Query::getField);"
+        renderBlocks(blocks) == "return ${Mono.class.name}.from(thing).map(${Response.class.name}::getData).filter(data -> ${Objects.class.name}.nonNull(data.getField())).map(com.test.Query::getField);"
     }
 
     def "Optional return types are blocked"() {
-        given: "a mono return type"
+        given: "an optional return type"
         MethodDetails methodDetails = MethodDetails.builder()
                 .returnType(ParameterizedTypeName.get(ClassName.get(Optional.class), ClassName.get(String.class)))
                 .field("field")
@@ -72,7 +72,7 @@ class ReactiveReturnStageSpec extends Specification {
     }
 
     def "Fluxs are flatmapped"() {
-        given: "a mono return type"
+        given: "a flux return type"
         MethodDetails methodDetails = MethodDetails.builder()
                 .returnType(ParameterizedTypeName.get(ClassName.get(Flux.class), ClassName.get(String.class)))
                 .field("field")
@@ -83,6 +83,34 @@ class ReactiveReturnStageSpec extends Specification {
 
         then:
         renderBlocks(blocks).endsWith(".flatMapIterable(${Function.class.name}.identity());")
+    }
+
+    def "void return types are blocked"() {
+        given: "a void return type"
+        MethodDetails methodDetails = MethodDetails.builder()
+                .returnType(ClassName.VOID)
+                .field("field")
+                .build()
+
+        when:
+        def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
+
+        then:
+        renderBlocks(blocks) == "${Mono.class.name}.from(thing).block();"
+    }
+
+    def "Mono<Void> return types are blocked"() {
+        given: "a void return type"
+        MethodDetails methodDetails = MethodDetails.builder()
+                .returnType(ParameterizedTypeName.get(ClassName.get(Mono.class), ClassName.get(Void.class)))
+                .field("field")
+                .build()
+
+        when:
+        def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
+
+        then:
+        renderBlocks(blocks).endsWith(".map(com.test.Query::getField).then();")
     }
 
 }
