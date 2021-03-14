@@ -43,6 +43,20 @@ class ReactiveReturnStageSpec extends Specification {
         renderBlocks(blocks) == "return ${Mono.class.name}.from(thing).map(${Response.class.name}::getData).filter(data -> ${Objects.class.name}.nonNull(data.getField())).map(com.test.Query::getField);"
     }
 
+    def "void return types are only supported on mutations"() {
+        given: "a void return type"
+        MethodDetails methodDetails = MethodDetails.builder()
+                .returnType(ClassName.VOID)
+                .mutation(false)
+                .build()
+
+        when:
+        stage.assemble(Mock(ClientDetails), methodDetails)
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
     def "Optional return types are blocked"() {
         given: "an optional return type"
         MethodDetails methodDetails = MethodDetails.builder()

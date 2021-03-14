@@ -27,6 +27,9 @@ public class OptionalReturnStage extends AbstractStage {
     @Override
     public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
         if (ClassName.VOID.equals(method.getReturnType())) {
+            if (!method.isMutation()) {
+                throw new IllegalArgumentException("void return type on a non mutation method");
+            }
             return Collections.emptyList();
         }
         ObjectTypeDefinition typeDefinition = getTypeDefinition(method);

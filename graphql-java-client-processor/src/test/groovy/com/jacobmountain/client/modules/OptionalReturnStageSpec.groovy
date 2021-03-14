@@ -21,7 +21,10 @@ class OptionalReturnStageSpec extends Specification {
                 query: Query
             }
             type Query {
-
+                query: String
+            }
+            type Mutation {
+                mutation: String
             }
         """), typeMapper)
 
@@ -29,6 +32,7 @@ class OptionalReturnStageSpec extends Specification {
         given: "a void return type"
         MethodDetails methodDetails = MethodDetails.builder()
                 .returnType(ClassName.VOID)
+                .mutation(true)
                 .build()
 
         when:
@@ -36,6 +40,20 @@ class OptionalReturnStageSpec extends Specification {
 
         then: "there shouldn't be any "
         blocks.isEmpty()
+    }
+
+    def "void return types are only supported on mutations"() {
+        given: "a void return type"
+        MethodDetails methodDetails = MethodDetails.builder()
+                .returnType(ClassName.VOID)
+                .mutation(false)
+                .build()
+
+        when:
+        stage.assemble(Mock(ClientDetails), methodDetails)
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def "Optional return types are mapped"() {
