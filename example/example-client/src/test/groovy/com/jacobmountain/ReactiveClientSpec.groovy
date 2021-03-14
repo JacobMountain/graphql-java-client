@@ -1,8 +1,7 @@
 package com.jacobmountain
 
-
+import com.jacobmountain.fetchers.ReactiveWebSocketSubscriber
 import com.jacobmountain.fetchers.WebClientFetcher
-import com.jacobmountain.fetchers.WebSocketSubscriber
 import com.jacobmountain.resolvers.dto.Episode
 import com.jacobmountain.service.DefaultService
 import com.jacobmountain.service.StarWarsService
@@ -33,7 +32,7 @@ class ReactiveClientSpec extends Specification {
     StarWarsService service = Spy(DefaultService)
 
     def setup() {
-        client = new ReactiveStarWarsClientGraph(new WebClientFetcher("http://localhost:$port/graph"), new WebSocketSubscriber("http://localhost:$port/subscriptions"))
+        client = new ReactiveStarWarsClientGraph(new WebClientFetcher("http://localhost:$port/graph"), new ReactiveWebSocketSubscriber("http://localhost:$port/subscriptions"))
     }
 
     def "The client blocks if the response isn't a publisher"() {

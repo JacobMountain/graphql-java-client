@@ -24,6 +24,6 @@ public interface StarWarsService {
 
     Flux<Review> watchReviews(Episode episode);
 
-    Review createRandomReview(Episode episode);
+    Review createRandomReview(int id, Episode episode);
 
 }

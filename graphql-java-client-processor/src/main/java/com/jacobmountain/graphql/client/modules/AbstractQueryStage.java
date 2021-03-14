@@ -10,9 +10,7 @@ import com.jacobmountain.graphql.client.visitor.Parameter;
 import com.squareup.javapoet.*;
 import graphql.language.ObjectTypeDefinition;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractQueryStage extends AbstractStage {
@@ -32,6 +30,24 @@ public abstract class AbstractQueryStage extends AbstractStage {
         this.subscription = schema.getSubscriptionTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
         this.queryGenerator = queryGenerator;
     }
+
+    protected TypeName getFetcherTypeName(Class<?> fetcher) {
+        return ParameterizedTypeName.get(
+                ClassName.get(fetcher),
+                query,
+                mutation,
+                TypeVariableName.get("Error")
+        );
+    }
+
+    protected TypeName getSubscriberTypeName(Class<?> fetcher) {
+        return ParameterizedTypeName.get(
+                ClassName.get(fetcher),
+                subscription,
+                TypeVariableName.get("Error")
+        );
+    }
+
 
     @Override
     public List<String> getTypeArguments() {
@@ -57,7 +73,7 @@ public abstract class AbstractQueryStage extends AbstractStage {
         return method;
     }
 
-    protected CodeBlock generateQueryCode(String request, MethodDetails method) {
+    protected CodeBlock generateQueryCode(String request, MethodDetails method, CodeBlock... additionalArgs) {
         Set<String> params = method.getParameters()
                 .stream()
                 .map(Parameter::getField)
@@ -82,9 +98,16 @@ public abstract class AbstractQueryStage extends AbstractStage {
                 )
                 .maxDepth(method.getMaxDepth())
                 .build(request, method.getField(), params);
-        return CodeBlock.of(
-                "(\"$L\", $L)", query, method.hasParameters() ? "args" : "null"
-        );
+
+        List<CodeBlock> args = new ArrayList<>();
+        args.add(CodeBlock.of("\n\"$L\"", query));
+        args.add(CodeBlock.of("\n$L", method.hasParameters() ? "args" : "null"));
+        args.addAll(Arrays.asList(additionalArgs));
+        return CodeBlock.builder()
+                .add("(")
+                .add(CodeBlock.join(args, ", "))
+                .add(")")
+                .build();
     }
 
 }

@@ -122,8 +122,10 @@ public class DefaultService implements StarWarsService {
                 .doOnNext(it -> log.info("Emitted {}", it));
     }
 
-    @Override
-    public Review createRandomReview(Episode episode) {
-        return this.createReview(episode, randomReview(episode));
+    public Review createRandomReview(int id, Episode episode) {
+        log.info("Creating review {}", id);
+        final Review review = randomReview(episode);
+        review.setId(id);
+        return this.createReview(episode, review);
     }
 }

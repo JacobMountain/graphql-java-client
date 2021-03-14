@@ -4,6 +4,7 @@ import com.jacobmountain.dto.LengthUnit
 import com.jacobmountain.dto.ReviewInput
 import com.jacobmountain.fetchers.RestTemplateFetcher
 import com.jacobmountain.fetchers.SpyFetcher
+import com.jacobmountain.graphql.client.Subscriber
 import com.jacobmountain.resolvers.dto.Episode
 import com.jacobmountain.resolvers.dto.Review
 import com.jacobmountain.service.DefaultService
@@ -36,7 +37,7 @@ class ClientSpec extends Specification {
 
     def setup() {
         fetcher = new SpyFetcher(new RestTemplateFetcher("http://localhost:$port"))
-        client = new StarWarsClientGraph(fetcher)
+        client = new StarWarsClientGraph(fetcher, Mock(Subscriber))
     }
 
     def "I can get a query with an argument"() {
