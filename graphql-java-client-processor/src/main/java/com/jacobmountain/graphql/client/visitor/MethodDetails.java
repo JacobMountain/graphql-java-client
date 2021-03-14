@@ -14,6 +14,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Builder
 public class MethodDetails {
@@ -99,6 +100,17 @@ public class MethodDetails {
         } else {
             return type.toString();
         }
+    }
+
+    public boolean returnsClass(Class<?> clazz, Class<?>... nested) {
+        if (returnType instanceof ParameterizedTypeName) {
+            final ParameterizedTypeName returnType = (ParameterizedTypeName) this.returnType;
+            return returnType.rawType.equals(ClassName.get(clazz)) &&
+                    Stream.of(nested)
+                            .map(ClassName::get)
+                            .allMatch(returnType.typeArguments::contains);
+        }
+        return returnType.equals(ClassName.get(clazz)) && nested.length == 0;
     }
 
 }

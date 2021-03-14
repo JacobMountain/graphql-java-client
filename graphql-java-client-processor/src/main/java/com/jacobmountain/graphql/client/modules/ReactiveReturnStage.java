@@ -7,15 +7,13 @@ import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.ParameterizedTypeName;
 import graphql.language.ObjectTypeDefinition;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ReactiveReturnStage extends AbstractStage {
 
@@ -43,39 +41,24 @@ public class ReactiveReturnStage extends AbstractStage {
         ret.add(CodeBlock.of("map($T::$L)",
                 typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", method.getField()))
         );
-        if (!returnsPublisher(method)) {
-            ret.add(CodeBlock.of("blockOptional()"));
-            if (!returnsOptional(method)) {
-                ret.add(CodeBlock.of("orElse(null)"));
-            }
-        } else if (returnsClass(method, Flux.class) && !method.isSubscription()) {
-            ret.add(CodeBlock.of("flatMapIterable($T.identity())", Function.class));
-        } else if (returnsClass(method, Mono.class, Void.class)) {
-            ret.add(CodeBlock.of("then()"));
-        }
+
+        unwrapReturnType(method).ifPresent(ret::add);
+
         return Collections.singletonList(CodeBlock.join(ret, "\n\t."));
     }
 
-    private boolean returnsPublisher(MethodDetails details) {
-        return returnsClass(details, Mono.class) || returnsClass(details, Flux.class);
-    }
-
-    private boolean returnsClass(MethodDetails details, Class<?> clazz) {
-        return details.getReturnType() instanceof ParameterizedTypeName &&
-                ((ParameterizedTypeName) details.getReturnType()).rawType.equals(ClassName.get(clazz));
-    }
-
-    private boolean returnsClass(MethodDetails details, Class<?> clazz, Class<?>... nested) {
-        return returnsClass(details, clazz) &&
-                ((ParameterizedTypeName) details.getReturnType()).typeArguments.equals(
-                        Stream.of(nested)
-                                .map(ClassName::get)
-                                .collect(Collectors.toList())
-                );
-    }
-
-    private boolean returnsOptional(MethodDetails details) {
-        return returnsClass(details, Optional.class);
+    private Optional<CodeBlock> unwrapReturnType(MethodDetails method) {
+        if (method.returnsClass(Mono.class, Void.class)) {
+            return Optional.of(CodeBlock.of("then()"));
+        } else if (method.returnsClass(Flux.class) && !method.isSubscription()) {
+            return Optional.of(CodeBlock.of("flatMapIterable($T.identity())", Function.class));
+        } else if (method.returnsClass(Optional.class)) {
+            return Optional.of(CodeBlock.of("blockOptional()"));
+        } else if (method.returnsClass(Mono.class) || method.returnsClass(Flux.class) || method.returnsClass(Publisher.class)) {
+            return Optional.empty();
+        } else {
+            return Optional.of(CodeBlock.of("block()"));
+        }
     }
 
 }

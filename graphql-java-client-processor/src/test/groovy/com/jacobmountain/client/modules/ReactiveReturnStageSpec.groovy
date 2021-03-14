@@ -68,7 +68,7 @@ class ReactiveReturnStageSpec extends Specification {
         def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
 
         then:
-        renderBlocks(blocks).endsWith(".blockOptional().orElse(null);")
+        renderBlocks(blocks).endsWith(".block();")
     }
 
     def "Fluxs are flatmapped"() {
