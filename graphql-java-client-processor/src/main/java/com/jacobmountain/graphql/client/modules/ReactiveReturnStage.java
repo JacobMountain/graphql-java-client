@@ -12,10 +12,15 @@ import graphql.language.ObjectTypeDefinition;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class ReactiveReturnStage extends AbstractStage {
+
+    public static final ClassName RESPONSE_CLASS_NAME = ClassName.get(Response.class);
 
     public ReactiveReturnStage(Schema schema, TypeMapper typeMapper) {
         super(schema, typeMapper);
@@ -24,12 +29,11 @@ public class ReactiveReturnStage extends AbstractStage {
     @Override
     public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
         ObjectTypeDefinition typeDefinition = getTypeDefinition(method);
-        List<CodeBlock> ret = new ArrayList<>(
-                Arrays.asList(
-                        CodeBlock.of("return $T.from(thing)", method.isSubscription() ? Flux.class : Mono.class),
-                        CodeBlock.of("map($T::getData)", ClassName.get(Response.class)),
-                        CodeBlock.of("map($T::$L)", typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", method.getField()))
-                )
+        List<CodeBlock> ret = new ArrayList<>();
+        ret.add(CodeBlock.of("return $T.from(thing)", method.isSubscription() ? Flux.class : Mono.class));
+        ret.add(CodeBlock.of("map($T::getData)", RESPONSE_CLASS_NAME));
+        ret.add(CodeBlock.of("map($T::$L)",
+                typeMapper.getType(typeDefinition.getName()), StringUtils.camelCase("get", method.getField()))
         );
         if (!returnsPublisher(method)) {
             ret.add(CodeBlock.of("blockOptional()"));

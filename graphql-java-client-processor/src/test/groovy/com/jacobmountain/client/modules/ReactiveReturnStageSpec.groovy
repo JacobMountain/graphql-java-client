@@ -3,20 +3,24 @@ package com.jacobmountain.client.modules
 import com.jacobmountain.graphql.client.TypeMapper
 import com.jacobmountain.graphql.client.dto.Response
 import com.jacobmountain.graphql.client.modules.ClientDetails
-import com.jacobmountain.graphql.client.modules.OptionalReturnStage
+import com.jacobmountain.graphql.client.modules.ReactiveReturnStage
 import com.jacobmountain.graphql.client.utils.Schema
 import com.jacobmountain.graphql.client.visitor.MethodDetails
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import spock.lang.Specification
+
+import java.util.function.Function
 
 import static com.jacobmountain.client.modules.CodeBlockUtils.renderBlocks
 
-class OptionalReturnStageSpec extends Specification {
+class ReactiveReturnStageSpec extends Specification {
 
     TypeMapper typeMapper = new TypeMapper("com.test")
 
-    OptionalReturnStage stage = new OptionalReturnStage(new Schema("""
+    ReactiveReturnStage stage = new ReactiveReturnStage(new Schema("""
             schema {
                 query: Query
             }
@@ -25,21 +29,22 @@ class OptionalReturnStageSpec extends Specification {
             }
         """), typeMapper)
 
-    def "void return types don't generate any code"() {
-        given: "a void return type"
+    def "Publisher return types are mapped"() {
+        given: "a mono return type"
         MethodDetails methodDetails = MethodDetails.builder()
-                .returnType(ClassName.VOID)
+                .returnType(ParameterizedTypeName.get(ClassName.get(Mono.class), ClassName.get(String.class)))
+                .field("field")
                 .build()
 
         when:
         def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
 
-        then: "there shouldn't be any "
-        blocks.isEmpty()
+        then:
+        renderBlocks(blocks) == "return ${Mono.class.name}.from(thing).map(${Response.class.name}::getData).map(com.test.Query::getField);"
     }
 
-    def "Optional return types are mapped"() {
-        given: "an optional return type"
+    def "Optional return types are blocked"() {
+        given: "a mono return type"
         MethodDetails methodDetails = MethodDetails.builder()
                 .returnType(ParameterizedTypeName.get(ClassName.get(Optional.class), ClassName.get(String.class)))
                 .field("field")
@@ -49,11 +54,11 @@ class OptionalReturnStageSpec extends Specification {
         def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
 
         then:
-        renderBlocks(blocks) == "return ${Optional.class.name}.ofNullable(thing).map(${Response.class.name}::getData).map(com.test.Query::getField);"
+        renderBlocks(blocks).endsWith(".blockOptional();")
     }
 
-    def "non Optional return types are unwrapped"() {
-        given: "a non Optional return type"
+    def "Non publisher return types are blocked"() {
+        given: "a mono return type"
         MethodDetails methodDetails = MethodDetails.builder()
                 .returnType(ClassName.get(String.class))
                 .field("field")
@@ -63,6 +68,21 @@ class OptionalReturnStageSpec extends Specification {
         def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
 
         then:
-        renderBlocks(blocks).endsWith(".map(com.test.Query::getField).orElse(null);")
+        renderBlocks(blocks).endsWith(".blockOptional().orElse(null);")
     }
+
+    def "Fluxs are flatmapped"() {
+        given: "a mono return type"
+        MethodDetails methodDetails = MethodDetails.builder()
+                .returnType(ParameterizedTypeName.get(ClassName.get(Flux.class), ClassName.get(String.class)))
+                .field("field")
+                .build()
+
+        when:
+        def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
+
+        then:
+        renderBlocks(blocks).endsWith(".flatMapIterable(${Function.class.name}.identity());")
+    }
+
 }
