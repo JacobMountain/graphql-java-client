@@ -53,28 +53,28 @@ public class BlockingQueryStage extends AbstractQueryStage {
     public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
         String member = method.isSubscription() ? "subscriber" : "fetcher";
         ObjectTypeDefinition query = getTypeDefinition(method);
+        final CodeBlock.Builder builder = CodeBlock.builder();
+        CodeBlock queryCode;
         if (method.isSubscription()) {
-            final CodeBlock unwrapLambda = CodeBlock.builder()
-                    .add("subscription -> ")
-                    .add("$T.ofNullable(subscription)", Optional.class)
-                    .add(".map($T::getData)", RESPONSE_CLASS_NAME)
-                    .add(".map($T::$L)", typeMapper.getType(query.getName()), StringUtils.camelCase("get", method.getField()))
-                    .add(".ifPresent(callback)")
-                    .build();
-            final CodeBlock queryCode = generateQueryCode(method.getRequestName(), method, unwrapLambda);
-            return Collections.singletonList(
-                    CodeBlock.builder()
-                            .add("$L.$L", member, getMethod(method)).add(queryCode)
-                            .build()
-            );
+            final CodeBlock unwrapLambda = unwrapResponseLambda(query, method);
+            queryCode = generateQueryCode(method.getRequestName(), method, unwrapLambda);
+        } else {
+            queryCode = generateQueryCode(method.getRequestName(), method);
+            builder.add("$T thing = ", ParameterizedTypeName.get(RESPONSE_CLASS_NAME, typeMapper.getType(query.getName()), TypeVariableName.get("Error")));
         }
-        final CodeBlock queryCode = generateQueryCode(method.getRequestName(), method);
         return Collections.singletonList(
-                CodeBlock.builder()
-                        .add("$T thing = ", ParameterizedTypeName.get(ClassName.get(Response.class), typeMapper.getType(query.getName()), TypeVariableName.get("Error")))
-                        .add("$L.$L", member, getMethod(method)).add(queryCode)
-                        .build()
+                builder.add("$L.$L", member, getMethod(method)).add(queryCode).build()
         );
+    }
+
+    private CodeBlock unwrapResponseLambda(ObjectTypeDefinition query, MethodDetails method) {
+        return CodeBlock.builder()
+                .add("subscription -> ")
+                .add("$T.ofNullable(subscription)", Optional.class)
+                .add(".map($T::getData)", RESPONSE_CLASS_NAME)
+                .add(".map($T::$L)", typeMapper.getType(query.getName()), StringUtils.camelCase("get", method.getField()))
+                .add(".ifPresent(callback)")
+                .build();
     }
 
 }
