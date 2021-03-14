@@ -70,6 +70,7 @@ class BlockingQueryStageSpec extends Specification {
                 .field("field")
                 .selection([])
                 .subscription(true)
+                .subscriptionCallback("callback")
                 .build())
         def code = renderBlocks(blocks)
 
