@@ -1,10 +1,10 @@
-package com.jacobmountain.client.modules
+package com.jacobmountain.client.modules.blocking
 
 import com.jacobmountain.graphql.client.TypeMapper
+import com.jacobmountain.graphql.client.code.blocking.OptionalReturnStage
 import com.jacobmountain.graphql.client.dto.Response
-import com.jacobmountain.graphql.client.modules.ClientDetails
-import com.jacobmountain.graphql.client.modules.OptionalReturnStage
 import com.jacobmountain.graphql.client.utils.Schema
+import com.jacobmountain.graphql.client.visitor.ClientDetails
 import com.jacobmountain.graphql.client.visitor.MethodDetails
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
@@ -39,7 +39,7 @@ class OptionalReturnStageSpec extends Specification {
         def blocks = stage.assemble(Mock(ClientDetails), methodDetails)
 
         then: "there shouldn't be any "
-        blocks.isEmpty()
+        !blocks.isPresent()
     }
 
     def "void return types are only supported on mutations"() {

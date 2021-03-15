@@ -1,14 +1,12 @@
-package com.jacobmountain.client.modules
+package com.jacobmountain.client.modules.reactive
 
-import com.jacobmountain.graphql.client.ReactiveFetcher
-import com.jacobmountain.graphql.client.ReactiveSubscriber
+
 import com.jacobmountain.graphql.client.TypeMapper
+import com.jacobmountain.graphql.client.code.reactive.ReactiveQueryStage
 import com.jacobmountain.graphql.client.dto.Response
-import com.jacobmountain.graphql.client.modules.AbstractStage
-import com.jacobmountain.graphql.client.modules.ClientDetails
-import com.jacobmountain.graphql.client.modules.ReactiveQueryStage
 import com.jacobmountain.graphql.client.query.QueryGenerator
 import com.jacobmountain.graphql.client.utils.Schema
+import com.jacobmountain.graphql.client.visitor.ClientDetails
 import com.jacobmountain.graphql.client.visitor.MethodDetails
 import org.reactivestreams.Publisher
 import spock.lang.Specification
@@ -37,8 +35,7 @@ class ReactiveQueryStageSpec extends Specification {
             type Mutation { }
             type Subscription { }
             """),
-            new TypeMapper("com.test"),
-            "com.test"
+            new TypeMapper("com.test")
     )
 
     def "We can generate the code for a query"() {
@@ -76,34 +73,6 @@ class ReactiveQueryStageSpec extends Specification {
         renderBlocks(blocks) == """${Publisher.class.getName()}<${Response.class.getName()}<com.test.Subscription, Error>> thing = subscriber.subscribe("query", null);"""
     }
 
-    def "The reactive client class is generated with the correct member variables"() {
-        when:
-        def members = stage.getMemberVariables(
-                ClientDetails.builder()
-                        .requiresFetcher(requiresFetcher)
-                        .requiresSubscriber(requiresSubscriber)
-                        .build()
-        )
 
-        then:
-        members.size() == (requiresFetcher ? 1 : 0) + (requiresSubscriber ? 1 : 0)
-        getMemberVariable("fetcher", members)
-                .map { it -> it.type.toString() == "${ReactiveFetcher.class.getName()}<com.test.Query, com.test.Mutation, Error>" }
-                .orElse(true)
-        getMemberVariable("subscriber", members)
-                .map { it -> it.type.toString() == "${ReactiveSubscriber.class.getName()}<com.test.Subscription, Error>" }
-                .orElse(true)
-
-        where:
-        requiresFetcher | requiresSubscriber
-        true            | true
-        true            | false
-        false           | true
-        false           | false
-    }
-
-    static Optional<AbstractStage.MemberVariable> getMemberVariable(String name, List<AbstractStage.MemberVariable> variables) {
-        Optional.ofNullable(variables.find { it.name == name })
-    }
 
 }

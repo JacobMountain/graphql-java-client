@@ -3,7 +3,6 @@ package com.jacobmountain.graphql.client.visitor;
 import com.jacobmountain.graphql.client.annotations.GraphQLMutation;
 import com.jacobmountain.graphql.client.annotations.GraphQLQuery;
 import com.jacobmountain.graphql.client.annotations.GraphQLSubscription;
-import com.jacobmountain.graphql.client.modules.ClientDetails;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;

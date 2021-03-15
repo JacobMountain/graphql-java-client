@@ -1,7 +1,7 @@
 package com.jacobmountain.client.modules
 
-import com.jacobmountain.graphql.client.modules.ArgumentAssemblyStage
-import com.jacobmountain.graphql.client.modules.ClientDetails
+import com.jacobmountain.graphql.client.code.ArgumentAssemblyStage
+import com.jacobmountain.graphql.client.visitor.ClientDetails
 import com.jacobmountain.graphql.client.visitor.MethodDetails
 import com.jacobmountain.graphql.client.visitor.Parameter
 import spock.lang.Specification
@@ -18,10 +18,9 @@ class ArgumentAssemblyStageSpec extends Specification {
                 .parameters([])
                 .build()
         )
-        def code = renderBlocks(blocks).split(";")
 
         then:
-        renderBlocks(blocks).split(";") == []
+        !blocks.isPresent()
     }
 
     def "When there's a parameter, we should set it"() {

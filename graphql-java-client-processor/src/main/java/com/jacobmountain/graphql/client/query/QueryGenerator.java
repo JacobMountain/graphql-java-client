@@ -4,6 +4,7 @@ import com.jacobmountain.graphql.client.exceptions.FieldNotFoundException;
 import com.jacobmountain.graphql.client.query.filters.*;
 import com.jacobmountain.graphql.client.query.selectors.DefaultFieldSelector;
 import com.jacobmountain.graphql.client.query.selectors.DelegatingFieldSelector;
+import com.jacobmountain.graphql.client.query.selectors.FieldSelector;
 import com.jacobmountain.graphql.client.query.selectors.InlineFragmentRenderer;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
@@ -19,8 +20,14 @@ public class QueryGenerator {
 
     private final Schema schema;
 
+    private final FieldSelector fieldSelector;
+
     public QueryGenerator(Schema registry) {
         this.schema = registry;
+        this.fieldSelector = new DelegatingFieldSelector(
+                new DefaultFieldSelector(schema, this),
+                new InlineFragmentRenderer(schema, this)
+        );
     }
 
     public QueryBuilder query() {
@@ -64,7 +71,7 @@ public class QueryGenerator {
         String type = Schema.unwrap(context.getFieldDefinition().getType());
         TypeDefinition<?> typeDefinition = schema.getTypeDefinition(type).orElse(null);
 
-        if (!filters.stream().allMatch(fi -> fi.shouldAddField(context))) {
+        if (!filters.stream().allMatch(filter -> filter.shouldAddField(context))) {
             return Optional.empty();
         }
 
@@ -73,11 +80,7 @@ public class QueryGenerator {
             return Optional.of(alias + args);
         }
 
-        return new DelegatingFieldSelector(
-                new DefaultFieldSelector(schema, this),
-                new InlineFragmentRenderer(schema, this)
-        )
-                .selectFields(typeDefinition, context, filters)
+        return fieldSelector.selectFields(typeDefinition, context, filters)
                 .map(children -> alias + args + " " + children)
                 .findFirst();
     }

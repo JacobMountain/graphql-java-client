@@ -1,4 +1,4 @@
-package com.jacobmountain.graphql.client.modules;
+package com.jacobmountain.graphql.client.visitor;
 
 import lombok.Builder;
 

@@ -36,4 +36,5 @@ public class QueryContext {
     public void newArg(String arg) {
         args.add(arg);
     }
+
 }

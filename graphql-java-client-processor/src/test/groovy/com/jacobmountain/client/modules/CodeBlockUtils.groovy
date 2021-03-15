@@ -4,11 +4,9 @@ import com.squareup.javapoet.CodeBlock
 
 class CodeBlockUtils {
 
-    static def renderBlocks(List<CodeBlock> blocks) {
-        blocks.collect { block ->
-            block.toString()
-                    .replaceAll("\\t|\\n", "")
-        }.join(";") + ";"
+    static def renderBlocks(Optional<CodeBlock> blocks) {
+        blocks.get().toString()
+                .replaceAll("\\t|\\n", "") + ";"
     }
 
 }

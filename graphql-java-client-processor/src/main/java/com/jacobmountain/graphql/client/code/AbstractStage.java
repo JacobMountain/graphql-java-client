@@ -1,17 +1,14 @@
-package com.jacobmountain.graphql.client.modules;
+package com.jacobmountain.graphql.client.code;
 
 import com.jacobmountain.graphql.client.TypeMapper;
 import com.jacobmountain.graphql.client.utils.Schema;
+import com.jacobmountain.graphql.client.visitor.ClientDetails;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.TypeName;
 import graphql.language.ObjectTypeDefinition;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public abstract class AbstractStage {
@@ -20,17 +17,7 @@ public abstract class AbstractStage {
 
     protected final TypeMapper typeMapper;
 
-    public List<MemberVariable> getMemberVariables(ClientDetails details) {
-        return Collections.emptyList();
-    }
-
-    public List<String> getTypeArguments() {
-        return Collections.emptyList();
-    }
-
-    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
-        return Collections.emptyList();
-    }
+    public abstract Optional<CodeBlock> assemble(ClientDetails client, MethodDetails method);
 
     protected ObjectTypeDefinition getTypeDefinition(MethodDetails details) {
         if (details.isQuery()) {
@@ -40,16 +27,6 @@ public abstract class AbstractStage {
         } else {
             return schema.getSubscription();
         }
-    }
-
-    @Value
-    @Builder
-    public static class MemberVariable {
-
-        String name;
-
-        TypeName type;
-
     }
 
 }

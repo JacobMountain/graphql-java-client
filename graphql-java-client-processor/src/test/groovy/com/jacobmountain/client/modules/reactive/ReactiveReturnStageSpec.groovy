@@ -1,10 +1,10 @@
-package com.jacobmountain.client.modules
+package com.jacobmountain.client.modules.reactive
 
 import com.jacobmountain.graphql.client.TypeMapper
+import com.jacobmountain.graphql.client.code.reactive.ReactiveReturnStage
 import com.jacobmountain.graphql.client.dto.Response
-import com.jacobmountain.graphql.client.modules.ClientDetails
-import com.jacobmountain.graphql.client.modules.ReactiveReturnStage
 import com.jacobmountain.graphql.client.utils.Schema
+import com.jacobmountain.graphql.client.visitor.ClientDetails
 import com.jacobmountain.graphql.client.visitor.MethodDetails
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName

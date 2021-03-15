@@ -25,8 +25,9 @@ public class DelegatingFieldSelector implements FieldSelector {
                 .reduce((a, b) -> String.join(" ", a, b))
                 .map(children -> "{ " +
                         children +
-                        " __typename" +
-                        " }")
+                        " __typename " +
+                        "}"
+                )
                 .map(Stream::of)
                 .orElseGet(Stream::empty);
     }

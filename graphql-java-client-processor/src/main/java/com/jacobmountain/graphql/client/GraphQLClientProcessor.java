@@ -2,6 +2,7 @@ package com.jacobmountain.graphql.client;
 
 import com.google.auto.service.AutoService;
 import com.jacobmountain.graphql.client.annotations.GraphQLClient;
+import com.jacobmountain.graphql.client.code.ClientGenerator;
 import com.jacobmountain.graphql.client.exceptions.SchemaNotFoundException;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
@@ -87,7 +88,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
     private void generateClientImplementation(Input client) {
         GraphQLClient annotation = client.getAnnotation();
         log.info("Generating java implementation of {}", client.element.getSimpleName());
-        new ClientGenerator(this.filer, client.getTypeMapper(), client.getPackage(), client.getDtoPackage(), client.getSchema(), annotation.reactive())
+        new ClientGenerator(this.filer, client.getTypeMapper(), client.getPackage(), client.getSchema(), annotation.reactive())
                 .generate(client.element, annotation.implSuffix());
     }
 

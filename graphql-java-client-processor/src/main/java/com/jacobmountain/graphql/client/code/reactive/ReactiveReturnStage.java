@@ -1,9 +1,11 @@
-package com.jacobmountain.graphql.client.modules;
+package com.jacobmountain.graphql.client.code.reactive;
 
 import com.jacobmountain.graphql.client.TypeMapper;
+import com.jacobmountain.graphql.client.code.AbstractStage;
 import com.jacobmountain.graphql.client.dto.Response;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
+import com.jacobmountain.graphql.client.visitor.ClientDetails;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -12,7 +14,10 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class ReactiveReturnStage extends AbstractStage {
@@ -24,12 +29,12 @@ public class ReactiveReturnStage extends AbstractStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+    public Optional<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
         if (ClassName.VOID.equals(method.getReturnType())) {
             if (!method.isMutation()) {
                 throw new IllegalArgumentException("void return type on a non mutation method");
             }
-            return Collections.singletonList(
+            return Optional.of(
                     CodeBlock.of("$T.from(thing).block()", method.isSubscription() ? Flux.class : Mono.class)
             );
         }
@@ -47,7 +52,7 @@ public class ReactiveReturnStage extends AbstractStage {
 
         unwrapReturnType(method).ifPresent(ret::add);
 
-        return Collections.singletonList(CodeBlock.join(ret, "\n\t."));
+        return Optional.of(CodeBlock.join(ret, "\n\t."));
     }
 
     private Optional<CodeBlock> unwrapReturnType(MethodDetails method) {
