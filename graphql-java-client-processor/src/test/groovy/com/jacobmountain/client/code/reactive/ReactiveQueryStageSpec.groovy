@@ -1,4 +1,4 @@
-package com.jacobmountain.client.modules.reactive
+package com.jacobmountain.client.code.reactive
 
 
 import com.jacobmountain.graphql.client.TypeMapper
@@ -11,7 +11,7 @@ import com.jacobmountain.graphql.client.visitor.MethodDetails
 import org.reactivestreams.Publisher
 import spock.lang.Specification
 
-import static com.jacobmountain.client.modules.CodeBlockUtils.renderBlocks
+import static com.jacobmountain.client.code.CodeBlockUtils.renderBlocks
 
 class ReactiveQueryStageSpec extends Specification {
 

@@ -10,17 +10,19 @@ import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
 import com.jacobmountain.graphql.client.visitor.ClientDetails;
 import com.jacobmountain.graphql.client.visitor.ClientDetailsVisitor;
+import com.jacobmountain.graphql.client.visitor.ClientDetailsVisitorArgs;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
-import com.jacobmountain.graphql.client.visitor.MethodDetailsVisitor;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +41,7 @@ public class ClientGenerator {
 
     private final Schema schema;
 
-    private final Assembler module;
+    private final Assembler assembler;
 
     public ClientGenerator(Filer filer, TypeMapper typeMapper, String packageName, Schema schema, boolean reactive) {
         this.filer = filer;
@@ -48,9 +50,9 @@ public class ClientGenerator {
         this.schema = schema;
         QueryGenerator queryGenerator = new QueryGenerator(schema);
         if (reactive) {
-            this.module = new ReactiveAssembler(queryGenerator, schema, typeMapper);
+            this.assembler = new ReactiveAssembler(queryGenerator, schema, typeMapper);
         } else {
-            this.module = new BlockingAssembler(queryGenerator, schema, typeMapper);
+            this.assembler = new BlockingAssembler(queryGenerator, schema, typeMapper);
         }
     }
 
@@ -60,26 +62,28 @@ public class ClientGenerator {
      * @param element the Element that has the @GraphQLClient on
      * @param suffix  the implementations suffix
      */
-    @SneakyThrows
-    public void generate(Element element, String suffix) {
+    public void generate(Element element, String suffix) throws IOException {
         if (StringUtils.isEmpty(suffix)) {
             throw new IllegalArgumentException("Invalid suffix for implementation of client: " + element.getSimpleName());
         }
-        ClientDetails client = element.accept(new ClientDetailsVisitor(), null);
+        ClientDetails client = element.accept(
+                new ClientDetailsVisitor(),
+                new ClientDetailsVisitorArgs(schema, typeMapper)
+        );
 
         // Generate the class
-        TypeSpec.Builder builder = TypeSpec.classBuilder(element.getSimpleName() + suffix)
-                .addSuperinterface(ClassName.get((TypeElement) element))
+        TypeSpec.Builder builder = TypeSpec.classBuilder(client.getName() + suffix)
+                .addSuperinterface(client.getClientInterface())
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(AnnotationUtils.generated());
 
         // Add type arguments to the client
-        for (TypeVariableName typeVariableName : this.module.getTypeArguments()) {
+        for (TypeVariableName typeVariableName : this.assembler.getTypeArguments()) {
             builder.addTypeVariable(typeVariableName);
         }
 
         // Add any necessary member variables to the client
-        List<MemberVariable> memberVariables = module.getMemberVariables(client);
+        List<MemberVariable> memberVariables = assembler.getMemberVariables(client);
         for (MemberVariable memberVariable : memberVariables) {
             builder.addField(
                     memberVariable.getType(), memberVariable.getName(), Modifier.PRIVATE, Modifier.FINAL
@@ -90,7 +94,7 @@ public class ClientGenerator {
         builder.addMethod(generateConstructor(memberVariables));
 
         // for each method on the interface, generate its implementation
-        for (Element method : element.getEnclosedElements()) {
+        for (MethodDetails method : client.getMethods()) {
             generateMethodImplementation(builder, method, client);
         }
 
@@ -114,20 +118,19 @@ public class ClientGenerator {
      *
      * @param method the method of the @GraphQLClient annotated interface
      */
-    private void generateMethodImplementation(TypeSpec.Builder clazz, Element method, ClientDetails client) {
+    private void generateMethodImplementation(TypeSpec.Builder clazz, MethodDetails method, ClientDetails client) {
         log.info("");
-        MethodDetails details = method.accept(new MethodDetailsVisitor(schema), typeMapper);
-        log.info("{}", details);
+        log.info("{}", method);
 
-        generateArgumentDTO(details)
+        generateArgumentDTO(method)
                 .ifPresent(clazz::addType);
 
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
-                .returns(details.getReturnType())
+        MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getMethodName())
+                .returns(method.getReturnType())
                 .addModifiers(Modifier.PUBLIC)
-                .addParameters(details.getParameterSpec());
+                .addParameters(method.getParameterSpec());
 
-        this.module.assemble(client, details).forEach(builder::addStatement);
+        this.assembler.assemble(client, method).forEach(builder::addStatement);
 
         clazz.addMethod(builder.build());
     }
@@ -150,7 +153,7 @@ public class ClientGenerator {
                 });
     }
 
-    private void writeToFile(TypeSpec spec) throws Exception {
+    private void writeToFile(TypeSpec spec) throws IOException {
         JavaFile.builder(packageName, spec)
                 .indent("\t")
                 .skipJavaLangImports(true)

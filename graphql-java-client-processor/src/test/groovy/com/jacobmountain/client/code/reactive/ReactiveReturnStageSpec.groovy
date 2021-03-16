@@ -1,4 +1,4 @@
-package com.jacobmountain.client.modules.reactive
+package com.jacobmountain.client.code.reactive
 
 import com.jacobmountain.graphql.client.TypeMapper
 import com.jacobmountain.graphql.client.code.reactive.ReactiveReturnStage
@@ -14,7 +14,7 @@ import spock.lang.Specification
 
 import java.util.function.Function
 
-import static com.jacobmountain.client.modules.CodeBlockUtils.renderBlocks
+import static com.jacobmountain.client.code.CodeBlockUtils.renderBlocks
 
 class ReactiveReturnStageSpec extends Specification {
 

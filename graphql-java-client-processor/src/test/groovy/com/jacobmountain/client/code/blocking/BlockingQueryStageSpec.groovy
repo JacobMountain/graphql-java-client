@@ -1,4 +1,4 @@
-package com.jacobmountain.client.modules.blocking
+package com.jacobmountain.client.code.blocking
 
 
 import com.jacobmountain.graphql.client.TypeMapper
@@ -10,7 +10,7 @@ import com.jacobmountain.graphql.client.visitor.ClientDetails
 import com.jacobmountain.graphql.client.visitor.MethodDetails
 import spock.lang.Specification
 
-import static com.jacobmountain.client.modules.CodeBlockUtils.renderBlocks
+import static com.jacobmountain.client.code.CodeBlockUtils.renderBlocks
 
 class BlockingQueryStageSpec extends Specification {
 

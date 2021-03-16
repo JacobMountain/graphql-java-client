@@ -1,4 +1,4 @@
-package com.jacobmountain.client.modules
+package com.jacobmountain.client.code
 
 import com.squareup.javapoet.CodeBlock
 

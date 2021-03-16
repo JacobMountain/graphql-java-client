@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, TypeMapper> {
+class MethodDetailsVisitor extends ElementKindVisitor8<MethodDetails, TypeMapper> {
 
     private final Schema schema;
 

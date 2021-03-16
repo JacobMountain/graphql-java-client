@@ -1,13 +1,24 @@
 package com.jacobmountain.graphql.client.visitor;
 
+import com.squareup.javapoet.ClassName;
 import lombok.Builder;
+import lombok.Data;
 
+import java.util.List;
+
+@Data
 @Builder
 public class ClientDetails {
 
-    private final boolean requiresSubscriber;
+    private String name;
 
-    private final boolean requiresFetcher;
+    private ClassName clientInterface;
+
+    private boolean requiresSubscriber;
+
+    private boolean requiresFetcher;
+
+    private List<MethodDetails> methods;
 
     public boolean requiresSubscriber() {
         return requiresSubscriber;

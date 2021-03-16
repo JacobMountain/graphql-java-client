@@ -1,4 +1,4 @@
-package com.jacobmountain.client.modules
+package com.jacobmountain.client.code
 
 import com.jacobmountain.graphql.client.*
 import com.jacobmountain.graphql.client.code.Assembler

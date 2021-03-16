@@ -1,4 +1,4 @@
-package com.jacobmountain.client.modules.blocking
+package com.jacobmountain.client.code.blocking
 
 import com.jacobmountain.graphql.client.TypeMapper
 import com.jacobmountain.graphql.client.code.blocking.OptionalReturnStage
@@ -10,7 +10,7 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
 import spock.lang.Specification
 
-import static com.jacobmountain.client.modules.CodeBlockUtils.renderBlocks
+import static com.jacobmountain.client.code.CodeBlockUtils.renderBlocks
 
 class OptionalReturnStageSpec extends Specification {
 
