@@ -1,10 +1,10 @@
-package com.jacobmountain.client.modules
+package com.jacobmountain.client.code.reactive
 
 import com.jacobmountain.graphql.client.TypeMapper
+import com.jacobmountain.graphql.client.code.reactive.ReactiveReturnStage
 import com.jacobmountain.graphql.client.dto.Response
-import com.jacobmountain.graphql.client.modules.ClientDetails
-import com.jacobmountain.graphql.client.modules.ReactiveReturnStage
 import com.jacobmountain.graphql.client.utils.Schema
+import com.jacobmountain.graphql.client.visitor.ClientDetails
 import com.jacobmountain.graphql.client.visitor.MethodDetails
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
@@ -14,7 +14,7 @@ import spock.lang.Specification
 
 import java.util.function.Function
 
-import static com.jacobmountain.client.modules.CodeBlockUtils.renderBlocks
+import static com.jacobmountain.client.code.CodeBlockUtils.renderBlocks
 
 class ReactiveReturnStageSpec extends Specification {
 

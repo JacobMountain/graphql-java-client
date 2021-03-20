@@ -1,4 +1,4 @@
-package com.jacobmountain.graphql.client.modules;
+package com.jacobmountain.graphql.client.code;
 
 import com.jacobmountain.graphql.client.TypeMapper;
 import com.jacobmountain.graphql.client.dto.Response;
@@ -10,48 +10,19 @@ import com.jacobmountain.graphql.client.visitor.Parameter;
 import com.squareup.javapoet.*;
 import graphql.language.ObjectTypeDefinition;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class AbstractQueryStage extends AbstractStage {
 
-    protected final TypeName query;
-
-    protected final TypeName mutation;
-
-    protected final TypeName subscription;
-
     private final QueryGenerator queryGenerator;
 
-    public AbstractQueryStage(QueryGenerator queryGenerator, Schema schema, TypeMapper typeMapper, String dtoPackageName) {
+    public AbstractQueryStage(QueryGenerator queryGenerator, Schema schema, TypeMapper typeMapper) {
         super(schema, typeMapper);
-        this.query = ClassName.get(dtoPackageName, schema.getQueryTypeName());
-        this.mutation = schema.getMutationTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
-        this.subscription = schema.getSubscriptionTypeName().map(it -> ClassName.get(dtoPackageName, it)).orElse(ClassName.get(Void.class));
         this.queryGenerator = queryGenerator;
-    }
-
-    protected TypeName getFetcherTypeName(Class<?> fetcher) {
-        return ParameterizedTypeName.get(
-                ClassName.get(fetcher),
-                query,
-                mutation,
-                TypeVariableName.get("Error")
-        );
-    }
-
-    protected TypeName getSubscriberTypeName(Class<?> fetcher) {
-        return ParameterizedTypeName.get(
-                ClassName.get(fetcher),
-                subscription,
-                TypeVariableName.get("Error")
-        );
-    }
-
-
-    @Override
-    public List<String> getTypeArguments() {
-        return Collections.singletonList("Error");
     }
 
     protected TypeName getReturnTypeName(MethodDetails details) {

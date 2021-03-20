@@ -1,6 +1,7 @@
-package com.jacobmountain.graphql.client.modules;
+package com.jacobmountain.graphql.client.code;
 
 import com.jacobmountain.graphql.client.utils.StringUtils;
+import com.jacobmountain.graphql.client.visitor.ClientDetails;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.jacobmountain.graphql.client.visitor.Parameter;
 import com.squareup.javapoet.ClassName;
@@ -8,9 +9,9 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 
 public class ArgumentAssemblyStage extends AbstractStage {
@@ -20,10 +21,10 @@ public class ArgumentAssemblyStage extends AbstractStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+    public Optional<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
         List<Parameter> parameters = method.getParameters();
         if (parameters.isEmpty()) {
-            return Collections.emptyList();
+            return Optional.empty();
         }
         List<CodeBlock> ret = new ArrayList<>();
         TypeName type = ClassName.bestGuess(method.getArgumentClassname());
@@ -32,7 +33,9 @@ public class ArgumentAssemblyStage extends AbstractStage {
                 .stream()
                 .map(this::setArgumentField)
                 .forEach(ret::add);
-        return ret;
+        return Optional.of(
+                CodeBlock.join(ret, ";")
+        );
     }
 
     private CodeBlock setArgumentField(Parameter param) {

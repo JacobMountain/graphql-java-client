@@ -1,9 +1,11 @@
-package com.jacobmountain.graphql.client.modules;
+package com.jacobmountain.graphql.client.code.blocking;
 
 import com.jacobmountain.graphql.client.TypeMapper;
+import com.jacobmountain.graphql.client.code.AbstractStage;
 import com.jacobmountain.graphql.client.dto.Response;
 import com.jacobmountain.graphql.client.utils.Schema;
 import com.jacobmountain.graphql.client.utils.StringUtils;
+import com.jacobmountain.graphql.client.visitor.ClientDetails;
 import com.jacobmountain.graphql.client.visitor.MethodDetails;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -11,7 +13,6 @@ import graphql.language.ObjectTypeDefinition;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,12 +26,12 @@ public class OptionalReturnStage extends AbstractStage {
     }
 
     @Override
-    public List<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
+    public Optional<CodeBlock> assemble(ClientDetails client, MethodDetails method) {
         if (ClassName.VOID.equals(method.getReturnType())) {
             if (method.isQuery()) {
                 throw new IllegalArgumentException("void return type on a non mutation method");
             }
-            return Collections.emptyList();
+            return Optional.empty();
         }
         ObjectTypeDefinition typeDefinition = getTypeDefinition(method);
         List<CodeBlock> ret = new ArrayList<>();
@@ -42,7 +43,7 @@ public class OptionalReturnStage extends AbstractStage {
         if (!method.returnsClass(Optional.class)) {
             ret.add(CodeBlock.of("orElse(null)"));
         }
-        return Collections.singletonList(CodeBlock.join(ret, "\n\t."));
+        return Optional.of(CodeBlock.join(ret, "\n\t."));
     }
 
 }
