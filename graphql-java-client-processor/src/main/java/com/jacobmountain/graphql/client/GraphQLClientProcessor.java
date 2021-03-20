@@ -3,12 +3,7 @@ package com.jacobmountain.graphql.client;
 import com.google.auto.service.AutoService;
 import com.jacobmountain.graphql.client.annotations.GraphQLClient;
 import com.jacobmountain.graphql.client.code.ClientGenerator;
-import com.jacobmountain.graphql.client.exceptions.SchemaNotFoundException;
-import com.jacobmountain.graphql.client.utils.Schema;
-import com.jacobmountain.graphql.client.utils.StringUtils;
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.processing.*;
@@ -19,10 +14,8 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +31,8 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
     private Filer filer;
 
+    private ClientGenerator clientGenerator;
+
     private Messager messager;
 
     private Path root;
@@ -47,6 +42,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         super.init(processingEnv);
         this.filer = processingEnv.getFiler();
         this.messager = processingEnv.getMessager();
+        this.clientGenerator = new ClientGenerator(this.filer);
     }
 
     @Override
@@ -60,7 +56,7 @@ public class GraphQLClientProcessor extends AbstractProcessor {
         }
         final List<Input> interfaces = elements.stream()
                 .map(el -> (TypeElement) el)
-                .map(Input::new)
+                .map(type -> new Input(type, getRoot(), processingEnv.getElementUtils().getPackageOf(type).toString()))
                 .collect(toList());
         interfaces.stream()
                 .filter(new OncePerSchemaPredicate())
@@ -87,10 +83,8 @@ public class GraphQLClientProcessor extends AbstractProcessor {
 
     @SneakyThrows
     private void generateClientImplementation(Input client) {
-        GraphQLClient annotation = client.getAnnotation();
-        log.info("Generating java implementation of {}", client.element.getSimpleName());
-        new ClientGenerator(this.filer, client.getTypeMapper(), client.getPackage(), client.getSchema(), annotation.reactive())
-                .generate(client.element, annotation.implSuffix());
+        log.info("Generating java implementation of {}", client.getElement().getSimpleName());
+        clientGenerator.generate(client);
     }
 
     @SneakyThrows
@@ -106,53 +100,6 @@ public class GraphQLClientProcessor extends AbstractProcessor {
             resource.delete();
         }
         return root;
-    }
-
-    @Value
-    @AllArgsConstructor
-    private class Input {
-
-        TypeElement element;
-
-        GraphQLClient getAnnotation() {
-            return element.getAnnotation(GraphQLClient.class);
-        }
-
-        TypeMapper getTypeMapper() {
-            return new TypeMapper(getDtoPackage(), getAnnotation().mapping());
-        }
-
-        String getDtoPackage() {
-            return String.join(".", Arrays.asList(
-                    getPackage(),
-                    getAnnotation().dtoPackage()
-            ));
-        }
-
-        String getPackage() {
-            return processingEnv.getElementUtils().getPackageOf(element).toString();
-        }
-
-        Schema getSchema() {
-            String value = getAnnotation().schema();
-            File file = getSchemaFile();
-            try {
-                if (StringUtils.hasLength(value)) {
-                    log.info("Reading schema {}", file);
-                    return new Schema(getSchemaFile());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            throw new SchemaNotFoundException(file.getPath());
-        }
-
-        File getSchemaFile() {
-            return getRoot().resolve(getAnnotation().schema())
-                    .toAbsolutePath()
-                    .toFile();
-        }
-
     }
 
 }
